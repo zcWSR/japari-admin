@@ -1,7 +1,9 @@
 {
   "sourceMaps": true,
   "highlightCode": true,
-  "presets": [
-    "@babel/preset-env",
-  ]
+  "presets": [["airbnb", {
+    "targets": {
+      "node": 7
+    }
+  }]]
 }

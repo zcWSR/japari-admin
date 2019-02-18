@@ -21,8 +21,8 @@ let port = 3000;
 if (!args.p && !args.port) {
   console.warn(`did not find port settings, use default port ${port}`);
 } else {
+  port = +(args.p || args.port);
   console.log(`use port ${port}`);
-  port = args.p || args.port;
 }
 
 

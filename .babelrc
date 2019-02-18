@@ -1,0 +1,7 @@
+{
+  "sourceMaps": true,
+  "highlightCode": true,
+  "presets": [
+    "@babel/preset-env",
+  ]
+}

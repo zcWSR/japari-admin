@@ -1,9 +1,18 @@
 {
   "sourceMaps": true,
   "highlightCode": true,
-  "presets": [["airbnb", {
-    "targets": {
-      "node": 7
-    }
-  }]]
+  "presets": [
+    [
+      "airbnb",
+      {
+        "targets": {
+          "node": 7
+        }
+      }
+    ]
+  ],
+  "plugins": [
+    ["@babel/plugin-proposal-decorators", { "legacy": true }],
+    ["@babel/plugin-proposal-class-properties", { "loose": true }]
+  ]
 }

@@ -1,7 +1,10 @@
 {
   "plugins": ["import"],
   "extends": "airbnb-base",
+  "parser": "babel-eslint",
   "rules": {
-    "no-param-reassign": 0
+    "no-param-reassign": 0,
+    "comma-dangle": 0,
+    "class-methods-use-this": 0
   }
 }

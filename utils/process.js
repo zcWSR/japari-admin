@@ -7,7 +7,7 @@ export const getProcessArgv = () => {
     const keyMatch = curr.match(/^-+(\w+)=?(.*)$/);
     if (!keyMatch) return prev;
     const [, key, value] = keyMatch;
-    prev[key] = value;
+    prev[key] = value || true;
     return prev;
   }, {});
 };

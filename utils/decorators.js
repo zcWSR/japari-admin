@@ -1,39 +1,44 @@
 import KoaRouter from 'koa-router';
+import logger from './logger';
 
-export const Router = (config) => {
-  const router = new KoaRouter(config);
-  return (target) => {
+export const Router = config => target => class extends target {
+  constructor(prefix) {
+    const instance = super(prefix);
+    this.prefix = prefix === '/' ? null : prefix;
+    this.router = new KoaRouter({ prefix, ...config });
     const targetMethods = Object.getOwnPropertyDescriptors(target.prototype);
     Object.keys(targetMethods).forEach((name) => {
-      if (name === 'constructor') return;
-      targetMethods[name].value(router);
+      const method = targetMethods[name];
+      if (name === 'constructor' || typeof method.value !== 'function') return;
+      instance[name](this.router);
     });
-    return router;
-  };
+  }
+
+  mount() {
+    logger.debug(`=== router${this.prefix ? ` '${this.prefix}'` : ''} loaded ===`);
+    return this.router.routes();
+  }
 };
 
 const methods = ['get', 'post', 'put', 'delete', 'options', 'head', 'patch'];
-export const Route = {};
-methods.forEach((method) => {
-  Route[method] = (url, middlewares) => (target, name, descriptor) => {
+export const Route = methods.reduce((prev, method) => {
+  prev[method] = (url, ...middlewares) => (target, name, descriptor) => {
     const fn = descriptor.value;
-    descriptor.value = (router) => {
-      const route = async (ctx, next) => {
+    // eslint-disable-next-line
+    descriptor.value = function() {
+      const userLogic = async (ctx, next) => {
         const res = await fn(ctx, next);
         if (res !== undefined) {
           ctx.body = res;
         }
       };
       if (middlewares) {
-        router[method](url, middlewares, route);
+        this.router[method](url, ...middlewares, userLogic);
       } else {
-        router[method](url, route);
+        this.router[method](url, userLogic);
       }
+      logger.debug(`route [${method.toUpperCase()}] '${this.prefix || ''}${url}' loaded`);
     };
   };
-});
-
-export default {
-  Router,
-  Route
-};
+  return prev;
+}, {});

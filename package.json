@@ -17,6 +17,7 @@
     "@babel/polyfill": "^7.2.5",
     "@babel/preset-env": "^7.3.1",
     "@babel/register": "^7.0.0",
+    "axios": "^0.18.0",
     "babel-eslint": "^10.0.1",
     "babel-preset-airbnb": "^3.2.0",
     "eslint": "^5.14.0",
@@ -26,6 +27,7 @@
     "koa-body": "^4.0.8",
     "koa-bodyparser": "^4.2.1",
     "koa-router": "^7.4.0",
-    "log4js": "^4.0.2"
+    "log4js": "^4.0.2",
+    "ojsama": "^1.2.1"
   }
 }

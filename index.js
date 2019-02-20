@@ -4,7 +4,7 @@ import koaBody from 'koa-body';
 import Router from 'koa-router';
 
 import { getProcessArgv } from './utils/process';
-import errorCatcher from './middlewares/errorCatcher';
+import errorCatcher from './middlewares/error-catcher';
 import logger from './utils/logger';
 
 import JapariController from './controllers/japari-controller';
@@ -16,7 +16,7 @@ function initServer(port) {
   app.use(koaBody());
   app.use(errorCatcher);
   app.use(router.routes());
-  app.use(JapariController.routes());
+  app.use(new JapariController('/').mount());
   app.listen(port);
 }
 
@@ -30,5 +30,6 @@ if (!args.p && !args.port) {
   logger.info(`start at port ${port}`);
 }
 
+process.on('error', error => logger.error(error));
 
 initServer(port);

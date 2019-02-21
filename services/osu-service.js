@@ -7,8 +7,7 @@ import * as BotService from './botService';
 import { OSU_APP_KEY } from '../config';
 import logger from '../utils/logger';
 import { numberToOsuModes } from '../utils/osu-utils';
-
-const toSmallCamel = word => word.replace(/_([a-zA-z])/g, ($, $1) => $1.toUpperCase()).replace(/^\w/i, $ => $.toLowerCase());
+import { objKeyToSmallCamel } from '../utils/string-utils';
 
 const GET_USER_URL = 'https://osu.ppy.sh/api/get_user';
 const GET_BP_URL = 'https://osu.ppy.sh/api/get_user_best';
@@ -61,7 +60,7 @@ export async function getBindedInfo(groupId, userId) {
     .where({ group_id: groupId, user_id: userId })
     .first();
   if (meta) {
-    return toSmallCamel(meta, '_');
+    return objKeyToSmallCamel(meta, '_');
   }
   return meta;
 }

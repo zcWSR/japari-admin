@@ -1,4 +1,4 @@
-import { Router, Route } from '../utils/decorators';
+import { Router, Route } from '../decorators/router';
 
 @Router()
 class JapariController {

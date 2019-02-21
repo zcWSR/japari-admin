@@ -1,35 +1,39 @@
+import { resolve } from 'path';
 import Koa from 'koa';
 import bodyParser from 'koa-bodyparser';
 import koaBody from 'koa-body';
-import Router from 'koa-router';
 
 import { getProcessArgv } from './utils/process';
 import errorCatcher from './middlewares/error-catcher';
 import logger from './utils/logger';
-
-import JapariController from './controllers/japari-controller';
+import DBService from './services/db-service';
+import { getRoutersFromDir } from './services/file-service';
 
 function initServer(port) {
-  const router = new Router();
   const app = new Koa();
   app.use(bodyParser());
   app.use(koaBody());
   app.use(errorCatcher);
-  app.use(router.routes());
-  app.use(new JapariController('/').mount());
+  getRoutersFromDir(resolve(__dirname, 'controllers'), app);
   app.listen(port);
 }
 
+function getPort() {
+  const args = getProcessArgv();
+  let port = 3000;
+  if (!args.p && !args.port) {
+    logger.warn(`did not find port settings, use default port ${port}`);
+  } else {
+    port = +(args.p || args.port);
+    logger.info(`start at port ${port}`);
+  }
+  return port;
+}
 
-const args = getProcessArgv();
-let port = 3000;
-if (!args.p && !args.port) {
-  logger.warn(`did not find port settings, use default port ${port}`);
-} else {
-  port = +(args.p || args.port);
-  logger.info(`start at port ${port}`);
+async function start() {
+  await DBService.checkTables();
+  initServer(getPort());
 }
 
 process.on('error', error => logger.error(error));
-
-initServer(port);
+start();

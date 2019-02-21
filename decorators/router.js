@@ -1,8 +1,9 @@
 import KoaRouter from 'koa-router';
-import logger from './logger';
+import logger from '../utils/logger';
 
 export const Router = config => target => class extends target {
   constructor(prefix) {
+    console.log(`'${prefix}'`);
     const instance = super(prefix);
     this.prefix = prefix === '/' ? null : prefix;
     this.router = new KoaRouter({ prefix, ...config });
@@ -32,13 +33,10 @@ export const Route = methods.reduce((prev, method) => {
           ctx.body = res;
         }
       };
-      if (middlewares) {
-        this.router[method](url, ...middlewares, userLogic);
-      } else {
-        this.router[method](url, userLogic);
-      }
+      this.router[method](url, ...[...middlewares || [], userLogic]);
       logger.debug(`route [${method.toUpperCase()}] '${this.prefix || ''}${url}' loaded`);
     };
+    return descriptor;
   };
   return prev;
 }, {});

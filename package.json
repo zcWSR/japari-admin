@@ -23,11 +23,13 @@
     "eslint": "^5.14.0",
     "eslint-config-airbnb-base": "^13.1.0",
     "eslint-plugin-import": "^2.16.0",
+    "knex": "^0.16.3",
     "koa": "^2.7.0",
     "koa-body": "^4.0.8",
     "koa-bodyparser": "^4.2.1",
     "koa-router": "^7.4.0",
     "log4js": "^4.0.2",
+    "mysql": "^2.16.0",
     "ojsama": "^1.2.1"
   }
 }

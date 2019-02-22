@@ -31,5 +31,6 @@
     "log4js": "^4.0.2",
     "mysql": "^2.16.0",
     "ojsama": "^1.2.1"
-  }
+  },
+  "repository": "https://github.com/zcWSR/japari-admin"
 }

@@ -18,21 +18,22 @@ class DBService {
     });
   }
 
-  // async function createQQBotTable() {
-  // if (await DBInstance.schema.hasTable('qqbot')) return;
-  // await DBInstance.schema
-  //   .createTable('qqbot', (table) => {
-  //     table.bigInteger('group_id').primary();
-  //     table.text('config');
-  //   })
-  //   .then(() => {
-  //     logger.info("table 'qqbot' 準備完了");
-  //   })
-  //   .catch((err) => {
-  //     logger.error(err);
-  //   });
+  // async createQQBotTable() {
+  //   if (await this.DBInstance.schema.hasTable('qqbot')) return;
+  //   await this.DBInstance.schema
+  //     .createTable('qqbot', (table) => {
+  //       table.bigInteger('group_id').primary();
+  //       table.string('config');
+  //     })
+  //     .then(() => {
+  //       logger.info("table 'qqbot' 準備完了");
+  //     })
+  //     .catch((err) => {
+  //       logger.error(err);
+  //     });
   // }
 
+  // osu 用户数据绑定
   @createWithLog('osu_bind')
   createOSUBindTable(table) {
     table.increments('id').primary();
@@ -43,10 +44,25 @@ class DBService {
     table.integer('mode');
   }
 
+  // osu 地图信息
   @createWithLog('osu_map')
   createOSUMapTable(table) {
     table.bigInteger('id');
     table.text('map');
+  }
+
+  // 群插件配置信息
+  @createWithLog('plugin_group_config')
+  createPluginGroupConfig(table) {
+    table.bigInteger('group_id');
+    table.string('plugin_list');
+  }
+
+  // 指令插件群可用指令配置
+  @createWithLog('order_plugin_group_config')
+  createOrderPluginConfigTable(table) {
+    table.bigInteger('group_id');
+    table.text('order_list');
   }
 
   async checkTables() {
@@ -63,6 +79,4 @@ class DBService {
   }
 }
 
-const dbService = new DBService();
-
-export default dbService;
+export default new DBService();

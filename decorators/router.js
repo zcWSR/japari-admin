@@ -3,7 +3,6 @@ import logger from '../utils/logger';
 
 export const Router = config => target => class extends target {
   constructor(prefix) {
-    console.log(`'${prefix}'`);
     const instance = super(prefix);
     this.prefix = prefix === '/' ? null : prefix;
     this.router = new KoaRouter({ prefix, ...config });

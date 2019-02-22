@@ -4,7 +4,7 @@
   "parser": "babel-eslint",
   "rules": {
     "no-param-reassign": 0,
-    "comma-dangle": 0,
+    "comma-dangle": ["error", "never"],
     "class-methods-use-this": 0,
     "no-await-in-loop": 0,
     "import/prefer-default-export": 0

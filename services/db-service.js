@@ -1,37 +1,29 @@
 import knex from 'knex';
-import {
-  DB_HOST, DB_USER, DB_PW, DB_SCHAME
-} from '../config';
+import { isDev } from '../utils/env';
+import { DB } from '../config';
 import logger from '../utils/logger';
-import { createWithLog } from '../decorators/db';
+import { createWithLog, withTransaction } from '../decorators/db';
 
 class DBService {
   constructor() {
     this.DBInstance = knex({
       client: 'mysql',
       connection: {
-        host: DB_HOST,
-        user: DB_USER,
-        password: DB_PW,
-        database: DB_SCHAME
-      }
+        host: DB.DB_HOST,
+        user: DB.DB_USER,
+        password: DB.DB_PW,
+        database: DB.DB_SCHAME
+      },
+      debug: isDev()
     });
   }
 
-  // async createQQBotTable() {
-  //   if (await this.DBInstance.schema.hasTable('qqbot')) return;
-  //   await this.DBInstance.schema
-  //     .createTable('qqbot', (table) => {
-  //       table.bigInteger('group_id').primary();
-  //       table.string('config');
-  //     })
-  //     .then(() => {
-  //       logger.info("table 'qqbot' 準備完了");
-  //     })
-  //     .catch((err) => {
-  //       logger.error(err);
-  //     });
-  // }
+  // qq群配置信息
+  @createWithLog('group_config')
+  createGroupConfigTable(table) {
+    table.bigInteger('group_id');
+    table.string('config');
+  }
 
   // osu 用户数据绑定
   @createWithLog('osu_bind')
@@ -65,16 +57,28 @@ class DBService {
     table.text('order_list');
   }
 
+  /**
+   * @param { knex } table
+   */
+  @withTransaction
+  async updateGroupConfig(table, groupId, config) {
+    await table('group_config')
+      .update('config', JSON.stringify(config))
+      .where('group_id', groupId);
+  }
+
   async checkTables() {
     try {
       await Promise.all([
-        // this.createQQBotTable(),
+        this.createGroupConfigTable(),
         this.createOSUBindTable(),
         this.createOSUMapTable()
       ]);
       logger.info('all table prepared');
+      return true;
     } catch (e) {
       logger.error(e);
+      return false;
     }
   }
 }

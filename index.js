@@ -31,7 +31,10 @@ function getPort() {
 }
 
 async function start() {
-  await DBService.checkTables();
+  const checkDone = await DBService.checkTables();
+  if (!checkDone) {
+    process.exit(1);
+  }
   initServer(getPort());
 }
 

@@ -7,6 +7,7 @@ import { getProcessArgv } from './utils/process';
 import errorCatcher from './middlewares/error-catcher';
 import logger from './utils/logger';
 import DBService from './services/db-service';
+import PluginService from './services/plugin-service';
 import { getRoutersFromDir } from './services/file-service';
 
 function initServer(port) {
@@ -31,11 +32,14 @@ function getPort() {
 }
 
 async function start() {
-  const checkDone = await DBService.checkTables();
-  if (!checkDone) {
+  try {
+    await DBService.checkTables();
+    await PluginService.loadPlugins(DBService.DBInstance);
+    initServer(getPort());
+  } catch (e) {
+    logger.error(e);
     process.exit(1);
   }
-  initServer(getPort());
 }
 
 process.on('error', error => logger.error(error));

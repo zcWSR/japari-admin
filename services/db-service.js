@@ -68,18 +68,12 @@ class DBService {
   }
 
   async checkTables() {
-    try {
-      await Promise.all([
-        this.createGroupConfigTable(),
-        this.createOSUBindTable(),
-        this.createOSUMapTable()
-      ]);
-      logger.info('all table prepared');
-      return true;
-    } catch (e) {
-      logger.error(e);
-      return false;
-    }
+    await Promise.all([
+      this.createGroupConfigTable(),
+      this.createOSUBindTable(),
+      this.createOSUMapTable()
+    ]);
+    logger.info('all table prepared');
   }
 }
 

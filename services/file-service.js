@@ -1,14 +1,28 @@
-import { readdirSync } from 'fs';
+import { readdirSync, statSync } from 'fs';
 import { resolve } from 'path';
 
 import logger from '../utils/logger';
 import { toDash } from '../utils/string-utils';
 
+/**
+ * @param {string} path
+ * @returns {[{path: string, name: string}]}
+ */
+export function getDirFiles(path) {
+  return readdirSync(path).reduce((prev, name) => {
+    const fullPath = resolve(path, name);
+    if (statSync(fullPath).isFile()) {
+      prev.push({
+        name, path: fullPath
+      });
+    }
+    return prev;
+  }, []);
+}
+
 export async function getRoutersFromDir(path, app) {
-  const fileNames = readdirSync(path);
   logger.info(`load routes from dir '${path}'`);
-  return fileNames.reduce((result, fileName) => {
-    const filePath = resolve(path, fileName);
+  return getDirFiles(path).reduce((result, { path: filePath, name: fileName }) => {
     // eslint-disable-next-line
     const Controller = (require(filePath) || {}).default;
     if (!Controller) {

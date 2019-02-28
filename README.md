@@ -41,6 +41,7 @@ PluginService 为插件服务类, 负责所有插件的获取/加载/分类/运�
 服务启动时, 服务类会从 plugins 文件夹内读取并初始化(如果存在则 sync 执行插件的 createTable 和 init 方法), 根据插件的 category 所属事件类型, 以 { plugin.name: plugin } 的形式, 维护在 PluginService.plugins.group/private/notice 中
 
 (如果要做成群聊插件可配置, 举个例子, 入群提醒属于notice事件插件, 但是对于群聊来说是不可配置的, 因为没设计相关逻辑, 如果要可配置, 需要在添加一种配置项, 为通知类插件配置, 违背了只让群管理维护一套插件列表的设计初衷, 放弃方案, 以下为原先设计)
+
 ~~之后服务会 load 并根据权重排序个性化插件配置信息, 为最大限度的节省内存占用和提高运行速度, 存储群配置信息只存插件名~~
 
 ~~群聊插件配置信息从数据库一次性读取, 维护在 PluginService.pluginConfigs.group 中, Map 结构, key 为 group_id, value 为按权重 plugin.weight 排序过的 Array, 内容是插件名称~~

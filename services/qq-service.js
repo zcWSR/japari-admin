@@ -2,6 +2,11 @@ import axios from 'axios';
 import logger from '../utils/logger';
 import { QQ_SERVER } from '../config';
 
+export async function getGroupList() {
+  const list = await axios.post(`${QQ_SERVER}/get_group_list`);
+  return list;
+}
+
 // 是否为群主
 export async function isGroupOwner(groupId, userId) {
   return (await this.getGroupUserRole(groupId, userId)) === 'owner';

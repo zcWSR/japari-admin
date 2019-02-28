@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node www.js",
     "start:dev": "NODE_ENV=dev node www.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "NODE_ENV=dev node ./test/www.js"
   },
   "author": "",
   "license": "ISC",
@@ -26,7 +26,6 @@
     "knex": "^0.16.3",
     "koa": "^2.7.0",
     "koa-body": "^4.0.8",
-    "koa-bodyparser": "^4.2.1",
     "koa-router": "^7.4.0",
     "log4js": "^4.0.2",
     "mysql": "^2.16.0",

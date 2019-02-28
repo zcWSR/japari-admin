@@ -21,7 +21,7 @@ export const createWithLog = tableName => (target, name, descriptor) => {
     } catch (e) {
       logger.error(`an error occured during table '${tableName}' check`);
       logger.error(e.toString());
-      throw new Error('check with Error');
+      throw new Error('create or check table with Error');
     }
   };
   return descriptor;
@@ -31,15 +31,13 @@ export const withTransaction = (target, name, descriptor) => {
   const origin = descriptor.value;
   // eslint-disable-next-line
   descriptor.value = async function(...args) {
-    try {
-      await this.DBInstance.transaction(async (trx) => {
-        await origin.call(this, trx, ...args);
-      });
-      return true;
-    } catch (e) {
-      logger.error(e);
-      return false;
-    }
+    // try {
+    const result = await this.DBInstance.transaction(trx => origin.call(this, trx, ...args));
+    return result;
+    // } catch (e) {
+    //   logger.error(e);
+    //   return null;
+    // }
   };
   return descriptor;
 };

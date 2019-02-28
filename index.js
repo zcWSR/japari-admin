@@ -1,18 +1,17 @@
 import { resolve } from 'path';
 import Koa from 'koa';
-import bodyParser from 'koa-bodyparser';
 import koaBody from 'koa-body';
 
 import { getProcessArgv } from './utils/process';
 import errorCatcher from './middlewares/error-catcher';
 import logger from './utils/logger';
+import { isDev } from './utils/env';
 import DBService from './services/db-service';
 import PluginService from './services/plugin-service';
 import { getRoutersFromDir } from './services/file-service';
 
 function initServer(port) {
   const app = new Koa();
-  app.use(bodyParser());
   app.use(koaBody());
   app.use(errorCatcher);
   getRoutersFromDir(resolve(__dirname, 'controllers'), app);
@@ -33,6 +32,7 @@ function getPort() {
 
 async function start() {
   try {
+    isDev() && logger.info('******** now in debug mode ********');
     await DBService.checkTables();
     await PluginService.loadPlugins(DBService.DBInstance);
     initServer(getPort());

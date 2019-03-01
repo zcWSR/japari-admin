@@ -1,5 +1,5 @@
 import logger from '../utils/logger';
-import { sendPrivateMessage } from '../services/qq-service';
+import QQService from '../services/qq-service';
 import { ADMINS } from '../config';
 
 export default async (ctx, next) => {
@@ -9,7 +9,7 @@ export default async (ctx, next) => {
     logger.error(e);
     ADMINS.forEach((admin, index) => {
       setTimeout(() => {
-        sendPrivateMessage(admin, `发生错误: \n${e.stack}`);
+        QQService.sendPrivateMessage(admin, `发生错误: \n${e.stack}`);
       }, index ? 3 * 1000 : 0);
     });
   }

@@ -5,7 +5,7 @@ import logger from '../utils/logger';
 @Plugin({
   name: 'command-runner',
   weight: 99,
-  category: 'all'
+  type: 'message'
 })
 class CommandRunner {
   info = '相应多种指令, 具体指令集见 commands/目录';

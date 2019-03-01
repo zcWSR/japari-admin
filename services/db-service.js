@@ -83,6 +83,18 @@ class DBService {
   }
 
   // 群插件配置操作
+  /**
+   * 获取全部群插件配置
+   * @param { knex } table
+   */
+  @withTransaction
+  async getAllGroupPluginConfig(table) {
+    const result = await table('plugin_group_config').select({
+      groupId: 'group_id',
+      pluginList: 'plugin_list'
+    });
+    return result;
+  }
 
   /**
    * 获取群插件配置

@@ -8,13 +8,13 @@ import logger from './utils/logger';
 import { isDev } from './utils/env';
 import DBService from './services/db-service';
 import PluginService from './services/plugin-service';
-import { getRoutersFromDir } from './services/file-service';
+import FileService from './services/file-service';
 
 function initServer(port) {
   const app = new Koa();
   app.use(koaBody());
   app.use(errorCatcher);
-  getRoutersFromDir(resolve(__dirname, 'controllers'), app);
+  FileService.getRoutersFromDir(resolve(__dirname, 'controllers'), app);
   app.listen(port);
 }
 

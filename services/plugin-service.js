@@ -1,19 +1,65 @@
 import path from 'path';
-import { getDirFiles } from './file-service';
-import { getGroupList } from './qq-service';
+import FileService from './file-service';
+import DBService from './db-service';
 import logger from '../utils/logger';
 
 class PluginService {
   plugins = {
-    group: {},
-    private: {},
-    notice: {}
+    group: [],
+    private: [],
+    notice: []
   };
+
+  groupConfigs = {};
+  privateConfigs = {};
+
+  sortByWeight(pluginA, pluginB) {
+    return pluginA.weight - pluginB.weight;
+  }
+
+  classifyPlugin(plugin) {
+    if (plugin.type === 'message' || plugin.type === 'private') {
+      logger.debug(`category is '${plugin.type}', load into private plugin list`);
+      this.plugins.private.push(plugin);
+      this.plugins.private.sort(this.sortByWeight);
+    }
+    if (plugin.type === 'message' || plugin.type === 'group') {
+      logger.debug(`category is '${plugin.type}', load into group plugin list`);
+      this.plugins.group.push(plugin);
+      this.plugins.group.sort(this.sortByWeight);
+    }
+    if (plugin.type === 'notice') {
+      logger.debug("category is 'notice', load into notice plugin list");
+      this.plugins.notice.push(plugin);
+      this.plugins.notice.some(this.sortByWeight);
+    }
+  }
+
+  async loadGroupPluginConfig() {
+    const configArrayMap = (await DBService.getAllGroupPluginConfig()) || [];
+    Object.keys(configArrayMap).forEach((groupId) => {
+      const configList = configArrayMap[groupId].split(' ');
+      configArrayMap[groupId] = {};
+      configList.forEach((pluginName) => {
+        configArrayMap[groupId][pluginName] = true;
+      });
+    });
+    this.groupConfigs = configArrayMap;
+  }
+
+  async loadPrivatePluginConfig() {
+    // 暂时搞成加载全部, 后期改成可配置
+    // TODO
+    const nameList = this.groupConfigs.private.map(plugin => plugin.name);
+    nameList.forEach((name) => {
+      this.privateConfigs[name] = true;
+    });
+  }
 
   async loadPlugins(db) {
     logger.info('======== start load plugin ========');
     // eslint-disable-next-line no-restricted-syntax
-    for (const file of getDirFiles(path.resolve(__dirname, '../plugins'))) {
+    for (const file of FileService.getDirFiles(path.resolve(__dirname, '../plugins'))) {
       // eslint-disable-next-line import/no-dynamic-require, global-require
       const required = require(file.path);
       if (!required || !required.default) {
@@ -36,28 +82,22 @@ class PluginService {
         logger.debug('init plugin');
         await plugin.init();
       }
-      if (plugin.category === 'all') {
-        logger.debug("category is 'all', load into private and group plugin list");
-        this.plugins.group[plugin.name] = plugin;
-        this.plugins.private[plugin.name] = plugin;
-      } else if (plugin.category === 'privte') {
-        logger.debug("category is 'privte', load into private plugin list");
-        this.plugins.private[plugin.name] = plugin;
-      } else if (plugin.category === 'group') {
-        logger.debug("category is 'group', load into group plugin list");
-        this.plugins.group[plugin.name] = plugin;
-      } else if (plugin.category === 'notice') {
-        logger.debug("category is 'event', load into evnet plugin group");
-        this.plugins.notice[plugin.name] = plugin;
-      }
+      this.classifyPlugin(plugin);
       logger.info(`load plugin '${plugin.name}' complete`);
     }
     logger.info('======== all plugin loaded ========');
+    logger.info('load group plugin config');
+    await this.loadGroupPluginConfig();
+    logger.info('load private plugin config');
+    await this.loadPrivatePluginConfig();
   }
 
-  async loadPluginForGroup() {
-    const list = await getGroupList();
+  getPlugins(postType) {
+    return this.plugins[postType] || [];
+  }
 
+  getConfig(type, { group_id }) {
+    // TODO
   }
 }
 

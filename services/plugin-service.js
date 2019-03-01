@@ -11,7 +11,7 @@ class PluginService {
   };
 
   groupConfigs = {};
-  privateConfigs = {};
+  privateConfigs = [];
 
   sortByWeight(pluginA, pluginB) {
     return pluginA.weight - pluginB.weight;
@@ -36,21 +36,21 @@ class PluginService {
   }
 
   async loadGroupPluginConfig() {
-    const configArrayMap = (await DBService.getAllGroupPluginConfig()) || [];
-    Object.keys(configArrayMap).forEach((groupId) => {
-      const configList = configArrayMap[groupId].split(' ');
-      configArrayMap[groupId] = {};
-      configList.forEach((pluginName) => {
-        configArrayMap[groupId][pluginName] = true;
-      });
-    });
-    this.groupConfigs = configArrayMap;
+    const configArray = (await DBService.getAllGroupPluginConfig()) || [];
+    this.groupConfig = configArray.reduce((groupMap, { groupId, pluginList: pluginNameString }) => {
+      const nameList = pluginNameString.split(' ');
+      groupMap[groupId] = nameList.reduce((configMap, name) => {
+        configMap[name] = true;
+        return configMap;
+      }, {});
+      return groupMap;
+    }, {});
   }
 
   async loadPrivatePluginConfig() {
     // 暂时搞成加载全部, 后期改成可配置
     // TODO
-    const nameList = this.groupConfigs.private.map(plugin => plugin.name);
+    const nameList = this.privateConfigs.map(plugin => plugin.name);
     nameList.forEach((name) => {
       this.privateConfigs[name] = true;
     });
@@ -96,8 +96,17 @@ class PluginService {
     return this.plugins[postType] || [];
   }
 
-  getConfig(type, { group_id }) {
-    // TODO
+  getConfig(type, { group_id: groupId }) {
+    switch (type) {
+      case 'notice':
+        return groupId ? this.groupConfigs[groupId] : this.privateConfigs;
+      case 'group':
+        return this.groupConfigs[groupId];
+      case 'private':
+        return this.privateConfigs;
+      default:
+        return [];
+    }
   }
 }
 

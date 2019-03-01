@@ -24,7 +24,7 @@ class FileService {
 
   async getRoutersFromDir(path, app) {
     logger.info(`load routes from dir '${path}'`);
-    return getDirFiles(path).reduce((result, { path: filePath, name: fileName }) => {
+    return this.getDirFiles(path).reduce((result, { path: filePath, name: fileName }) => {
       // eslint-disable-next-line
       const Controller = (require(filePath) || {}).default;
       if (!Controller) {

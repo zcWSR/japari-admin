@@ -1,20 +1,25 @@
 import knex from 'knex';
 import { isDev } from '../utils/env';
-import { DB } from '../config';
+import Config from '../config';
 import logger from '../utils/logger';
 import { createWithLog, withTransaction } from '../decorators/db';
 
 class DBService {
   constructor() {
     this.DBInstance = knex({
-      client: 'mysql',
+      // client: 'mysql',
+      // connection: {
+      //   host: Config.DB.DB_HOST,
+      //   user: Config.DB.DB_USER,
+      //   password: Config.DB.DB_PW,
+      //   database: Config.DB.DB_SCHAME
+      // },
+      client: 'sqlite3',
       connection: {
-        host: DB.DB_HOST,
-        user: DB.DB_USER,
-        password: DB.DB_PW,
-        database: DB.DB_SCHAME
+        filename: Config.DB.filePath
       },
-      debug: isDev()
+      debug: isDev(),
+      useNullAsDefault: true
     });
   }
 
@@ -73,6 +78,31 @@ class DBService {
   }
 
   /**
+   * 获取群通用配置
+   * @param { knex } table
+   */
+  @withTransaction
+  async getGroupConfig(table, groupId) {
+    const result = await table('group_config')
+      .first()
+      .select('config')
+      .where('group_id', groupId);
+    return result ? JSON.parse(result.config) : null;
+  }
+
+  /**
+   * 插入群通用配置
+   * @param { knex } table
+   */
+  @withTransaction
+  async insertGroupConfig(table, groupId, config) {
+    await table('group_config')
+      .insert({ group_id: groupId, config: JSON.stringify(config) })
+      .where('group_id', groupId);
+  }
+
+  /**
+   * 更新群通用配置
    * @param { knex } table
    */
   @withTransaction
@@ -110,7 +140,21 @@ class DBService {
   }
 
   /**
-   * 插入或更新群插件配置
+   * 插入群插件配置
+   * @param { knex } table
+   */
+  @withTransaction
+  async insertGroupPluginConfig(table, groupId, pluginList) {
+    const listString = pluginList.join(' ');
+    const result = await table('plugin_group_config').insert({
+      group_id: groupId,
+      plugin_list: listString
+    });
+    return result;
+  }
+
+  /**
+   * 更新群插件配置
    * @param { knex } table
    */
   @withTransaction

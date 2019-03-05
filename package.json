@@ -28,8 +28,8 @@
     "koa-body": "^4.0.8",
     "koa-router": "^7.4.0",
     "log4js": "^4.0.2",
-    "mysql": "^2.16.0",
-    "ojsama": "^1.2.1"
+    "ojsama": "^1.2.1",
+    "sqlite3": "^4.0.6"
   },
   "repository": "https://github.com/zcWSR/japari-admin"
 }

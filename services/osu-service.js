@@ -4,7 +4,7 @@ import axios from 'axios';
 import * as OSU from 'ojsama';
 import { db } from '../qqbot-plugins/db';
 import * as BotService from './botService';
-import { OSU_APP_KEY } from '../config';
+import Config from '../config';
 import logger from '../utils/logger';
 import { numberToOsuModes } from '../utils/osu-utils';
 import { objKeyToSmallCamel } from '../utils/string-utils';
@@ -33,7 +33,7 @@ export async function fetch(url, params, config) {
         url,
         params: Object.assign(
           {
-            k: OSU_APP_KEY
+            k: Config.OSU_APP_KEY
           },
           params
         ),

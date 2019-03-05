@@ -24,8 +24,8 @@ const methods = ['get', 'post', 'put', 'delete', 'options', 'head', 'patch'];
 export const Route = methods.reduce((prev, method) => {
   prev[method] = (url, ...middlewares) => (target, name, descriptor) => {
     const fn = descriptor.value;
-    // eslint-disable-next-line
-    descriptor.value = function() {
+    // eslint-disable-next-line space-before-function-paren
+    descriptor.value = function value() {
       const userLogic = async (ctx, next) => {
         const res = await fn(ctx, next);
         if (res !== undefined) {

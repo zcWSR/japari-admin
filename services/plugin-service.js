@@ -11,6 +11,7 @@ class PluginService {
   };
 
   groupConfigs = {};
+  defaultGroupConfig = [];
   privateConfigs = [];
 
   sortByWeight(pluginA, pluginB) {
@@ -37,14 +38,17 @@ class PluginService {
 
   async loadGroupPluginConfig() {
     const configArray = (await DBService.getAllGroupPluginConfig()) || [];
-    this.groupConfig = configArray.reduce((groupMap, { groupId, pluginList: pluginNameString }) => {
-      const nameList = pluginNameString.split(' ');
-      groupMap[groupId] = nameList.reduce((configMap, name) => {
-        configMap[name] = true;
-        return configMap;
-      }, {});
-      return groupMap;
-    }, {});
+    this.groupConfigs = configArray.reduce(
+      (groupMap, { groupId, pluginList: pluginNameString }) => {
+        const nameList = pluginNameString.split(' ');
+        groupMap[groupId] = nameList.reduce((configMap, name) => {
+          configMap[name] = true;
+          return configMap;
+        }, {});
+        return groupMap;
+      },
+      {}
+    );
   }
 
   async loadPrivatePluginConfig() {
@@ -65,7 +69,7 @@ class PluginService {
       if (!required || !required.default) {
         logger.warn('wrong plugin constructor!!!!!, skip');
         logger.warn(`check file at: ${file.path}`);
-        break;
+        continue;
       }
       const Plugin = required.default;
       const plugin = new Plugin();
@@ -85,6 +89,12 @@ class PluginService {
       this.classifyPlugin(plugin);
       logger.info(`load plugin '${plugin.name}' complete`);
     }
+    this.defaultGroupConfig = this.plugins.group.reduce((prev, curr) => {
+      if (curr.default) {
+        prev.push(curr.name);
+      }
+      return prev;
+    }, []);
     logger.info('======== all plugin loaded ========');
     logger.info('load group plugin config');
     await this.loadGroupPluginConfig();
@@ -92,20 +102,47 @@ class PluginService {
     await this.loadPrivatePluginConfig();
   }
 
+  /**
+   * 获取对应postType的所有插件列表
+   * @param { string } postType 上报事件类型
+   * @return {[Plugin]} 插件列表
+   */
   getPlugins(postType) {
     return this.plugins[postType] || [];
   }
 
+  /**
+   * 根据groupId 获取群插件列表
+   * @param {number} groupId 群id
+   * @returns {{ [object]: true }} Map 结构的插件列表
+   */
+  getGroupConfig(groupId) {
+    if (!this.groupConfigs[groupId]) {
+      this.groupConfigs[groupId] = this.defaultGroupConfig.reduce((prev, curr) => {
+        prev[curr] = true;
+        return prev;
+      }, {});
+      DBService.insertGroupPluginConfig(groupId, this.defaultGroupConfig);
+    }
+    return this.groupConfigs[groupId];
+  }
+
+  /**
+   * 获取配置组
+   * @param {string} type 组名
+   * @param {{ group_id: string }} event 上报事件内容
+   * @returns {{}} 配置组
+   */
   getConfig(type, { group_id: groupId }) {
     switch (type) {
       case 'notice':
-        return groupId ? this.groupConfigs[groupId] : this.privateConfigs;
+        return groupId ? this.getGroupConfig(groupId) : this.privateConfigs;
       case 'group':
-        return this.groupConfigs[groupId];
+        return this.getGroupConfig(groupId);
       case 'private':
         return this.privateConfigs;
       default:
-        return [];
+        return null;
     }
   }
 }

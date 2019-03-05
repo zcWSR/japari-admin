@@ -8,13 +8,14 @@ class JapariController {
   @Route.post('/event', botErrorReporter)
   async allEvent({ request }) {
     const fromBot = request.body;
-    const type = QQService.getMessageType(fromBot);
+    const type = QQService.convertMessageType(fromBot);
     const plugins = PluginService.getPlugins(type);
-    const config = await PluginService.getConfig(type, fromBot);
+    const config = PluginService.getConfig(type, fromBot);
+    if (!config) return {};
     plugins.every((plugin) => {
       // 如果当前插件不在配置列表里, 直接跳过
       if (!config[plugin.name]) return true;
-      return plugin.go(fromBot);
+      return plugin.go(fromBot) !== 1;
     });
     return {};
   }

@@ -1,10 +1,10 @@
 import axios from 'axios';
 import logger from '../utils/logger';
-import { QQ_SERVER } from '../config';
+import Config from '../config';
 
 class QQService {
   async getGroupList() {
-    const list = await axios.post(`${QQ_SERVER}/get_group_list`);
+    const list = await axios.post(`${Config.QQ_SERVER}/get_group_list`);
     return list;
   }
 
@@ -21,7 +21,7 @@ class QQService {
 
   async getGroupUserRole(groupId, userId) {
     try {
-      const meta = await axios.post(`${QQ_SERVER}/get_group_member_info`, {
+      const meta = await axios.post(`${Config.QQ_SERVER}/get_group_member_info`, {
         group_id: groupId,
         user_id: userId
       });
@@ -38,7 +38,7 @@ class QQService {
 
   async getGroupUserName(groupId, userId) {
     try {
-      const meta = await axios.post(`${QQ_SERVER}/get_group_member_info`, {
+      const meta = await axios.post(`${Config.QQ_SERVER}/get_group_member_info`, {
         group_id: groupId,
         user_id: userId
       });
@@ -53,23 +53,27 @@ class QQService {
   }
 
   sendPrivateMessage(userId, message) {
-    axios.post(`${QQ_SERVER}/send_private_msg`, { user_id: userId, message });
+    axios.post(`${Config.QQ_SERVER}/send_private_msg`, { user_id: userId, message });
   }
 
   sendGroupMessage(groupId, message) {
-    axios.post(`${QQ_SERVER}/send_group_msg`, { group_id: groupId, message });
+    axios.post(`${Config.QQ_SERVER}/send_group_msg`, { group_id: groupId, message });
   }
 
   banGroupUser(groupId, userId, duration) {
-    axios.post(`${QQ_SERVER}/set_group_ban`, { group_id: groupId, user_id: userId, duration });
+    axios.post(`${Config.QQ_SERVER}/set_group_ban`, { group_id: groupId, user_id: userId, duration });
   }
 
-  // 将接收到的postType转换成插件的type
-  getMessageType(msg) {
-    if (msg.post_type === 'message') {
-      return msg.message_type;
+  /**
+   * 将接收到的postType转换成插件对应的postType
+   * @param {{ post_type, messag_type }} 上报事件
+   * @return {string} 事件类型
+   */
+  convertMessageType(event) {
+    if (event.post_type === 'message') {
+      return event.message_type;
     }
-    return msg.post_type;
+    return event.post_type;
   }
 }
 

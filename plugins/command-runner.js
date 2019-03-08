@@ -1,6 +1,6 @@
 
 import { withTransaction } from '../decorators/db';
-import { Plugin, Block } from '../decorators/plugin';
+import { Plugin } from '../decorators/plugin';
 import logger from '../utils/logger';
 import QQService from '../services/qq-service';
 
@@ -8,7 +8,8 @@ import QQService from '../services/qq-service';
   name: 'command-runner',
   weight: 99,
   type: 'message',
-  default: true
+  default: true,
+  mute: true
 })
 class CommandRunner {
   info = "响应群聊/私聊指令, 指令'!'或'！'开头";
@@ -34,8 +35,7 @@ class CommandRunner {
     };
   }
 
-  @Block
-  go(body) {
+  async go(body) {
     const { group_id: groupId, user_id: userId, message } = body;
     logger.info('message', message);
     QQService.sendGroupMessage(
@@ -54,6 +54,7 @@ class CommandRunner {
     //     "你所调用的指令不存在, 尝试使用'!help'来查看所有可用指令"
     //   );
     // }
+    return 'break';
   }
 
   @withTransaction

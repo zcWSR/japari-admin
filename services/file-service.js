@@ -22,7 +22,7 @@ class FileService {
     }, []);
   }
 
-  async getRoutersFromDir(path, app) {
+  getRoutersFromDir(path, app) {
     logger.info(`load routes from dir '${path}'`);
     return this.getDirFiles(path).reduce((result, { path: filePath, name: fileName }) => {
       // eslint-disable-next-line

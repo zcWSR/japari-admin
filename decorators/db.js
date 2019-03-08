@@ -30,10 +30,9 @@ export const createWithLog = tableName => (target, name, descriptor) => {
 export const withTransaction = (target, name, descriptor) => {
   const origin = descriptor.value;
   // eslint-disable-next-line
-  descriptor.value = async function(...args) {
+  descriptor.value = function(...args) {
     // try {
-    const result = await this.DBInstance.transaction(trx => origin.call(this, trx, ...args));
-    return result;
+    return this.DBInstance.transaction(trx => origin.call(this, trx, ...args));
     // } catch (e) {
     //   logger.error(e);
     //   return null;

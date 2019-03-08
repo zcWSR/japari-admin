@@ -53,7 +53,7 @@ class PluginService {
 
   async loadPrivatePluginConfig() {
     // 暂时搞成加载全部, 后期改成可配置
-    // TODO
+    // TODO 可在config.js 配置是否加载某插件
     const nameList = this.privateConfigs.map(plugin => plugin.name);
     nameList.forEach((name) => {
       this.privateConfigs[name] = true;

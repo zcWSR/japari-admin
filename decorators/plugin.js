@@ -1,3 +1,5 @@
+import logger from '../utils/logger';
+
 export const Plugin = (config) => {
   const defaultConfig = {
     name: '', // 插件名, 只可为英文名
@@ -5,7 +7,8 @@ export const Plugin = (config) => {
     type: 'group', //  所属消息类别
     info: '', // 插件描述
     default: false, // 默认加载, 可被群配置覆盖,
-    hide: false // 是否在
+    hide: false, // 是否在
+    mute: false // 不打印log
   };
 
   if (typeof config === 'string') {
@@ -21,6 +24,11 @@ export const Plugin = (config) => {
       });
     }
 
+    go(body, plugins) {
+      this.mute || logger.info(`plugin ${this.name} triggered`);
+      return target.prototype.go.call(this, body, plugins);
+    }
+
     setDBInstance(instance) {
       this.DBInstance = instance;
     }
@@ -31,9 +39,8 @@ export const Plugin = (config) => {
 export const Block = (target, name, descriptor) => {
   const fn = descriptor.value;
   // eslint-disable-next-line space-before-function-paren
-  descriptor.value = function value(...args) {
-    fn.call(this, ...args);
-    return 1;
+  descriptor.value = async function value(...args) {
+    return await fn.call(this, ...args) || true;
   };
   return descriptor;
 };

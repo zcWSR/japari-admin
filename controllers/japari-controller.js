@@ -12,11 +12,11 @@ class JapariController {
     const plugins = PluginService.getPlugins(type);
     const config = PluginService.getConfig(type, fromBot);
     if (!config) return {};
-    plugins.every((plugin) => {
-      // 如果当前插件不在配置列表里, 直接跳过
-      if (!config[plugin.name]) return true;
-      return plugin.go(fromBot) !== 1;
-    });
+    // eslint-disable-next-line no-restricted-syntax
+    for (const plugin of plugins) {
+      if (!config[plugin.name]) continue;
+      if ((await plugin.go(fromBot)) === 'break') break;
+    }
     return {};
   }
 }

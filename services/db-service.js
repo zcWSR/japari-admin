@@ -118,12 +118,11 @@ class DBService {
    * @param { knex } table
    */
   @withTransaction
-  async getAllGroupPluginConfig(table) {
-    const result = await table('plugin_group_config').select({
+  getAllGroupPluginConfig(table) {
+    return table('plugin_group_config').select({
       groupId: 'group_id',
       pluginList: 'plugin_list'
     });
-    return result;
   }
 
   /**
@@ -144,13 +143,12 @@ class DBService {
    * @param { knex } table
    */
   @withTransaction
-  async insertGroupPluginConfig(table, groupId, pluginList) {
+  insertGroupPluginConfig(table, groupId, pluginList) {
     const listString = pluginList.join(' ');
-    const result = await table('plugin_group_config').insert({
+    return table('plugin_group_config').insert({
       group_id: groupId,
       plugin_list: listString
     });
-    return result;
   }
 
   /**
@@ -158,12 +156,11 @@ class DBService {
    * @param { knex } table
    */
   @withTransaction
-  async updateGroupPluginConfig(table, groupId, pluginList) {
+  updateGroupPluginConfig(table, groupId, pluginList) {
     const listString = pluginList.join(' ');
-    const result = await table('plugin_group_config')
+    return table('plugin_group_config')
       .update('plugin_list', listString)
       .where('group_id', groupId);
-    return result;
   }
 }
 

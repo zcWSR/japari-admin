@@ -10,6 +10,7 @@
     "import/prefer-default-export": 0,
     "lines-between-class-members": ["error", "always", { "exceptAfterSingleLine": true }],
     "no-unused-expressions": ["error", { "allowShortCircuit": true }],
-    "no-continue": 0
+    "no-continue": 0,
+    "consistent-return": 0
   }
 }

@@ -15,7 +15,7 @@ class JapariController {
     // eslint-disable-next-line no-restricted-syntax
     for (const plugin of plugins) {
       if (!config[plugin.name]) continue;
-      if ((await plugin.go(fromBot)) === 'break') break;
+      if ((await plugin.go(fromBot, type)) === 'break') break;
     }
     return {};
   }

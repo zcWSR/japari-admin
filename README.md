@@ -1,6 +1,17 @@
-# 加帕里动物管理员
-
-## 一个简单的基于coolq-http-api的: 会复读, 可响应指令, OSU!信息查询 qqbot. 插件化开发
+<h1 align="center">
+  <br>
+  <br>
+  加帕里动物管理员
+  <h4 align="center">
+    一个简单的基于coolq-http-api的: 会复读, 可响应指令, OSU!信息查询 qqbot. 插件化开发
+  </h4>
+  <!-- <h5 align="center">
+    <a href="#license">开源条款</a>
+  </h5> -->
+  <br>
+  <br>
+  <br>
+</h1>
 
 ### 目前支持的功能(插件)
 1. 连续复读: 当某一群组中出现连续三次相同的内容时, 复读内容

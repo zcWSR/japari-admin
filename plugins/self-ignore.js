@@ -5,6 +5,7 @@ import Config from '../config';
   name: 'self-ignore',
   weight: Number.POSITIVE_INFINITY,
   type: 'message',
+  shortInfo: '防死循环',
   info: '防止出现发送消息后, 又被自己读取到造成死循环的情况',
   default: true,
   mute: true,

@@ -9,6 +9,7 @@ const DEFAULT_GROUP_INFO = { message: '', count: 1 };
   name: 'read-again-follow',
   wight: 98,
   type: 'group',
+  shortInfo: '跟随复读',
   info: '当同一群聊连续出现相同消息三次时, 进行复读',
   mute: true
 })
@@ -18,6 +19,7 @@ class ReadAgainFollow {
     if (message === '[图片]') return;
     const redisKey = `${this.name}-${groupId}`;
     let groupInfo = JSON.parse(await RedisService.get(redisKey)) || DEFAULT_GROUP_INFO;
+    console.log(groupInfo, message);
     if (groupInfo.message !== message) {
       groupInfo = { message, count: 1 };
       await RedisService.set(redisKey, JSON.stringify(groupInfo));

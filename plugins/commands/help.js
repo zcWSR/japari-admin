@@ -12,7 +12,7 @@ import QQService from '../../services/qq-service';
 })
 class Help {
   getCommandInstance(commandName, body, commandMap) {
-    const isAdmin = Config.ADMINS.indexOf(body.user_id) > -1;
+    const isAdmin = Config.ADMINS.indexOf(+body.user_id) > -1;
     const commandInstance = commandMap[commandName];
     if (commandInstance.level === 3) {
       return isAdmin ? commandInstance : null;
@@ -34,13 +34,13 @@ class Help {
     Object.keys(commandMap).forEach((name) => {
       const instance = this.getCommandInstance(name, body, commandMap);
       if (instance) {
-        content += `\n!${instance.command}  ${instance.info || ''}`;
+        content += `\n!${instance.command}  ${instance.name || ''}`;
       }
     });
     return content;
   }
 
-  trigger(params, body, type, commandMap) {
+  run(params, body, type, commandMap) {
     const commandName = params;
     let content;
     if (commandName) {

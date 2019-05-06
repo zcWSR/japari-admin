@@ -11,8 +11,10 @@ const COMMAND_404 = "您所调用的指令不存在尝试使用, '!help'来查�
   name: 'command-runner',
   weight: 99,
   type: 'message',
+  shortInfo: '指令响应',
   info: "响应群聊/私聊指令, 指令'!'或'！'开头",
   default: true,
+  hide: true,
   mute: true
 })
 class CommandRunner {
@@ -37,7 +39,7 @@ class CommandRunner {
   }
 
   async init() {
-    blockLog(['CommandRunner', 'v1.0'], 'info', '@', 1, 10);
+    blockLog(['CommandRunner', 'v1.0'], 'info', '@', 0, 10);
     logger.info('======== start load command  ========');
     // eslint-disable-next-line no-restricted-syntax
     for (const file of FileService.getDirFiles(path.resolve(__dirname, 'commands'))) {
@@ -48,7 +50,7 @@ class CommandRunner {
         logger.warn(`check file at: ${file.path}`);
         continue;
       }
-      const Command = require.default;
+      const Command = required.default;
       const command = new Command();
       if (!command.name) throw Error('command require a name');
       command.setDBInstance(this.DBInstance);
@@ -61,8 +63,9 @@ class CommandRunner {
         await command.init();
       }
       this.classifyCommand(command);
-      logger.info(`load command '${command.name}' complete`);
+      logger.info(`load command '${command.command}' complete`);
     }
+    logger.info('======== all command loaded  ========');
   }
 
   /**

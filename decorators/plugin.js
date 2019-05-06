@@ -7,6 +7,7 @@ export const Plugin = (config) => {
     name: '', // 插件名, 只可为英文名
     weight: 0, // 权重
     type: 'group', //  所属消息类别
+    shortInfo: '', // 短描述
     info: '', // 插件描述
     default: false, // 默认加载, 可被群配置覆盖,
     hide: false, // 是否在
@@ -89,7 +90,7 @@ export const Command = (config) => {
     async trigger(params, body, type, commandMap) {
       this.mute || logger.info(`command '!${this.command}' triggered, params: ${params}`);
       if (this.level === 3) {
-        if (Config.ADMINS.indexOf(body.user_id) === -1) {
+        if (Config.ADMINS.indexOf(+body.user_id) === -1) {
           this.sendNoPermissionMsg(body, type);
         }
       } else if (this.level === 2) {

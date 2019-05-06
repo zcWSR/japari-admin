@@ -10,7 +10,8 @@ const defaultMsg = name => `欢迎 ${name} 加入本群! 请使用"!help"查看�
   weight: 99,
   type: 'notice',
   default: true,
-  info: '入群提醒, 暂时不可配置'
+  shortInfo: '入群提醒',
+  info: '入群提醒'
 })
 class NewNotice {
   async go(body) {

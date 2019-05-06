@@ -94,4 +94,19 @@ PluginService 为插件服务类, 负责所有插件的获取/加载/分类/运�
 
 ### 指令插件模组设计思路
 
-...待完成
+指令结构和1.0版本相同, 都是 !x y (x 为长度大于2的英文单词, y 为指令参数)
+
+新指令分为三种类型(type): 通用=all, 私聊=private, 群聊=group
+
+有三种权限等级(level): 普通=1, 群管理员=2, 系统管理员=3, 群管理员指令权限在私聊模式下不存在, 默认识别为普通模式
+
+初始化时, 会将所有的指令对象引用以{ command.command: command } (指令名: 对象) 的形式维护在 CommandRunner.command.private/group 中, type=all的指令, 两个里面都放
+
+CommandRunner 执行时, 按照数据类型, 分别走私聊和群聊不同的逻辑, 直接在 CommandRunner 层判断指令是否存在, 如不存在直接响应不存在并 break 插件循环
+
+Command类构造时, 如果为私聊且 level=2, 则先将 level 置为1, 因为私聊没有群管理级别
+
+
+
+
+

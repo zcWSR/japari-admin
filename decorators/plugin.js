@@ -1,4 +1,6 @@
+import Config from '../config';
 import logger from '../utils/logger';
+import QQService from '../services/qq-service';
 
 export const Plugin = (config) => {
   const defaultConfig = {
@@ -52,13 +54,19 @@ export const Command = (config) => {
     info: '描述', // 指令详细描述
     default: false, // 是否默认开启
     mute: false, // 不打印命中log
-    isAdminCommand: false // 是否为管理员指令
+    level: 1, // 权限级别, 1 普通, 2 管理员, 3 总管理,
+    permissionDeniedNotice: '权限不足' // 权限不足提醒文案
+    // groupPermissionDeniedNotice: '', // 群权限不足提醒文案,
+    // privatePermissionDeniedNotice: '' // 私聊权限不足提醒文案
   };
 
   if (typeof config === 'string') {
     config = { ...defaultConfig, name: config, command: config };
   } else if (typeof config === 'object') {
     config = { ...defaultConfig, ...config };
+  }
+  if (config.type === 'private' && config.level < 3) {
+    config.level = 1;
   }
   return target => class extends target {
     constructor() {
@@ -68,9 +76,30 @@ export const Command = (config) => {
       });
     }
 
-    trigger(params, body) {
+    sendNoPermissionMsg({ group_id: groupId, user_id: userId }, type) {
+      if (type === 'group') {
+        QQService.sendGroupMessage(groupId, this.permissionDeniedNotice);
+        return;
+      }
+      if (type === 'private') {
+        QQService.sendPrivateMessage(userId, this.permissionDeniedNotice);
+      }
+    }
+
+    async trigger(params, body, type, commandMap) {
       this.mute || logger.info(`command '!${this.command}' triggered, params: ${params}`);
-      return target.prototype.run.call(this, params, body);
+      if (this.level === 3) {
+        if (Config.ADMINS.indexOf(body.user_id) === -1) {
+          this.sendNoPermissionMsg(body, type);
+        }
+      } else if (this.level === 2) {
+        // 只有群聊模式才会出现level=2
+        const userRole = await QQService.getGroupUserRole(body.group_id, body.user_id);
+        if (!(userRole === 'owner' || userRole === 'admin')) {
+          QQService.sendGroupMessage(body.group_id, this.permissionDeniedNotice);
+        }
+      }
+      return target.prototype.run.call(this, params, body, type, commandMap);
     }
 
     setDBInstance(instance) {

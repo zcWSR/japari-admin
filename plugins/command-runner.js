@@ -1,9 +1,11 @@
 import path from 'path';
-import logger from '../utils/logger';
+import logger, { blockLog } from '../utils/logger';
 import FileService from '../services/file-service';
 import { withTransaction } from '../decorators/db';
 import { Plugin } from '../decorators/plugin';
 import QQService from '../services/qq-service';
+
+const COMMAND_404 = "您所调用的指令不存在尝试使用, '!help'来查看所有可用指令";
 
 @Plugin({
   name: 'command-runner',
@@ -19,16 +21,23 @@ class CommandRunner {
     group: {}
   };
 
-  classifyCommand() {
-    // TODO
+  /**
+   * 指令分类
+   * @param {any} command 指令对象
+   */
+  classifyCommand(command) {
+    if (command.type === 'all' || command.type === 'private') {
+      logger.debug(`type is '${command.type}', load into private command list`);
+      this.command.private[command.command] = command;
+    }
+    if (command.type === 'all' || command.type === 'group') {
+      logger.debug(`type is '${command.type}', load into group command list`);
+      this.command.group[command.command] = command;
+    }
   }
 
   async init() {
-    logger.info('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@');
-    logger.info('@                                   @');
-    logger.info('@           Command Runner          @');
-    logger.info('@                                   @');
-    logger.info('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@');
+    blockLog(['CommandRunner', 'v1.0'], 'info', '@', 1, 10);
     logger.info('======== start load command  ========');
     // eslint-disable-next-line no-restricted-syntax
     for (const file of FileService.getDirFiles(path.resolve(__dirname, 'commands'))) {
@@ -63,10 +72,8 @@ class CommandRunner {
   isCommand(content) {
     let match = content.match(/^[!|\uff01]([a-zA-Z]{2,})\s(.*)$/);
     if (match) {
-      return {
-        name: match[1],
-        params: match[2]
-      };
+      const [, name, params] = match;
+      return { name, params };
     }
     // 对无参数指令做分别处理, 防止出现!recent1 类似这样不加空格也能匹配成功的问题
     match = content.match(/^[!|\uff01]([a-zA-Z]{2,})$/);
@@ -77,34 +84,37 @@ class CommandRunner {
     };
   }
 
+  groupCommand(body, command, type) {
+    const commandInstance = this.command.group[command.name];
+    if (!commandInstance) {
+      QQService.sendGroupMessage(body.group_id, COMMAND_404);
+      return;
+    }
+    commandInstance.trigger(command.params, body, type, this.command.group);
+  }
+
+  privateCommand(body, command, type) {
+    const commandInstance = this.command.private[command.name];
+    if (!commandInstance) {
+      QQService.sendPrivateMessage(body.user_id, COMMAND_404);
+    }
+    commandInstance.trigger(command.params, body, type, this.command.private);
+  }
+
   async go(body, type) {
     const { message } = body;
     const c = this.isCommand(message);
-    if (!c) return;
+    if (!c) return; // 不是指令, 直接跳过流程
     switch (type) {
       case 'group':
-        await this.groupCommand(body); break;
+        await this.groupCommand(body, c, type);
+        break;
       case 'private':
-        await this.priveCommand(body); break;
+        await this.privateCommand(body, c, type);
+        break;
       default:
     }
     return 'break';
-    // QQService.sendGroupMessage(
-    //   groupId,
-    //   `${userId}你所调用的指令不存在, 尝试使用'!help'来查看所有可用指令`
-    // );
-    // const c = this.isCommand(message);
-    // if (!c) return;
-    // const command = commandMap[c.name];
-    // if (command) {
-    //   logger.info(`群${groupId}, qq${userId}, 调用指令: !${c.name}, 参数: ${c.params}`);
-    //   command.exec(c.params, body);
-    // } else {
-    //   QQService.sendGroupMessage(
-    //     groupId,
-    //     "你所调用的指令不存在, 尝试使用'!help'来查看所有可用指令"
-    //   );
-    // }
   }
 
   @withTransaction
@@ -117,9 +127,9 @@ class CommandRunner {
     }
   }
 
-  async getCommandList() {
+  // async getCommandList() {
 
-  }
+  // }
 }
 
 export default CommandRunner;

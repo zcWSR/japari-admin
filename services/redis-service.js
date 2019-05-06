@@ -13,12 +13,12 @@ class RedisService {
   }
 
   set(key, value) {
-    logger.info(`update redis, set ${key}`);
+    logger.debug(`update redis, set ${key}`);
     return this.redis.set(key, value);
   }
 
   get(key) {
-    logger.info(`get redis, key ${key}`);
+    logger.debug(`get redis, key ${key}`);
     return this.redis.get(key);
   }
 }

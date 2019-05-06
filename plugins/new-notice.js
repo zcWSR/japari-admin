@@ -14,7 +14,7 @@ const defaultMsg = name => `欢迎 ${name} 加入本群! 请使用"!help"查看�
 })
 class NewNotice {
   async go(body) {
-    const { event, groupId, user_id: userId } = body;
+    const { event, gourp_id: groupId, user_id: userId } = body;
     if (event !== 'group_increase') return 'break';
     logger.info(`群 ${groupId} 有新成员 ${userId} 加入, 正在查询昵称...`);
     const memberName = await QQService.getGroupMemberName(groupId, userId);

@@ -14,30 +14,58 @@ import QQService from '../../services/qq-service';
   level: 2
 })
 class PluginConfig {
-  async showPlugins(body) {
-    const isAdmin = Config.ADMINS.indexOf(body.user_id) > -1;
+  getAllPlugins() {
     const { group, notice } = PluginService.plugins;
-    const allPluginList = [...group, ...notice];
-    // const groupConfigString = await DBService.getGroupConfig(body.group_id);
-    // const groupConfig = (groupConfigString || '').split(' ');
-    const configMap = PluginService.getGroupConfig(body.group_id);
-    let content = allPluginList.reduce((result, current, index) => {
-      const hasThisPlugin = configMap[current.name];
-      if (current.hide && !isAdmin) {
-        return result;
-      }
-      result += `${index + 1}. ${current.shortInfo}${hasThisPlugin ? '(开启中)' : '(关闭)'}\n`;
-
-      return result;
-    }, '插件开启状态:\n');
-    content = content.slice(0, content.length - 1);
-    QQService.sendGroupMessage(body.group_id, content);
+    return [...group, ...notice];
   }
 
-  async run(params, body, type) {
+  async run(params, body) {
+    const { group_id: groupId } = body;
+    const isAdmin = this.isAdmin(body.user_id);
+    const allPluginList = this.getAllPlugins();
+    const configMap = PluginService.getGroupConfig(groupId);
     if (!params) {
-      this.showPlugins(body);
+      let content = allPluginList.reduce((result, current, index) => {
+        const hasThisPlugin = configMap[current.name];
+        if (current.hide && !isAdmin) {
+          return result;
+        }
+        result += `${index + 1}. ${current.shortInfo}${hasThisPlugin ? '(开启中)' : '(关闭)'}\n`;
+        return result;
+      }, '插件开启状态:\n');
+      content = content.slice(0, content.length - 1);
+      QQService.sendGroupMessage(groupId, content);
+      return;
     }
+    if (params.replace(/\d/g, '').trim()) {
+      QQService.sendGroupMessage(groupId, '非法参数');
+    }
+    const toggleIndexs = params.trim().split(' ');
+    const configMapClone = { ...configMap };
+    let alertMsg = '';
+    allPluginList.every((plugin, index) => {
+      const currentIndex = index + 1;
+      if (toggleIndexs.indexOf(currentIndex) === -1) {
+        return true;
+      }
+      if (!isAdmin && plugin.hide) {
+        alertMsg = `别试了, ${currentIndex} 你没权限操作`;
+        return false;
+      }
+      const hasThisPlugin = configMapClone[plugin.name];
+      if (hasThisPlugin) {
+        delete configMapClone[plugin.name];
+      } else {
+        configMapClone[plugin.name] = true;
+      }
+      return true;
+    });
+    if (alertMsg) {
+      QQService.sendGroupMessage(groupId, alertMsg);
+      return;
+    }
+    await PluginService.setGroupConfig(groupId, configMapClone);
+    await this.run('', body);
   }
 }
 

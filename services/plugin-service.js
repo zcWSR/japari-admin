@@ -128,6 +128,17 @@ class PluginService {
   }
 
   /**
+   * 根绝groupId 设置群插件列表
+   * @param {number} groupId 群id
+   * @param {{ [object]: true }} groupConfigMap Map 结构插件列表
+   */
+  async setGroupConfig(groupId, groupConfigMap) {
+    this.groupConfigs[groupId] = groupConfigMap;
+    const groupConfigList = Object.keys(groupConfigMap);
+    await DBService.updateGroupPluginConfig(groupId, groupConfigList);
+  }
+
+  /**
    * 获取配置组
    * @param {string} type 组名
    * @param {{ group_id: string }} event 上报事件内容

@@ -3,12 +3,35 @@ import Config from '../config';
 import logger from '../utils/logger';
 
 class RedisService {
-  constructor() {
-    this.redis = new Redis({
-      port: Config.REDIS.REDIS_PORT,
-      host: '127.0.0.1',
-      password: Config.REDIS.REDIS_PW,
-      db: 0
+  connect() {
+    return new Promise((resolve, reject) => {
+      this.redis = new Redis({
+        port: Config.REDIS.REDIS_PORT,
+        host: '127.0.0.1',
+        password: Config.REDIS.REDIS_PW,
+        db: 0,
+        enableReadyCheck: true,
+        retryStrategy: (times) => {
+          if (times > 10) {
+            logger.error('redis reconnect 10 times, shutdown');
+            reject(new Error('connect redis timeout'));
+            return false;
+          }
+          return times;
+        }
+      });
+      this.redis.on('error', (e) => {
+        logger.error('redis error:');
+        if (e.code === 'ECONNREFUSED') {
+          logger.error(`connect refuesed, address: ${e.address}, port: ${e.port}`);
+        } else {
+          logger.error(e);
+        }
+      });
+      this.redis.on('ready', () => {
+        logger.info('redis connected');
+        resolve();
+      });
     });
   }
 

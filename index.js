@@ -4,8 +4,10 @@ import koaBody from 'koa-body';
 
 import { getProcessArgv } from './utils/process';
 import errorCatcher from './middlewares/error-catcher';
+import cFonts from 'cfonts';
 import logger from './utils/logger';
 import { isDev } from './utils/env';
+import RedisService from './services/redis-service';
 import DBService from './services/db-service';
 import PluginService from './services/plugin-service';
 import FileService from './services/file-service';
@@ -32,7 +34,18 @@ function getPort() {
 
 async function start() {
   try {
+    cFonts.say('japari', {
+      letterSpacing: 2,
+      space: false,
+      colors: ['yellow', 'green']
+    });
+    cFonts.say('admin', {
+      letterSpacing: 2,
+      space: false,
+      colors: ['yellow', 'green']
+    });
     isDev() && logger.info('******** now in debug mode ********');
+    await RedisService.connect();
     await DBService.checkTables();
     await PluginService.loadPlugins(DBService.DBInstance);
     initServer(getPort());

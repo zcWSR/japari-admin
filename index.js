@@ -1,10 +1,10 @@
 import { resolve } from 'path';
 import Koa from 'koa';
 import koaBody from 'koa-body';
+import cFonts from 'cfonts';
 
 import { getProcessArgv } from './utils/process';
 import errorCatcher from './middlewares/error-catcher';
-import cFonts from 'cfonts';
 import logger from './utils/logger';
 import { isDev } from './utils/env';
 import RedisService from './services/redis-service';

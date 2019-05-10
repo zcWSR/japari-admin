@@ -59,7 +59,7 @@ class NewNotice {
     const template = await this.getTemplate(groupId);
     if (!params) {
       if (template) {
-        QQService.sendGroupMessage(groupId, `模板内容:\n'${template}'`);
+        QQService.sendGroupMessage(groupId, `当前模板内容:\n'${template}'`);
       } else {
         QQService.sendGroupMessage(groupId, `未设置自定义模板, 以下为默认模板:\n'${DEFAULT_TPL}'`);
       }

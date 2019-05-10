@@ -1,7 +1,6 @@
 import { Command } from '../../decorators/plugin';
 import Config from '../../config';
 import PluginService from '../../services/plugin-service';
-import DBService from '../../services/db-service';
 import QQService from '../../services/qq-service';
 
 @Command({
@@ -21,7 +20,7 @@ class PluginConfig {
 
   async run(params, body) {
     const { group_id: groupId } = body;
-    const isAdmin = this.isAdmin(body.user_id);
+    const isAdmin = Config.ADMINS.indexOf(+body.user_id) > -1;
     const allPluginList = this.getAllPlugins();
     const configMap = PluginService.getGroupConfig(groupId);
     if (!params) {
@@ -45,7 +44,7 @@ class PluginConfig {
     let alertMsg = '';
     allPluginList.every((plugin, index) => {
       const currentIndex = index + 1;
-      if (toggleIndexs.indexOf(currentIndex) === -1) {
+      if (toggleIndexs.indexOf(`${currentIndex}`) === -1) {
         return true;
       }
       if (!isAdmin && plugin.hide) {
@@ -65,6 +64,7 @@ class PluginConfig {
       return;
     }
     await PluginService.setGroupConfig(groupId, configMapClone);
+    await QQService.sendGroupMessage(groupId, '设置成功');
     await this.run('', body);
   }
 }

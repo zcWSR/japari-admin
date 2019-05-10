@@ -19,19 +19,19 @@ class ReadAgainFollow {
     if (message === '[图片]') return;
     const redisKey = `${this.name}-${groupId}`;
     let groupInfo = JSON.parse(await RedisService.get(redisKey)) || DEFAULT_GROUP_INFO;
-    console.log(groupInfo, message);
     if (groupInfo.message !== message) {
       groupInfo = { message, count: 1 };
       await RedisService.set(redisKey, JSON.stringify(groupInfo));
       return;
     }
     groupInfo.count += 1;
-    if (groupInfo.count === 3) {
+    if (!(groupInfo.count % 3)) {
       logger.info(`group ${groupId} random read follow: '${message}'`);
       QQService.sendGroupMessage(groupId, message);
       await RedisService.set(redisKey, JSON.stringify(groupInfo));
       return 'break';
     }
+    await RedisService.set(redisKey, JSON.stringify(groupInfo));
   }
 
   // @withTransaction

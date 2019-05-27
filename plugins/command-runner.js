@@ -76,7 +76,7 @@ class CommandRunner {
     let match = content.match(/^[!|\uff01]([a-zA-Z]{2,})\s(.*)$/);
     if (match) {
       const [, name, params] = match;
-      return { name, params };
+      return { name, params: params.trim() };
     }
     // 对无参数指令做分别处理, 防止出现!recent1 类似这样不加空格也能匹配成功的问题
     match = content.match(/^[!|\uff01]([a-zA-Z]{2,})$/);

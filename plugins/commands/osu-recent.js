@@ -4,7 +4,7 @@ import OSUService from '../../services/osu-service';
 
 @Command({
   name: 'osu绑定账号',
-  command: 'bind',
+  command: 'recent',
   type: 'group',
   info: `绑定osu!账号和mode, 使用'!bind 你的id,mode'来调用
   mode不写默认为osu!模式

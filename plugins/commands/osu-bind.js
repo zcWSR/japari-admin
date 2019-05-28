@@ -14,7 +14,7 @@ class OSUBind {
   async run(params, body) {
     const { group_id: groupId, user_id: userId } = body;
     if (!params) {
-      QQService.sendGroup(groupId, '非法调用, 使用\'!help bind\'查看调用方式');
+      QQService.sendGroupMessage(groupId, '非法调用, 使用\'!help bind\'查看调用方式');
       return;
     }
     params = params.replace('，', ','); // 处理全角逗号
@@ -22,7 +22,7 @@ class OSUBind {
     const osuName = params[0];
     const mode = params[1] ? parseInt(params[1], 10) || 0 : 0;
     const message = await OSUService.getInstance().bindOSUId(groupId, userId, osuName, mode);
-    QQService.sendGroup(groupId, message);
+    QQService.sendGroupMessage(groupId, message);
   }
 }
 

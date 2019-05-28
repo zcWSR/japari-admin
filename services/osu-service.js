@@ -2,7 +2,7 @@ import { deflateSync, unzipSync } from 'zlib';
 import axios from 'axios';
 
 import * as OSU from 'ojsama';
-import * as BotService from './qq-service';
+import QQService from './qq-service';
 import Config from '../config';
 import logger from '../utils/logger';
 import { numberToOsuModes } from '../utils/osu-utils';
@@ -268,7 +268,7 @@ export default class OSUService {
     // let hasOfflinePPCalc = true; // 是否离线计算了pp
     if (typeof ppInfo === 'string') {
       // hasOfflinePPCalc = false;
-      BotService.sendGroup(groupId, ppInfo);
+      QQService.sendGroupMessage(groupId, ppInfo);
       return;
     }
     const {
@@ -310,6 +310,6 @@ export default class OSUService {
     message += `${pp} pp (离线计算)`;
     logger.info(`格式化玩家'${osuName}'的${prefix}数据成功`);
     logger.info(`地图id: ${beatmapsetId}, 难度[${map.version}], ${pp} pp`);
-    BotService.sendGroup(groupId, message);
+    QQService.sendGroupMessage(groupId, message);
   }
 }

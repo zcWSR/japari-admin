@@ -15,8 +15,8 @@ class OSUDBLoader {
 
   @withTransaction
   async createTable(trx) {
-    if (!(await trx.hasTable('osu_bind'))) {
-      await trx.createTable('osu_bind', (table) => {
+    if (!(await trx.schema.hasTable('osu_bind'))) {
+      await trx.schema.createTable('osu_bind', (table) => {
         table.increments('id').primary();
         table.integer('user_id');
         table.integer('group_id');
@@ -25,8 +25,8 @@ class OSUDBLoader {
         table.integer('mode');
       });
     }
-    if (!(await trx.hasTable('osu_map'))) {
-      await trx.createTable('osu_map', (table) => {
+    if (!(await trx.schema.hasTable('osu_map'))) {
+      await trx.schema.createTable('osu_map', (table) => {
         table.integer('id');
         table.text('map');
       });

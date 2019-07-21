@@ -5,6 +5,11 @@ import QQService from '../services/qq-service';
 
 @Router()
 class JapariController {
+  @Route.get('/')
+  main() {
+    return "<h1>ようこそ！ジャパリパークへ！</h1><script>console.log('/japari/event is bot')</script>";
+  }
+
   @Route.post('/event', botErrorReporter)
   async allEvent({ request }) {
     const fromBot = request.body;

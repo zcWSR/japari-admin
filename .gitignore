@@ -1,3 +1,5 @@
 node_modules/
-*.sqlite3
-config.js
+built/config.js
+built/*.sqlite3
+src/config.js
+.DS_Store

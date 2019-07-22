@@ -7,8 +7,25 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Launch Program",
-      "program": "${workspaceFolder}/www.js"
+      "name": "debug",
+      "cwd": "${workspaceFolder}",
+      "autoAttachChildProcesses": true,
+      "program": "${workspaceFolder}/built/index.js",
+      "args": ["-p=2333"],
+      "runtimeArgs": ["--nolazy"],
+      "preLaunchTask": "build",
+      "console": "integratedTerminal",
+      "env": {
+        "NODE_ENV": "dev"
+      },
+      "smartStep": true,
+      "sourceMaps": true,
+      "outFiles": ["${workspaceFolder}/built/**"],
+    },{
+      "name": "attach",
+      "type": "node",
+      "request": "attach",
+      "port": 5858
     }
   ]
 }

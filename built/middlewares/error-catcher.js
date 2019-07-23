@@ -7,4 +7,3 @@
       _logger.default.error(e);
     }
   });return function (_x, _x2) {return _ref.apply(this, arguments);};}();exports.default = _default;
-//# sourceMappingURL=error-catcher.js.map

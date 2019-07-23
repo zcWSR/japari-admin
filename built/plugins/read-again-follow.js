@@ -45,4 +45,3 @@ ReadAgainFollow = (_dec = (0, _plugin.Plugin)({ name: 'read-again-follow', wight
 }) || _class);var _default =
 
 ReadAgainFollow;exports.default = _default;
-//# sourceMappingURL=read-again-follow.js.map

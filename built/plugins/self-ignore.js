@@ -20,4 +20,3 @@ SelfIgnore = (_dec = (0, _plugin.Plugin)({ name: 'self-ignore', weight: Number.P
 
 
 SelfIgnore;exports.default = _default;
-//# sourceMappingURL=self-ignore.js.map

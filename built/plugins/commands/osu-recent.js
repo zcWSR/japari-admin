@@ -38,4 +38,3 @@ OSURecent = (_dec = (0, _plugin.Command)({ name: 'osu绑定账号', command: 're
 
 
 OSURecent;exports.default = _default;
-//# sourceMappingURL=osu-recent.js.map

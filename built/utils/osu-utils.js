@@ -82,4 +82,3 @@ function numberToOsuModes(num) {
 }
 
 function numberToStar() {}
-//# sourceMappingURL=osu-utils.js.map

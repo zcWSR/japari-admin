@@ -2,7 +2,7 @@ const gulp = require('gulp');
 const babel = require('gulp-babel');
 const sourceMap = require('gulp-sourcemaps');
 
-gulp.task('default', () => gulp
+gulp.task('devBuild', () => gulp
   .src('./src/**/*.js')
   .pipe(sourceMap.init())
   .pipe(babel())
@@ -13,4 +13,9 @@ gulp.task('default', () => gulp
       }
     })
   )
+  .pipe(gulp.dest('./.built-dev')));
+
+gulp.task('build', () => gulp
+  .src('./src/**/*.js')
+  .pipe(babel())
   .pipe(gulp.dest('./built')));

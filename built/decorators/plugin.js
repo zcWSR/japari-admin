@@ -110,4 +110,3 @@ const Command = config => {
     }};
 
 };exports.Command = Command;
-//# sourceMappingURL=plugin.js.map

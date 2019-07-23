@@ -27,4 +27,3 @@ _router.Route.post('/event', _botErrorReporter.default), _dec(_class = (_class2 
 
 
 JapariController;exports.default = _default;
-//# sourceMappingURL=japari-controller.js.map

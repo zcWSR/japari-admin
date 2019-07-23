@@ -35,4 +35,3 @@ paddingWidth = 3)
 }var _default =
 
 logger;exports.default = _default;
-//# sourceMappingURL=logger.js.map

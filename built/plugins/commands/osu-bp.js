@@ -56,4 +56,3 @@ OSUBp = (_dec = (0, _plugin.Command)({ name: '查询osu! bp', command: 'bp', typ
 
 
 OSUBp;exports.default = _default;
-//# sourceMappingURL=osu-bp.js.map

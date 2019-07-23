@@ -80,4 +80,3 @@ NewNotice = (_dec = (0, _plugin.Command)({ name: '配置入群提醒模板', com
 
 
 NewNotice;exports.default = _default;
-//# sourceMappingURL=new-member-notice.js.map

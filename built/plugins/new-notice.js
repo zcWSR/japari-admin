@@ -58,4 +58,3 @@ NewNotice = (_dec = (0, _plugin.Plugin)({ name: 'new-notice', weight: 99, type: 
 
 
 NewNotice;exports.default = _default;
-//# sourceMappingURL=new-notice.js.map

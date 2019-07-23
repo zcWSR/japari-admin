@@ -1,1 +1,0 @@
-{"version":3,"sources":["test/www.js"],"names":["require"],"mappings":"aAAAA,OAAO,CAAC,iBAAD,CAAP;;AAEAA,OAAO,CAAC,SAAD,CAAP","sourcesContent":["require('@babel/register');\nrequire('@babel/polyfill');\nrequire('./index');\n"],"file":"www.js","sourceRoot":"/Users/zcwsr/my/japari-admin/src"}

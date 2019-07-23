@@ -1,5 +1,5 @@
 {
-  // 使用 IntelliSense 了解相关属性。 
+  // 使用 IntelliSense 了解相关属性。
   // 悬停以查看现有属性的描述。
   // 欲了解更多信息，请访问: https://go.microsoft.com/fwlink/?linkid=830387
   "version": "0.2.0",
@@ -9,23 +9,19 @@
       "request": "launch",
       "name": "debug",
       "cwd": "${workspaceFolder}",
-      "autoAttachChildProcesses": true,
-      "program": "${workspaceFolder}/built/index.js",
+      // "autoAttachChildProcesses": true,
+      "program": "${workspaceFolder}/.built-dev/index.js",
       "args": ["-p=2333"],
       "runtimeArgs": ["--nolazy"],
-      "preLaunchTask": "build",
-      "console": "integratedTerminal",
+      "preLaunchTask": "devBuild",
+      "postDebugTask": "clearDevBuild",
       "env": {
         "NODE_ENV": "dev"
       },
       "smartStep": true,
       "sourceMaps": true,
-      "outFiles": ["${workspaceFolder}/built/**"],
-    },{
-      "name": "attach",
-      "type": "node",
-      "request": "attach",
-      "port": 5858
+      "outFiles": ["${workspaceFolder}/.built-dev/**"],
+      "outputCapture": "std"
     }
   ]
 }

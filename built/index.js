@@ -57,4 +57,3 @@ start() {return _start.apply(this, arguments);}function _start() {_start = _asyn
 
 process.on('error', error => _logger.default.error(error));
 start();
-//# sourceMappingURL=index.js.map

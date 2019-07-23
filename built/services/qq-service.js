@@ -78,4 +78,3 @@ class QQService {
 
 
 new QQService();exports.default = _default;
-//# sourceMappingURL=qq-service.js.map

@@ -17,4 +17,3 @@ OSUUnbind = (_dec = (0, _plugin.Command)({ name: '解绑osu!账号', command: 'u
 
 
 OSUUnbind;exports.default = _default;
-//# sourceMappingURL=osu-unbind.js.map

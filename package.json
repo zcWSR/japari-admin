@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node www.js",
     "start:dev": "NODE_ENV=dev node www.js",
+    "build": "gulp build",
     "test": "NODE_ENV=dev node ./test/www.js"
   },
   "author": "",

@@ -1,13 +1,37 @@
 {
-// 有关 tasks.json 格式的文档，请参见
+  // 有关 tasks.json 格式的文档，请参见
   // https://go.microsoft.com/fwlink/?LinkId=733558
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "build",
-      "type": "gulp",
-      "task": "default",
-      "problemMatcher": []
-    }
+      "label": "devBuild",
+      "type": "shell",
+      "command": "gulp",
+      "args": ["devBuild"],
+      "presentation": {
+        "echo": true,
+        "revealProblems": "onProblem",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": false,
+        "clear": true,
+        "reveal": "silent"
+      }
+    },
+    {
+      "label": "clearDevBuild",
+      "type": "shell",
+      "command": "rm",
+      "args": ["-rf", "./.built-dev"],
+      "presentation": {
+        "echo": true,
+        "revealProblems": "onProblem",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": false,
+        "clear": true,
+        "reveal": "silent"
+      }
+    },
   ]
 }

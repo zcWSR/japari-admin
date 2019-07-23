@@ -31,4 +31,3 @@ Roll = (_dec = (0, _plugin.Command)({ name: '随机数', command: 'roll', type: 
 
 
 Roll;exports.default = _default;
-//# sourceMappingURL=roll.js.map

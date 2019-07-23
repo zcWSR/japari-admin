@@ -48,4 +48,3 @@ class FileService {
 
 
 new FileService();exports.default = _default;
-//# sourceMappingURL=file-service.js.map

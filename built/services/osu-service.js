@@ -312,4 +312,3 @@ class OSUService {constructor() {this.
       _logger.default.info(`地图id: ${beatmapsetId}, 难度[${map.version}], ${pp} pp`);
       _qqService.default.sendGroupMessage(groupId, message);})();
   }}exports.default = OSUService;
-//# sourceMappingURL=osu-service.js.map

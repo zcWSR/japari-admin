@@ -159,4 +159,3 @@ class PluginService {constructor() {this.
 
 
 new PluginService();exports.default = _default;
-//# sourceMappingURL=plugin-service.js.map

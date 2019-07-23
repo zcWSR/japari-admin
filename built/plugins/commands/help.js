@@ -57,4 +57,3 @@ Help = (_dec = (0, _plugin.Command)({ name: '帮助', command: 'help', type: 'al
 
 
 Help;exports.default = _default;
-//# sourceMappingURL=help.js.map

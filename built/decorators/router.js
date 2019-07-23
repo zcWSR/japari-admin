@@ -39,4 +39,3 @@ const Route = methods.reduce((prev, method) => {
   };
   return prev;
 }, {});exports.Route = Route;
-//# sourceMappingURL=router.js.map

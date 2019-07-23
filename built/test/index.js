@@ -17,4 +17,3 @@ var _redisService = _interopRequireDefault(require("../services/redis-service"))
 // }
 // test();
 _redisService.default.test();
-//# sourceMappingURL=index.js.map

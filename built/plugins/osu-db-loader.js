@@ -35,4 +35,3 @@ OSUDBLoader = (_dec = (0, _plugin.Plugin)({ name: 'osu-db-loader', weight: 1, ty
 
 
 OSUDBLoader;exports.default = _default;
-//# sourceMappingURL=osu-db-loader.js.map

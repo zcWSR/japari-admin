@@ -27,4 +27,3 @@ Roll = (_dec = (0, _plugin.Command)({ name: 'pr', command: 'pr', type: 'group', 
 
 
 Roll;exports.default = _default;
-//# sourceMappingURL=pr.js.map

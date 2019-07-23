@@ -40,4 +40,3 @@ const withTransaction = (target, name, descriptor) => {
   };
   return descriptor;
 };exports.withTransaction = withTransaction;
-//# sourceMappingURL=db.js.map

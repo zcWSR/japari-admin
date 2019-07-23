@@ -27,4 +27,3 @@ OSUBind = (_dec = (0, _plugin.Command)({ name: 'osu绑定账号', command: 'bind
 
 
 OSUBind;exports.default = _default;
-//# sourceMappingURL=osu-bind.js.map

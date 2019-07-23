@@ -12,4 +12,3 @@ _router.Route.get('/'), _dec(_class = (_class2 = class MainController {
 
 
 MainController;exports.default = _default;
-//# sourceMappingURL=main-controller.js.map

@@ -36,4 +36,3 @@ OSUBpMe = (_dec = (0, _plugin.Command)({ name: '查看osu!所绑定账号的bp',
 
 
 OSUBpMe;exports.default = _default;
-//# sourceMappingURL=osu-bpme.js.map

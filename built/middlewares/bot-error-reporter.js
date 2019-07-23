@@ -14,4 +14,3 @@ var _config = _interopRequireDefault(require("../config"));function _interopRequ
       });
     }
   });return function (_x, _x2) {return _ref.apply(this, arguments);};}();exports.default = _default;
-//# sourceMappingURL=bot-error-reporter.js.map

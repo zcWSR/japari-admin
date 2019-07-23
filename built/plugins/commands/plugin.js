@@ -70,4 +70,3 @@ PluginConfig = (_dec = (0, _plugin.Command)({ name: '插件配置', command: 'pl
 
 
 PluginConfig;exports.default = _default;
-//# sourceMappingURL=plugin.js.map

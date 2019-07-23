@@ -47,4 +47,3 @@ class RedisService {
 
 
 new RedisService();exports.default = _default;
-//# sourceMappingURL=redis-service.js.map

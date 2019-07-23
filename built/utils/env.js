@@ -7,4 +7,3 @@ function isDev() {
   dev = !!result;
   return dev;
 }
-//# sourceMappingURL=env.js.map

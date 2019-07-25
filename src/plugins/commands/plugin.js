@@ -20,7 +20,7 @@ class PluginConfig {
 
   async run(params, body) {
     const { group_id: groupId } = body;
-    const isAdmin = Config.ADMINS.indexOf(+body.user_id) > -1;
+    const isAdmin = QQService.isSuperAdmin(body.user_id);
     const allPluginList = this.getAllPlugins();
     const configMap = PluginService.getGroupConfig(groupId);
     if (!params) {
@@ -39,12 +39,12 @@ class PluginConfig {
     if (params.replace(/\d/g, '').trim()) {
       QQService.sendGroupMessage(groupId, '非法参数');
     }
-    const toggleIndexs = params.trim().split(' ');
+    const toggleIndexes = params.trim().split(' ');
     const configMapClone = { ...configMap };
     let alertMsg = '';
     allPluginList.every((plugin, index) => {
       const currentIndex = index + 1;
-      if (toggleIndexs.indexOf(`${currentIndex}`) === -1) {
+      if (toggleIndexes.indexOf(`${currentIndex}`) === -1) {
         return true;
       }
       if (!isAdmin && plugin.hide) {

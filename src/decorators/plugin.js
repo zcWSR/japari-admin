@@ -1,4 +1,3 @@
-import Config from '../config';
 import logger from '../utils/logger';
 import QQService from '../services/qq-service';
 
@@ -90,7 +89,7 @@ export const Command = (config) => {
     async trigger(params, body, type, commandMap) {
       this.mute || logger.info(`command '!${this.command}' triggered, params: ${params}`);
       if (this.level === 3) {
-        if (Config.ADMINS.indexOf(+body.user_id) === -1) {
+        if (!QQService.isSuperAdmin(body.user_id)) {
           this.sendNoPermissionMsg(body, type);
           return;
         }

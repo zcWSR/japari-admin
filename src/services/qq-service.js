@@ -8,6 +8,10 @@ class QQService {
     return list;
   }
 
+  isSuperAdmin(userId) {
+    return Config.ADMINS.includes(+userId);
+  }
+
   // 是否为群主
   async isGroupOwner(groupId, userId) {
     return (await this.getGroupUserRole(groupId, userId)) === 'owner';

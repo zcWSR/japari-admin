@@ -12,9 +12,12 @@ import QQService from '../../services/qq-service';
 })
 class Help {
   getCommandInstance(commandName, body, commandMap) {
-    const isAdmin = Config.ADMINS.indexOf(+body.user_id) > -1;
+    const isAdmin = QQService.isSuperAdmin(body.user_id);
     const commandInstance = commandMap[commandName];
-    if (commandInstance.level === 3) {
+    if (commandInstance === this) { // 忽略自身
+      return null;
+    }
+    if (commandInstance.level === 3) { // 如为管理员专属指令, 则判断用户权限
       return isAdmin ? commandInstance : null;
     }
     return commandInstance;

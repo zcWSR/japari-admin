@@ -20,7 +20,7 @@ PluginConfig = (_dec = (0, _plugin.Command)({ name: '插件配置', command: 'pl
 
   run(params, body) {var _this = this;return _asyncToGenerator(function* () {const
       groupId = body.group_id;
-      const isAdmin = _config.default.ADMINS.indexOf(+body.user_id) > -1;
+      const isAdmin = _qqService.default.isSuperAdmin(body.user_id);
       const allPluginList = _this.getAllPlugins();
       const configMap = _pluginService.default.getGroupConfig(groupId);
       if (!params) {
@@ -39,12 +39,12 @@ PluginConfig = (_dec = (0, _plugin.Command)({ name: '插件配置', command: 'pl
       if (params.replace(/\d/g, '').trim()) {
         _qqService.default.sendGroupMessage(groupId, '非法参数');
       }
-      const toggleIndexs = params.trim().split(' ');
+      const toggleIndexes = params.trim().split(' ');
       const configMapClone = _objectSpread({}, configMap);
       let alertMsg = '';
       allPluginList.every((plugin, index) => {
         const currentIndex = index + 1;
-        if (toggleIndexs.indexOf(`${currentIndex}`) === -1) {
+        if (toggleIndexes.indexOf(`${currentIndex}`) === -1) {
           return true;
         }
         if (!isAdmin && plugin.hide) {

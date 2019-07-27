@@ -9,7 +9,7 @@ var _redisService = _interopRequireDefault(require("../../services/redis-service
 
 
 
-ReadAgainFollow = (_dec = (0, _plugin.Command)({ name: 'read-again-random', command: 'fd', type: 'group', info: "查看和设置随机复读概率, '!fd'查看当前概率, '!fd 0.x'设置概率", level: 2 }), _dec(_class = class ReadAgainFollow {
+ReadAgainFollow = (_dec = (0, _plugin.Command)({ name: '设计随机复读概率', command: 'fd', type: 'group', info: "查看和设置随机复读概率, '!fd'查看当前概率, '!fd 0.x'设置概率", level: 2 }), _dec(_class = class ReadAgainFollow {
   getRedisKey(groupId) {
     return `read-again-random-${groupId}`;
   }

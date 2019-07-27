@@ -16,7 +16,6 @@ const DEFAULT_GROUP_INFO = { message: '', count: 1 };
 class ReadAgainFollow {
   async go(body) {
     const { group_id: groupId, message } = body;
-    if (message === '[图片]') return;
     const redisKey = `${this.name}-${groupId}`;
     let groupInfo = JSON.parse(await RedisService.get(redisKey)) || DEFAULT_GROUP_INFO;
     if (groupInfo.message !== message) {

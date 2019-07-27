@@ -17,10 +17,6 @@ const DEFAULT_RATE = 0.05;
   mute: true
 })
 class ReadAgainRandom {
-  constructor() {
-    this.groupRandomRateMap = {};
-  }
-
   async go(body) {
     const { message, group_id: groupId } = body;
     const randomRate = Math.random();

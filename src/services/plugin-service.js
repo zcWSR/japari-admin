@@ -15,7 +15,7 @@ class PluginService {
   privateConfigs = [];
 
   sortByWeight(pluginA, pluginB) {
-    return pluginA.weight - pluginB.weight;
+    return pluginB.weight - pluginA.weight;
   }
 
   classifyPlugin(plugin) {
@@ -97,6 +97,7 @@ class PluginService {
     }, []);
     logger.info('======== all plugin loaded ========');
     logger.info('load group plugin config');
+    console.log('plugins', this.plugins.group.map(item => item.name));
     await this.loadGroupPluginConfig();
     logger.info('load private plugin config');
     await this.loadPrivatePluginConfig();

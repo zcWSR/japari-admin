@@ -1,4 +1,3 @@
-import Config from '../../config';
 import { Command } from '../../decorators/plugin';
 import QQService from '../../services/qq-service';
 
@@ -7,7 +6,6 @@ import QQService from '../../services/qq-service';
   command: 'help',
   type: 'all',
   info: "用来查看所有指令或者某特定指令的使用方法的指令, '!help 指令名' 来调用",
-  default: true,
   level: 1
 })
 class Help {

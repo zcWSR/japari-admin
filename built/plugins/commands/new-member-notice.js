@@ -14,9 +14,8 @@ const DEFAULT_TPL = '欢迎 ${name} 加入本群! 请使用"!help"查看可用�
 
 
 
-
 NewNotice = (_dec = (0, _plugin.Command)({ name: '配置入群提醒模板', command: 'newNotice', type: 'group', info: // eslint-disable-next-line no-template-curly-in-string
-  "查看当前或设置当前群的入群提醒模板, '!newNotice'来查看, '!newNotice set xxx'来设置, 模板中可使用'${name}'来代替入群人昵称", default: true, level: 2 }), _dec(_class = (_class2 = class NewNotice {getValue(params) {
+  "查看当前或设置当前群的入群提醒模板, '!newNotice'来查看, '!newNotice set xxx'来设置, 模板中可使用'${name}'来代替入群人昵称", level: 2 }), _dec(_class = (_class2 = class NewNotice {getValue(params) {
     const match = params.match(/^(\w+)\s(.*)/);
     if (!match) {
       return {

@@ -1,5 +1,4 @@
-"use strict";Object.defineProperty(exports, "__esModule", { value: true });exports.default = void 0;var _config = _interopRequireDefault(require("../../config"));
-var _plugin = require("../../decorators/plugin");
+"use strict";Object.defineProperty(exports, "__esModule", { value: true });exports.default = void 0;var _plugin = require("../../decorators/plugin");
 var _qqService = _interopRequireDefault(require("../../services/qq-service"));var _dec, _class;function _interopRequireDefault(obj) {return obj && obj.__esModule ? obj : { default: obj };}let
 
 
@@ -9,8 +8,7 @@ var _qqService = _interopRequireDefault(require("../../services/qq-service"));va
 
 
 
-
-Help = (_dec = (0, _plugin.Command)({ name: '帮助', command: 'help', type: 'all', info: "用来查看所有指令或者某特定指令的使用方法的指令, '!help 指令名' 来调用", default: true, level: 1 }), _dec(_class = class Help {
+Help = (_dec = (0, _plugin.Command)({ name: '帮助', command: 'help', type: 'all', info: "用来查看所有指令或者某特定指令的使用方法的指令, '!help 指令名' 来调用", level: 1 }), _dec(_class = class Help {
   getCommandInstance(commandName, body, commandMap) {
     const isAdmin = _qqService.default.isSuperAdmin(body.user_id);
     const commandInstance = commandMap[commandName];

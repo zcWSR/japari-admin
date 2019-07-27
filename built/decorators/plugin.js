@@ -52,7 +52,7 @@ const Command = config => {
     command: '', // 指令英文名, 调用时使用
     type: 'all', // 指令类型, all group private
     info: '描述', // 指令详细描述
-    default: false, // 是否默认开启
+    // default: false, // 是否默认开启
     mute: false, // 不打印命中log
     level: 1, // 权限级别, 1 普通, 2 管理员, 3 总管理,
     permissionDeniedNotice: '权限不足' // 权限不足提醒文案

@@ -17,10 +17,6 @@ let
 
 
 ReadAgainRandom = (_dec = (0, _plugin.Plugin)({ name: 'read-again-random', wight: 97, type: 'group', shortInfo: '随机复读', info: '当同一群聊连续出现相同消息三次时, 进行复读', mute: true }), _dec(_class = class ReadAgainRandom {
-  constructor() {
-    this.groupRandomRateMap = {};
-  }
-
   go(body) {var _this = this;return _asyncToGenerator(function* () {const
       message = body.message,groupId = body.group_id;
       const randomRate = Math.random();

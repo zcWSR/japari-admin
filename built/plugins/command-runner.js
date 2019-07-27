@@ -129,39 +129,7 @@ CommandRunner = (_dec = (0, _plugin.Plugin)({ name: 'command-runner', weight: 99
           table.string('command_list');
         });
       }})();
-  }
+  }}, _temp), (_applyDecoratedDescriptor(_class2.prototype, "createTable", [_db.withTransaction], Object.getOwnPropertyDescriptor(_class2.prototype, "createTable"), _class2.prototype)), _class2)) || _class);var _default =
 
-  // async getCommandList() {
 
-  // }
-}, _temp), (_applyDecoratedDescriptor(_class2.prototype, "createTable", [_db.withTransaction], Object.getOwnPropertyDescriptor(_class2.prototype, "createTable"), _class2.prototype)), _class2)) || _class);var _default =
-
-CommandRunner;
-
-// export function loadCommands() {
-//   const cmsDirPath = path.resolve(__dirname, 'commands');
-//   logger.info('================command-loader================');
-//   const cmsFilePath = fs.readdirSync(cmsDirPath)
-//   .map(filename => {
-//     return `${cmsDirPath}/${filename}`;
-//   });
-//   const commands = cmsFilePath.reduce((prev, curr) => {
-//     let cm;
-//     try {
-//       cm = require(curr);
-//       if (cm.name) {
-//         prev[cm.name] = cm;
-//         logger.info(`指令'!${cm.name}' 加载成功`);
-//       } else {
-//         throw new Error(`插件加载失败,缺少必要属性'name'\n位于: ${curr}`);
-//       }
-//     } catch (e) {
-//       logger.info(e);
-//     }
-//     return prev;
-//   }, {});
-//   logger.info('指令加载完成');
-//   logger.info('================command-loader================');
-//   return commands;
-// }
-exports.default = _default;
+CommandRunner;exports.default = _default;

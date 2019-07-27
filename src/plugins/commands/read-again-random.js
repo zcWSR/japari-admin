@@ -3,7 +3,7 @@ import QQService from '../../services/qq-service';
 import RedisService from '../../services/redis-service';
 
 @Command({
-  name: '设计随机复读概率',
+  name: '设置随机复读概率',
   command: 'fd',
   type: 'group',
   info: "查看和设置随机复读概率, '!fd'查看当前概率, '!fd 0.x'设置概率",

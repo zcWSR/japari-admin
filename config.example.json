@@ -1,0 +1,10 @@
+{
+  "dbFilePath": "db.sqlite3",
+  "redisPort": 8848,
+  "redisPw": "123456",
+  "osuAppKey": "qwertyuiop",
+  "qqServer": "http://localhost:5000",
+  "netEastMusicServer": "http://localhost:5000",
+  "admins": [123456789],
+  "qqBotId": 123456789
+}

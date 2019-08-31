@@ -3,6 +3,7 @@ import Koa from 'koa';
 import koaBody from 'koa-body';
 import cFonts from 'cfonts';
 
+import './config';
 import { getProcessArgv } from './utils/process';
 import errorCatcher from './middlewares/error-catcher';
 import logger from './utils/logger';

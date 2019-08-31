@@ -4,4 +4,5 @@ built/*.sqlite3
 *.sqlite3
 src/config.js
 .built-dev/
+config.json
 .DS_Store

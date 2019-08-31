@@ -1,8 +1,6 @@
 node_modules/
-built/config.js
-built/*.sqlite3
 *.sqlite3
-src/config.js
+dump.rdb
 .built-dev/
 config.json
 .DS_Store

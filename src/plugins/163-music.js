@@ -7,7 +7,7 @@ import logger from '../utils/logger';
 
 const commandPrefixList = ['点歌', '来一首', '我想听'];
 
-const MAX_COUNT_PRE_MINUTE = 3;
+const MAX_COUNT_PRE_MINUTE = 2;
 
 @Plugin({
   name: '163-music',

@@ -36,7 +36,7 @@ class RedisService {
   }
 
   set(key, value) {
-    _logger.default.debug(`update redis, set ${key}`);
+    _logger.default.debug(`update redis, set ${key}, value ${value}`);
     return this.redis.set(key, value);
   }
 

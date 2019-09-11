@@ -49,19 +49,20 @@ class NetEastMusic {
       const nowDateTime = Date.now();
       firstTime = +firstTime || nowDateTime;
       count = +count || 0;
+
+      // 超过一分钟, 用当前时间重设, 次数重置为1, 并继续
+      if (nowDateTime - firstTime > 1000 * 60) {
+        await RedisService.set(key, `${nowDateTime},1`);
+        return true;
+      }
       // 如不足最大限制次数, 则记录第一次调用时间和当前次数, 并继续
-      if (count <= MAX_COUNT_PRE_MINUTE) {
+      if (count < MAX_COUNT_PRE_MINUTE) {
         await RedisService.set(key, `${firstTime},${count + 1}`);
         return true;
       }
       // 如超过最大调用次数并在一分钟内, 则判定为过量, 阻止
-      if (nowDateTime - firstTime < 1000 * 60) {
-        await RedisService.set(key, `${firstTime},${count + 1}`);
-        return false;
-      }
-      // 超过一分钟, 用当前时间重设, 次数重置为1, 并继续
-      await RedisService.set(key, `${nowDateTime},1`);
-      return true;
+      await RedisService.set(key, `${firstTime},${count + 1}`);
+      return false;
     } catch (e) {
       // 异常统一阻止
       logger.error(e.toString());
@@ -101,7 +102,7 @@ class NetEastMusic {
   }
 
   async doSearch(keyword) {
-    const result = await this.doSearch(keyword);
+    const result = await this.fetchMusic(keyword);
     if (result === null) {
       return '请求失败, 请重试';
     }

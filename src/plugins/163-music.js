@@ -2,9 +2,12 @@ import axios from 'axios';
 import Config from '../config';
 import { Plugin } from '../decorators/plugin';
 import QQService from '../services/qq-service';
+import RedisService from '../services/redis-service';
 import logger from '../utils/logger';
 
 const commandPrefixList = ['点歌', '来一首', '我想听'];
+
+const MAX_COUNT_PRE_MINUTE = 3;
 
 @Plugin({
   name: '163-music',
@@ -15,6 +18,10 @@ const commandPrefixList = ['点歌', '来一首', '我想听'];
   mute: true
 })
 class NetEastMusic {
+  getRedisKey(id) {
+    return `${this.name}-${id}`;
+  }
+
   isCommand(content) {
     let match = null;
     let prefix = null;
@@ -34,7 +41,35 @@ class NetEastMusic {
     return false;
   }
 
-  async doSearch(keyword) {
+  async canSearch({ user_id: userId, group_id: groupId }, type) {
+    try {
+      const id = type === 'group' ? groupId : userId;
+      const key = this.getRedisKey(id);
+      let [firstTime, count] = (await RedisService.get(key) || ',').split(',');
+      const nowDateTime = Date.now();
+      firstTime = +firstTime || nowDateTime;
+      count = +count || 0;
+      // 如不足最大限制次数, 则记录第一次调用时间和当前次数, 并继续
+      if (count <= MAX_COUNT_PRE_MINUTE) {
+        await RedisService.set(key, `${firstTime},${count + 1}`);
+        return true;
+      }
+      // 如超过最大调用次数并在一分钟内, 则判定为过量, 阻止
+      if (nowDateTime - firstTime < 1000 * 60) {
+        await RedisService.set(key, `${firstTime},${count + 1}`);
+        return false;
+      }
+      // 超过一分钟, 用当前时间重设, 次数重置为1, 并继续
+      await RedisService.set(key, `${nowDateTime},1`);
+      return true;
+    } catch (e) {
+      // 异常统一阻止
+      logger.error(e.toString());
+      return false;
+    }
+  }
+
+  async fetchMusic(keyword) {
     logger.info(`search music with keyword: ${keyword}`);
     try {
       const meta = await axios({
@@ -65,6 +100,17 @@ class NetEastMusic {
     }
   }
 
+  async doSearch(keyword) {
+    const result = await this.doSearch(keyword);
+    if (result === null) {
+      return '请求失败, 请重试';
+    }
+    if (typeof result === 'string' && result) {
+      return result;
+    }
+    return this.buildScheme(result.id);
+  }
+
   buildScheme(id) {
     return `[CQ:music,type=163,id=${id}]`;
   }
@@ -81,17 +127,13 @@ class NetEastMusic {
   async go(body, type) {
     const { message } = body;
     const c = this.isCommand(message);
-    let forSend = '';
     if (!c) return; // 不是指令, 直接跳过流程
-    const result = await this.doSearch(c.keyword);
-    if (result === null) {
-      forSend = '请求失败, 请重试';
-    } else if (typeof result === 'string' && result) {
-      forSend = result;
+    if (await this.canSearch(body, type)) {
+      const msg = await this.doSearch(c.keyword);
+      this.sendMessage(msg, body, type);
     } else {
-      forSend = this.buildScheme(result.id);
+      this.sendMessage(`每分钟最多可点${MAX_COUNT_PRE_MINUTE}首, 请稍后重试`, body, type);
     }
-    this.sendMessage(forSend, body, type);
     return 'break';
   }
 }

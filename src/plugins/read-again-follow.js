@@ -2,6 +2,7 @@
 import { Plugin } from '../decorators/plugin';
 import QQService from '../services/qq-service';
 import RedisService from '../services/redis-service';
+import PluginService from '../services/plugin-service';
 import logger from '../utils/logger';
 
 const DEFAULT_GROUP_INFO = { message: '', count: 1 };
@@ -26,6 +27,7 @@ class ReadAgainFollow {
     groupInfo.count += 1;
     if (!(groupInfo.count % 3)) {
       logger.info(`group ${groupId} random read follow: '${message}'`);
+      await PluginService.sleep();
       QQService.sendGroupMessage(groupId, message);
       await RedisService.set(redisKey, JSON.stringify(groupInfo));
       return 'break';

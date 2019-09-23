@@ -9,6 +9,8 @@ const commandPrefixList = ['点歌', '来一首', '我想听'];
 
 const MAX_COUNT_PRE_MINUTE = 2;
 
+const MUSIC_ID_CACHE_KEY = '163-music-keyword-cache';
+
 @Plugin({
   name: '163-music',
   wight: 99,
@@ -19,7 +21,7 @@ const MAX_COUNT_PRE_MINUTE = 2;
 })
 class NetEastMusic {
   getRedisKey(id) {
-    return `${this.name}-${id}`;
+    return `163-music-${id}`;
   }
 
   isCommand(content) {
@@ -45,7 +47,7 @@ class NetEastMusic {
     try {
       const id = type === 'group' ? groupId : userId;
       const key = this.getRedisKey(id);
-      let [firstTime, count] = (await RedisService.get(key) || ',').split(',');
+      let [firstTime, count] = ((await RedisService.get(key)) || ',').split(',');
       const nowDateTime = Date.now();
       firstTime = +firstTime || nowDateTime;
       count = +count || 0;
@@ -70,11 +72,34 @@ class NetEastMusic {
     }
   }
 
+  async checkKeywordCache(keyword) {
+    logger.info(`checking music keyword cache: ${keyword}`);
+    const result = await RedisService.redis.hget(MUSIC_ID_CACHE_KEY, keyword);
+    if (result) {
+      logger.info(`get keyword cache, id: ${result}`);
+    } else {
+      logger.info('cache not found, fetching...');
+    }
+    return result;
+  }
+
+  setKeywordCache(keyword, id) {
+    logger.info(`set music keyword cache: ${keyword}, id: ${id}`);
+    return RedisService.redis.hset(MUSIC_ID_CACHE_KEY, keyword, id);
+  }
+
+  getSearchUrl() {
+    if (Math.random() > 0.5) {
+      return `${Config.NET_EAST_MUSIC_SERVER}/search`;
+    }
+    return `${Config.NET_EAST_MUSIC_SERVER}/search/suggest`;
+  }
+
   async fetchMusic(keyword) {
     logger.info(`search music with keyword: ${keyword}`);
     try {
       const meta = await axios({
-        url: `${Config.NET_EAST_MUSIC_SERVER}/search`,
+        url: this.getSearchUrl(),
         method: 'get',
         params: {
           keywords: keyword,
@@ -102,14 +127,20 @@ class NetEastMusic {
   }
 
   async doSearch(keyword) {
-    const result = await this.fetchMusic(keyword);
-    if (result === null) {
-      return '请求失败, 请重试';
+    let id = await this.checkKeywordCache(keyword);
+    if (!id) {
+      const result = await this.fetchMusic(keyword);
+      if (result === null) {
+        return '请求失败, 请重试';
+      }
+      if (typeof result === 'string' && result) {
+        return result;
+      }
+      // eslint-disable-next-line
+      id = result.id;
+      await this.setKeywordCache(keyword, id);
     }
-    if (typeof result === 'string' && result) {
-      return result;
-    }
-    return this.buildScheme(result.id);
+    return this.buildScheme(id);
   }
 
   buildScheme(id) {

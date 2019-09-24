@@ -7,7 +7,9 @@ var _logger = _interopRequireDefault(require("../utils/logger"));var _dec, _clas
 
 const commandPrefixList = ['点歌', '来一首', '我想听'];
 
-const MAX_COUNT_PRE_MINUTE = 2;let
+const MAX_COUNT_PRE_MINUTE = 2;
+
+const MUSIC_ID_CACHE_KEY = '163-music-keyword-cache';let
 
 
 
@@ -19,7 +21,7 @@ const MAX_COUNT_PRE_MINUTE = 2;let
 
 NetEastMusic = (_dec = (0, _plugin.Plugin)({ name: '163-music', wight: 99, type: 'message', shortInfo: '网易云点歌', info: '网易云音乐点歌, 使用方法: 点歌 xx, 来一首 xx, 我想听 xx', mute: true }), _dec(_class = class NetEastMusic {
   getRedisKey(id) {
-    return `${this.name}-${id}`;
+    return `163-music-${id}`;
   }
 
   isCommand(content) {
@@ -70,11 +72,34 @@ NetEastMusic = (_dec = (0, _plugin.Plugin)({ name: '163-music', wight: 99, type:
       }})();
   }
 
-  fetchMusic(keyword) {return _asyncToGenerator(function* () {
+  checkKeywordCache(keyword) {return _asyncToGenerator(function* () {
+      _logger.default.info(`checking music keyword cache: ${keyword}`);
+      const result = yield _redisService.default.redis.hget(MUSIC_ID_CACHE_KEY, keyword);
+      if (result) {
+        _logger.default.info(`get keyword cache, id: ${result}`);
+      } else {
+        _logger.default.info('cache not found, fetching...');
+      }
+      return result;})();
+  }
+
+  setKeywordCache(keyword, id) {
+    _logger.default.info(`set music keyword cache: ${keyword}, id: ${id}`);
+    return _redisService.default.redis.hset(MUSIC_ID_CACHE_KEY, keyword, id);
+  }
+
+  getSearchUrl() {
+    if (Math.random() > 0.5) {
+      return `${_config.default.NET_EAST_MUSIC_SERVER}/search`;
+    }
+    return `${_config.default.NET_EAST_MUSIC_SERVER}/search/suggest`;
+  }
+
+  fetchMusic(keyword) {var _this2 = this;return _asyncToGenerator(function* () {
       _logger.default.info(`search music with keyword: ${keyword}`);
       try {
         const meta = yield (0, _axios.default)({
-          url: `${_config.default.NET_EAST_MUSIC_SERVER}/search`,
+          url: _this2.getSearchUrl(),
           method: 'get',
           params: {
             keywords: keyword,
@@ -101,15 +126,21 @@ NetEastMusic = (_dec = (0, _plugin.Plugin)({ name: '163-music', wight: 99, type:
       }})();
   }
 
-  doSearch(keyword) {var _this2 = this;return _asyncToGenerator(function* () {
-      const result = yield _this2.fetchMusic(keyword);
-      if (result === null) {
-        return '请求失败, 请重试';
+  doSearch(keyword) {var _this3 = this;return _asyncToGenerator(function* () {
+      let id = yield _this3.checkKeywordCache(keyword);
+      if (!id) {
+        const result = yield _this3.fetchMusic(keyword);
+        if (result === null) {
+          return '请求失败, 请重试';
+        }
+        if (typeof result === 'string' && result) {
+          return result;
+        }
+        // eslint-disable-next-line
+        id = result.id;
+        yield _this3.setKeywordCache(keyword, id);
       }
-      if (typeof result === 'string' && result) {
-        return result;
-      }
-      return _this2.buildScheme(result.id);})();
+      return _this3.buildScheme(id);})();
   }
 
   buildScheme(id) {
@@ -125,15 +156,15 @@ NetEastMusic = (_dec = (0, _plugin.Plugin)({ name: '163-music', wight: 99, type:
     }
   }
 
-  go(body, type) {var _this3 = this;return _asyncToGenerator(function* () {const
+  go(body, type) {var _this4 = this;return _asyncToGenerator(function* () {const
       message = body.message;
-      const c = _this3.isCommand(message);
+      const c = _this4.isCommand(message);
       if (!c) return; // 不是指令, 直接跳过流程
-      if (yield _this3.canSearch(body, type)) {
-        const msg = yield _this3.doSearch(c.keyword);
-        _this3.sendMessage(msg, body, type);
+      if (yield _this4.canSearch(body, type)) {
+        const msg = yield _this4.doSearch(c.keyword);
+        _this4.sendMessage(msg, body, type);
       } else {
-        _this3.sendMessage(`每分钟最多可点${MAX_COUNT_PRE_MINUTE}首, 请稍后重试`, body, type);
+        _this4.sendMessage(`每分钟最多可点${MAX_COUNT_PRE_MINUTE}首, 请稍后重试`, body, type);
       }
       return 'break';})();
   }}) || _class);var _default =

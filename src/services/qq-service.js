@@ -1,8 +1,22 @@
 import axios from 'axios';
 import logger from '../utils/logger';
 import Config from '../config';
+import { isDev } from '../utils/env';
 
 class QQService {
+  constructor() {
+    if (isDev()) {
+      this.sendGroupMessage = (groupId, msg) => {
+        logger.debug(`send to group ${groupId}`);
+        msg.split('\n').forEach(line => logger.debug(line));
+      };
+      this.sendPrivateMessage = (userId, msg) => {
+        logger.debug(`send to user ${userId}`);
+        msg.split('\n').forEach(line => logger.debug(line));
+      };
+    }
+  }
+
   async getGroupList() {
     const list = await axios.post(`${Config.QQ_SERVER}/get_group_list`);
     return list;

@@ -27,7 +27,8 @@ class Config {
 
 
 
-    config.dbFilePath,redisPort = config.redisPort,redisPw = config.redisPw,osuAppKey = config.osuAppKey,qqServer = config.qqServer,netEastMusicServer = config.netEastMusicServer,admins = config.admins,botQQId = config.botQQId;
+
+    config.dbFilePath,redisPort = config.redisPort,redisPw = config.redisPw,osuAppKey = config.osuAppKey,qqServer = config.qqServer,netEastMusicServer = config.netEastMusicServer,admins = config.admins,botQQId = config.botQQId,ocrSpaceKey = config.ocrSpaceKey;
     this.DB = {
       filePath: dbFilePath };
 
@@ -40,6 +41,7 @@ class Config {
     this.NET_EAST_MUSIC_SERVER = netEastMusicServer;
     this.ADMINS = admins;
     this.BOT_QQ_ID = botQQId;
+    this.ORC_KEY = ocrSpaceKey;
   }}var _default =
 
 

@@ -103,7 +103,7 @@ class AkhrService {constructor() {this.
       const meta = yield (0, _axios.default)({
         url: 'https://api.ocr.space/parse/imageurl',
         params: {
-          apikey: _config.default.ORC_KEY,
+          apikey: _config.default.OCR_KEY,
           url: encodeURIComponent(imgUrl),
           language: 'chs' } });
 

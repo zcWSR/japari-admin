@@ -103,7 +103,7 @@ class AkhrService {
     const meta = await axios({
       url: 'https://api.ocr.space/parse/imageurl',
       params: {
-        apikey: Config.ORC_KEY,
+        apikey: Config.OCR_KEY,
         url: encodeURIComponent(imgUrl),
         language: 'chs'
       }

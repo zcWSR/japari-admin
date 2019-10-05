@@ -39,7 +39,7 @@ class Akhr {
   async isInWaitingStack(groupId, userId) {
     const result = await RedisService.redis.hget(WAITING_STACK_KEY, groupId);
     if (result) {
-      logger.log(`akhr: user: ${groupId}-${userId} is in waiting stack`);
+      logger.info(`akhr: user: ${groupId}-${userId} is in waiting stack`);
       return true;
     }
     return false;
@@ -47,16 +47,16 @@ class Akhr {
 
   async addIntoWaitingStack(groupId, userId) {
     await RedisService.redis.hset(WAITING_STACK_KEY, groupId, userId);
-    logger.log(`akhr: user: ${groupId}-${userId} add into waiting stack`);
+    logger.info(`akhr: user: ${groupId}-${userId} add into waiting stack`);
   }
 
   async clearStack(groupId) {
     await RedisService.redis.hdel(WAITING_STACK_KEY, groupId);
-    logger.log(`akhr: clear group ${groupId} waiting stack`);
+    logger.info(`akhr: clear group ${groupId} waiting stack`);
   }
 
   async combineAndSend(imgUrl, groupId) {
-    logger.log(`start analyse ${imgUrl}`);
+    logger.info(`start analyse ${imgUrl}`);
     const words = await AkhrService.getORCResult(imgUrl);
     const hrList = await AkhrService.getAkhrList();
     const result = AkhrService.combine(words, hrList);

@@ -3,6 +3,7 @@
   "redisPort": 8848,
   "redisPw": "123456",
   "osuAppKey": "qwertyuiop",
+  "orcSpaceKey": "1231241",
   "qqServer": "http://localhost:5000",
   "netEastMusicServer": "http://localhost:5000",
   "admins": [123456789],

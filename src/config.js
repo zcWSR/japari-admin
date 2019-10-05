@@ -26,7 +26,8 @@ class Config {
       qqServer,
       netEastMusicServer,
       admins,
-      botQQId
+      botQQId,
+      ocrSpaceKey
     } = config;
     this.DB = {
       filePath: dbFilePath
@@ -40,6 +41,7 @@ class Config {
     this.NET_EAST_MUSIC_SERVER = netEastMusicServer;
     this.ADMINS = admins;
     this.BOT_QQ_ID = botQQId;
+    this.ORC_KEY = ocrSpaceKey;
   }
 }
 

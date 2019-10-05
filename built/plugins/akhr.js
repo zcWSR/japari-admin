@@ -39,7 +39,7 @@ Akhr = (_dec = (0, _plugin.Plugin)({ name: 'Akhr', weight: 99, type: 'group', sh
   isInWaitingStack(groupId, userId) {return _asyncToGenerator(function* () {
       const result = yield _redisService.default.redis.hget(WAITING_STACK_KEY, groupId);
       if (result) {
-        _logger.default.log(`akhr: user: ${groupId}-${userId} is in waiting stack`);
+        _logger.default.info(`akhr: user: ${groupId}-${userId} is in waiting stack`);
         return true;
       }
       return false;})();
@@ -47,16 +47,16 @@ Akhr = (_dec = (0, _plugin.Plugin)({ name: 'Akhr', weight: 99, type: 'group', sh
 
   addIntoWaitingStack(groupId, userId) {return _asyncToGenerator(function* () {
       yield _redisService.default.redis.hset(WAITING_STACK_KEY, groupId, userId);
-      _logger.default.log(`akhr: user: ${groupId}-${userId} add into waiting stack`);})();
+      _logger.default.info(`akhr: user: ${groupId}-${userId} add into waiting stack`);})();
   }
 
   clearStack(groupId) {return _asyncToGenerator(function* () {
       yield _redisService.default.redis.hdel(WAITING_STACK_KEY, groupId);
-      _logger.default.log(`akhr: clear group ${groupId} waiting stack`);})();
+      _logger.default.info(`akhr: clear group ${groupId} waiting stack`);})();
   }
 
   combineAndSend(imgUrl, groupId) {return _asyncToGenerator(function* () {
-      _logger.default.log(`start analyse ${imgUrl}`);
+      _logger.default.info(`start analyse ${imgUrl}`);
       const words = yield _akhrService.default.getORCResult(imgUrl);
       const hrList = yield _akhrService.default.getAkhrList();
       const result = _akhrService.default.combine(words, hrList);

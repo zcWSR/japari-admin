@@ -1,6 +1,10 @@
-"use strict";require("core-js/modules/es.promise");Object.defineProperty(exports, "__esModule", { value: true });exports.default = void 0;var _ioredis = _interopRequireDefault(require("ioredis"));
+"use strict";require("core-js/modules/es.array.iterator");require("core-js/modules/es.promise");Object.defineProperty(exports, "__esModule", { value: true });exports.default = void 0;var _ioredis = _interopRequireDefault(require("ioredis"));
 var _config = _interopRequireDefault(require("../config"));
-var _logger = _interopRequireDefault(require("../utils/logger"));function _interopRequireDefault(obj) {return obj && obj.__esModule ? obj : { default: obj };}
+var _logger = _interopRequireDefault(require("../utils/logger"));function _interopRequireDefault(obj) {return obj && obj.__esModule ? obj : { default: obj };}function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) {try {var info = gen[key](arg);var value = info.value;} catch (error) {reject(error);return;}if (info.done) {resolve(value);} else {Promise.resolve(value).then(_next, _throw);}}function _asyncToGenerator(fn) {return function () {var self = this,args = arguments;return new Promise(function (resolve, reject) {var gen = fn.apply(self, args);function _next(value) {asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value);}function _throw(err) {asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err);}_next(undefined);});};}
+
+const GROUP_PLUGIN_CONFIG_KEY = 'group-plugin-config';
+
+const getGroupPluginConfigKey = key => `${GROUP_PLUGIN_CONFIG_KEY}-${key}`;
 
 class RedisService {
   connect() {
@@ -43,6 +47,15 @@ class RedisService {
   get(key) {
     _logger.default.debug(`get redis, key ${key}`);
     return this.redis.get(key);
+  }
+
+  getGroupPluginConfig(groupId) {
+    return this.redis.smembers(getGroupPluginConfigKey(groupId));
+  }
+
+  updateGroupPluginConfig(groupId, pluginList) {var _this = this;return _asyncToGenerator(function* () {
+      yield _this.redis.del(getGroupPluginConfigKey(groupId));
+      return _this.redis.sadd(getGroupPluginConfigKey(groupId), ...pluginList);})();
   }}var _default =
 
 

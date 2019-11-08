@@ -1,6 +1,7 @@
-"use strict";require("core-js/modules/es.symbol.description");require("core-js/modules/es.array.iterator");require("core-js/modules/es.array.map");require("core-js/modules/es.array.sort");require("core-js/modules/es.promise");require("core-js/modules/es.string.split");Object.defineProperty(exports, "__esModule", { value: true });exports.default = void 0;var _path = _interopRequireDefault(require("path"));
+"use strict";require("core-js/modules/es.symbol.description");require("core-js/modules/es.array.iterator");require("core-js/modules/es.array.map");require("core-js/modules/es.array.sort");require("core-js/modules/es.promise");Object.defineProperty(exports, "__esModule", { value: true });exports.default = void 0;var _path = _interopRequireDefault(require("path"));
 var _fileService = _interopRequireDefault(require("./file-service"));
-var _dbService = _interopRequireDefault(require("./db-service"));
+var _redisService = _interopRequireDefault(require("./redis-service"));
+
 var _logger = _interopRequireDefault(require("../utils/logger"));function _interopRequireDefault(obj) {return obj && obj.__esModule ? obj : { default: obj };}function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) {try {var info = gen[key](arg);var value = info.value;} catch (error) {reject(error);return;}if (info.done) {resolve(value);} else {Promise.resolve(value).then(_next, _throw);}}function _asyncToGenerator(fn) {return function () {var self = this,args = arguments;return new Promise(function (resolve, reject) {var gen = fn.apply(self, args);function _next(value) {asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value);}function _throw(err) {asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err);}_next(undefined);});};}
 
 class PluginService {constructor() {this.
@@ -44,31 +45,33 @@ class PluginService {constructor() {this.
     }
   }
 
-  loadGroupPluginConfig() {var _this = this;return _asyncToGenerator(function* () {
-      const configArray = (yield _dbService.default.getAllGroupPluginConfig()) || [];
-      _this.groupConfigs = configArray.reduce(
-      (groupMap, { groupId, pluginList: pluginNameString }) => {
-        const nameList = pluginNameString.split(' ');
-        groupMap[groupId] = nameList.reduce((configMap, name) => {
-          configMap[name] = true;
-          return configMap;
-        }, {});
-        return groupMap;
-      },
-      {});})();
+  // 废弃, 改为惰性加载
+  // async loadGroupPluginConfig() {
+  //   const configArray = (await DBService.getAllGroupPluginConfig()) || [];
+  //   this.groupConfigs = configArray.reduce(
+  //     (groupMap, { groupId, pluginList: pluginNameString }) => {
+  //       const nameList = pluginNameString.split(' ');
+  //       console.log(nameList);
+  //       groupMap[groupId] = nameList.reduce((configMap, name) => {
+  //         configMap[name] = true;
+  //         return configMap;
+  //       }, {});
+  //       return groupMap;
+  //     },
+  //     {}
+  //   );
+  // }
 
-  }
-
-  loadPrivatePluginConfig() {var _this2 = this;return _asyncToGenerator(function* () {
+  loadPrivatePluginConfig() {var _this = this;return _asyncToGenerator(function* () {
       // 暂时搞成加载全部, 后期改成可配置
       // TODO 可在config.js 配置是否加载某插件
-      const nameList = _this2.plugins.private.map(plugin => plugin.name);
+      const nameList = _this.plugins.private.map(plugin => plugin.name);
       nameList.forEach(name => {
-        _this2.privateConfigs[name] = true;
+        _this.privateConfigs[name] = true;
       });})();
   }
 
-  loadPlugins(db) {var _this3 = this;return _asyncToGenerator(function* () {
+  loadPlugins(db) {var _this2 = this;return _asyncToGenerator(function* () {
       _logger.default.info('======== start load plugin ========');
       // eslint-disable-next-line no-restricted-syntax
       var _iteratorNormalCompletion = true;var _didIteratorError = false;var _iteratorError = undefined;try {for (var _iterator = _fileService.default.getDirFiles(_path.default.resolve(__dirname, '../plugins'))[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {const file = _step.value;
@@ -94,20 +97,18 @@ class PluginService {constructor() {this.
             _logger.default.debug('init plugin');
             yield plugin.init();
           }
-          _this3.classifyPlugin(plugin);
+          _this2.classifyPlugin(plugin);
           _logger.default.info(`load plugin '${plugin.name}' complete`);
         }} catch (err) {_didIteratorError = true;_iteratorError = err;} finally {try {if (!_iteratorNormalCompletion && _iterator.return != null) {_iterator.return();}} finally {if (_didIteratorError) {throw _iteratorError;}}}
-      _this3.defaultGroupConfig = _this3.plugins.group.reduce((prev, curr) => {
+      _this2.defaultGroupConfig = _this2.plugins.group.reduce((prev, curr) => {
         if (curr.default) {
           prev.push(curr.name);
         }
         return prev;
       }, []);
       _logger.default.info('======== all plugin loaded ========');
-      _logger.default.info('load group plugin config');
-      yield _this3.loadGroupPluginConfig();
       _logger.default.info('load private plugin config');
-      yield _this3.loadPrivatePluginConfig();})();
+      yield _this2.loadPrivatePluginConfig();})();
   }
 
   /**
@@ -124,15 +125,32 @@ class PluginService {constructor() {this.
      * @param {number} groupId 群id
      * @returns {{ [object]: true }} Map 结构的插件列表
      */
-  getGroupConfig(groupId) {
-    if (!this.groupConfigs[groupId]) {
-      this.groupConfigs[groupId] = this.defaultGroupConfig.reduce((prev, curr) => {
+  getGroupConfig(groupId) {var _this3 = this;return _asyncToGenerator(function* () {
+      if (_this3.groupConfigs[groupId]) {
+        return _this3.groupConfigs[groupId];
+      }
+      let config = null;
+      try {
+        _logger.default.info(`did not find local group(${groupId}) config cache, getting from redis...`);
+        config = yield _redisService.default.getGroupPluginConfig(groupId);
+        if (!Array.isArray(config) || !config.length) {
+          _logger.default.info('config not found, use default');
+          config = _this3.defaultGroupConfig;
+        } else {
+          _logger.default.info(`got config, ${JSON.stringify(config)}`);
+        }
+      } catch (e) {
+        _logger.default.error('get from redis error');
+        _logger.default.error(e);
+        config = _this3.defaultGroupConfig;
+      }
+      _logger.default.info('saving to cache...');
+      _this3.groupConfigs[groupId] = config.reduce((prev, curr) => {
         prev[curr] = true;
         return prev;
       }, {});
-      _dbService.default.insertGroupPluginConfig(groupId, this.defaultGroupConfig);
-    }
-    return this.groupConfigs[groupId];
+      yield _redisService.default.updateGroupPluginConfig(groupId, config);
+      return _this3.groupConfigs[groupId];})();
   }
 
   /**
@@ -143,7 +161,7 @@ class PluginService {constructor() {this.
   setGroupConfig(groupId, groupConfigMap) {var _this4 = this;return _asyncToGenerator(function* () {
       _this4.groupConfigs[groupId] = groupConfigMap;
       const groupConfigList = Object.keys(groupConfigMap);
-      yield _dbService.default.updateGroupPluginConfig(groupId, groupConfigList);})();
+      yield _redisService.default.updateGroupPluginConfig(groupId, groupConfigList);})();
   }
 
   /**

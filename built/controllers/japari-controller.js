@@ -15,7 +15,7 @@ _router.Route.post('/event', _botErrorReporter.default), _dec(_class = (_class2 
       const fromBot = request.body;
       const type = _qqService.default.convertMessageType(fromBot);
       const plugins = _pluginService.default.getPlugins(type);
-      const config = _pluginService.default.getConfig(type, fromBot);
+      const config = yield _pluginService.default.getConfig(type, fromBot);
       if (!config) return {};
       // eslint-disable-next-line no-restricted-syntax
       var _iteratorNormalCompletion = true;var _didIteratorError = false;var _iteratorError = undefined;try {for (var _iterator = plugins[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {const plugin = _step.value;

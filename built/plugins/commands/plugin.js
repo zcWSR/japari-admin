@@ -22,7 +22,7 @@ PluginConfig = (_dec = (0, _plugin.Command)({ name: '插件配置', command: 'pl
       groupId = body.group_id;
       const isAdmin = _qqService.default.isSuperAdmin(body.user_id);
       const allPluginList = _this.getAllPlugins();
-      const configMap = _pluginService.default.getGroupConfig(groupId);
+      const configMap = yield _pluginService.default.getGroupConfig(groupId);
       if (!params) {
         let content = allPluginList.reduce((result, current, index) => {
           const hasThisPlugin = configMap[current.name];
@@ -42,6 +42,7 @@ PluginConfig = (_dec = (0, _plugin.Command)({ name: '插件配置', command: 'pl
       const toggleIndexes = params.trim().split(' ');
       const configMapClone = _objectSpread({}, configMap);
       let alertMsg = '';
+      const modifiedPlugin = { name: '', isON: false };
       allPluginList.every((plugin, index) => {
         const currentIndex = index + 1;
         if (toggleIndexes.indexOf(`${currentIndex}`) === -1) {
@@ -52,6 +53,8 @@ PluginConfig = (_dec = (0, _plugin.Command)({ name: '插件配置', command: 'pl
           return false;
         }
         const hasThisPlugin = configMapClone[plugin.name];
+        modifiedPlugin.name = plugin.shortInfo;
+        modifiedPlugin.isON = !hasThisPlugin;
         if (hasThisPlugin) {
           delete configMapClone[plugin.name];
         } else {
@@ -64,8 +67,10 @@ PluginConfig = (_dec = (0, _plugin.Command)({ name: '插件配置', command: 'pl
         return;
       }
       yield _pluginService.default.setGroupConfig(groupId, configMapClone);
-      yield _qqService.default.sendGroupMessage(groupId, '设置成功');
-      yield _this.run('', body);})();
+      yield _qqService.default.sendGroupMessage(
+      groupId,
+      `'${modifiedPlugin.name}'已${modifiedPlugin.isON ? '开启' : '关闭'}`);})();
+
   }}) || _class);var _default =
 
 

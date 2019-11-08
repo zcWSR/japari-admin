@@ -1,9 +1,9 @@
-"use strict";require("core-js/modules/es.symbol.description");require("core-js/modules/es.array.iterator");require("core-js/modules/es.array.slice");require("core-js/modules/es.promise");require("core-js/modules/es.string.match");require("core-js/modules/es.string.trim");Object.defineProperty(exports, "__esModule", { value: true });exports.default = void 0;var _path = _interopRequireDefault(require("path"));
+"use strict";require("core-js/modules/es.symbol.description");require("core-js/modules/es.array.iterator");require("core-js/modules/es.promise");require("core-js/modules/es.string.match");require("core-js/modules/es.string.trim");Object.defineProperty(exports, "__esModule", { value: true });exports.default = void 0;var _path = _interopRequireDefault(require("path"));
 var _logger = _interopRequireWildcard(require("../utils/logger"));
 var _fileService = _interopRequireDefault(require("../services/file-service"));
 var _db = require("../decorators/db");
 var _plugin = require("../decorators/plugin");
-var _qqService = _interopRequireDefault(require("../services/qq-service"));var _dec, _class, _class2, _temp;function _interopRequireWildcard(obj) {if (obj && obj.__esModule) {return obj;} else {var newObj = {};if (obj != null) {for (var key in obj) {if (Object.prototype.hasOwnProperty.call(obj, key)) {var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {};if (desc.get || desc.set) {Object.defineProperty(newObj, key, desc);} else {newObj[key] = obj[key];}}}}newObj.default = obj;return newObj;}}function _interopRequireDefault(obj) {return obj && obj.__esModule ? obj : { default: obj };}function _slicedToArray(arr, i) {return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _nonIterableRest();}function _nonIterableRest() {throw new TypeError("Invalid attempt to destructure non-iterable instance");}function _iterableToArrayLimit(arr, i) {var _arr = [];var _n = true;var _d = false;var _e = undefined;try {for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) {_arr.push(_s.value);if (i && _arr.length === i) break;}} catch (err) {_d = true;_e = err;} finally {try {if (!_n && _i["return"] != null) _i["return"]();} finally {if (_d) throw _e;}}return _arr;}function _arrayWithHoles(arr) {if (Array.isArray(arr)) return arr;}function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) {try {var info = gen[key](arg);var value = info.value;} catch (error) {reject(error);return;}if (info.done) {resolve(value);} else {Promise.resolve(value).then(_next, _throw);}}function _asyncToGenerator(fn) {return function () {var self = this,args = arguments;return new Promise(function (resolve, reject) {var gen = fn.apply(self, args);function _next(value) {asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value);}function _throw(err) {asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err);}_next(undefined);});};}function _applyDecoratedDescriptor(target, property, decorators, descriptor, context) {var desc = {};Object.keys(descriptor).forEach(function (key) {desc[key] = descriptor[key];});desc.enumerable = !!desc.enumerable;desc.configurable = !!desc.configurable;if ('value' in desc || desc.initializer) {desc.writable = true;}desc = decorators.slice().reverse().reduce(function (desc, decorator) {return decorator(target, property, desc) || desc;}, desc);if (context && desc.initializer !== void 0) {desc.value = desc.initializer ? desc.initializer.call(context) : void 0;desc.initializer = undefined;}if (desc.initializer === void 0) {Object.defineProperty(target, property, desc);desc = null;}return desc;}
+var _qqService = _interopRequireDefault(require("../services/qq-service"));var _dec, _class, _temp;function _interopRequireWildcard(obj) {if (obj && obj.__esModule) {return obj;} else {var newObj = {};if (obj != null) {for (var key in obj) {if (Object.prototype.hasOwnProperty.call(obj, key)) {var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {};if (desc.get || desc.set) {Object.defineProperty(newObj, key, desc);} else {newObj[key] = obj[key];}}}}newObj.default = obj;return newObj;}}function _interopRequireDefault(obj) {return obj && obj.__esModule ? obj : { default: obj };}function _slicedToArray(arr, i) {return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _nonIterableRest();}function _nonIterableRest() {throw new TypeError("Invalid attempt to destructure non-iterable instance");}function _iterableToArrayLimit(arr, i) {var _arr = [];var _n = true;var _d = false;var _e = undefined;try {for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) {_arr.push(_s.value);if (i && _arr.length === i) break;}} catch (err) {_d = true;_e = err;} finally {try {if (!_n && _i["return"] != null) _i["return"]();} finally {if (_d) throw _e;}}return _arr;}function _arrayWithHoles(arr) {if (Array.isArray(arr)) return arr;}function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) {try {var info = gen[key](arg);var value = info.value;} catch (error) {reject(error);return;}if (info.done) {resolve(value);} else {Promise.resolve(value).then(_next, _throw);}}function _asyncToGenerator(fn) {return function () {var self = this,args = arguments;return new Promise(function (resolve, reject) {var gen = fn.apply(self, args);function _next(value) {asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value);}function _throw(err) {asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err);}_next(undefined);});};}
 
 const COMMAND_404 = "您所调用的指令不存在尝试使用, '!help'来查看所有可用指令";let
 
@@ -17,7 +17,7 @@ const COMMAND_404 = "您所调用的指令不存在尝试使用, '!help'来查�
 
 
 
-CommandRunner = (_dec = (0, _plugin.Plugin)({ name: 'command-runner', weight: 99, type: 'message', shortInfo: '指令响应', info: "响应群聊/私聊指令, 指令'!'或'！'开头", default: true, hide: true, mute: true }), _dec(_class = (_class2 = (_temp = class CommandRunner {constructor() {this.
+CommandRunner = (_dec = (0, _plugin.Plugin)({ name: 'command-runner', weight: 99, type: 'message', shortInfo: '指令响应', info: "响应群聊/私聊指令, 指令'!'或'！'开头", default: true, hide: true, mute: true }), _dec(_class = (_temp = class CommandRunner {constructor() {this.
     command = {
       private: {},
       group: {} };}
@@ -121,15 +121,15 @@ CommandRunner = (_dec = (0, _plugin.Plugin)({ name: 'command-runner', weight: 99
       return 'break';})();
   }
 
-
-  createTable(trx) {return _asyncToGenerator(function* () {
-      if (!(yield trx.schema.hasTable('group_command_list'))) {
-        yield trx.schema.createTable('group_command_list', table => {
-          table.bigInteger('group_id').primary();
-          table.string('command_list');
-        });
-      }})();
-  }}, _temp), (_applyDecoratedDescriptor(_class2.prototype, "createTable", [_db.withTransaction], Object.getOwnPropertyDescriptor(_class2.prototype, "createTable"), _class2.prototype)), _class2)) || _class);var _default =
-
+  // @withTransaction
+  // async createTable(trx) {
+  //   if (!(await trx.schema.hasTable('group_command_list'))) {
+  //     await trx.schema.createTable('group_command_list', (table) => {
+  //       table.bigInteger('group_id').primary();
+  //       table.string('command_list');
+  //     });
+  //   }
+  // }
+}, _temp)) || _class);var _default =
 
 CommandRunner;exports.default = _default;

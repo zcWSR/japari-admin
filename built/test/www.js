@@ -1,3 +1,2 @@
-"use strict";require('@babel/register');
-
+"use strict";
 require('./index');

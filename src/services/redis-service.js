@@ -2,6 +2,10 @@ import Redis from 'ioredis';
 import Config from '../config';
 import logger from '../utils/logger';
 
+const GROUP_PLUGIN_CONFIG_KEY = 'group-plugin-config';
+
+const getGroupPluginConfigKey = key => `${GROUP_PLUGIN_CONFIG_KEY}-${key}`;
+
 class RedisService {
   connect() {
     return new Promise((resolve, reject) => {
@@ -43,6 +47,15 @@ class RedisService {
   get(key) {
     logger.debug(`get redis, key ${key}`);
     return this.redis.get(key);
+  }
+
+  getGroupPluginConfig(groupId) {
+    return this.redis.smembers(getGroupPluginConfigKey(groupId));
+  }
+
+  async updateGroupPluginConfig(groupId, pluginList) {
+    await this.redis.del(getGroupPluginConfigKey(groupId));
+    return this.redis.sadd(getGroupPluginConfigKey(groupId), ...pluginList);
   }
 }
 

@@ -15,7 +15,7 @@ class JapariController {
     const fromBot = request.body;
     const type = QQService.convertMessageType(fromBot);
     const plugins = PluginService.getPlugins(type);
-    const config = PluginService.getConfig(type, fromBot);
+    const config = await PluginService.getConfig(type, fromBot);
     if (!config) return {};
     // eslint-disable-next-line no-restricted-syntax
     for (const plugin of plugins) {

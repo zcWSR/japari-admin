@@ -22,7 +22,7 @@ class PluginConfig {
     const { group_id: groupId } = body;
     const isAdmin = QQService.isSuperAdmin(body.user_id);
     const allPluginList = this.getAllPlugins();
-    const configMap = PluginService.getGroupConfig(groupId);
+    const configMap = await PluginService.getGroupConfig(groupId);
     if (!params) {
       let content = allPluginList.reduce((result, current, index) => {
         const hasThisPlugin = configMap[current.name];
@@ -42,6 +42,7 @@ class PluginConfig {
     const toggleIndexes = params.trim().split(' ');
     const configMapClone = { ...configMap };
     let alertMsg = '';
+    const modifiedPlugin = { name: '', isON: false };
     allPluginList.every((plugin, index) => {
       const currentIndex = index + 1;
       if (toggleIndexes.indexOf(`${currentIndex}`) === -1) {
@@ -52,6 +53,8 @@ class PluginConfig {
         return false;
       }
       const hasThisPlugin = configMapClone[plugin.name];
+      modifiedPlugin.name = plugin.shortInfo;
+      modifiedPlugin.isON = !hasThisPlugin;
       if (hasThisPlugin) {
         delete configMapClone[plugin.name];
       } else {
@@ -64,8 +67,10 @@ class PluginConfig {
       return;
     }
     await PluginService.setGroupConfig(groupId, configMapClone);
-    await QQService.sendGroupMessage(groupId, '设置成功');
-    await this.run('', body);
+    await QQService.sendGroupMessage(
+      groupId,
+      `'${modifiedPlugin.name}'已${modifiedPlugin.isON ? '开启' : '关闭'}`
+    );
   }
 }
 

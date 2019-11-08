@@ -1,6 +1,7 @@
 import path from 'path';
 import FileService from './file-service';
-import DBService from './db-service';
+import RedisService from './redis-service';
+// import DBService from './db-service';
 import logger from '../utils/logger';
 
 class PluginService {
@@ -44,20 +45,22 @@ class PluginService {
     }
   }
 
-  async loadGroupPluginConfig() {
-    const configArray = (await DBService.getAllGroupPluginConfig()) || [];
-    this.groupConfigs = configArray.reduce(
-      (groupMap, { groupId, pluginList: pluginNameString }) => {
-        const nameList = pluginNameString.split(' ');
-        groupMap[groupId] = nameList.reduce((configMap, name) => {
-          configMap[name] = true;
-          return configMap;
-        }, {});
-        return groupMap;
-      },
-      {}
-    );
-  }
+  // 废弃, 改为惰性加载
+  // async loadGroupPluginConfig() {
+  //   const configArray = (await DBService.getAllGroupPluginConfig()) || [];
+  //   this.groupConfigs = configArray.reduce(
+  //     (groupMap, { groupId, pluginList: pluginNameString }) => {
+  //       const nameList = pluginNameString.split(' ');
+  //       console.log(nameList);
+  //       groupMap[groupId] = nameList.reduce((configMap, name) => {
+  //         configMap[name] = true;
+  //         return configMap;
+  //       }, {});
+  //       return groupMap;
+  //     },
+  //     {}
+  //   );
+  // }
 
   async loadPrivatePluginConfig() {
     // 暂时搞成加载全部, 后期改成可配置
@@ -104,8 +107,6 @@ class PluginService {
       return prev;
     }, []);
     logger.info('======== all plugin loaded ========');
-    logger.info('load group plugin config');
-    await this.loadGroupPluginConfig();
     logger.info('load private plugin config');
     await this.loadPrivatePluginConfig();
   }
@@ -124,14 +125,31 @@ class PluginService {
    * @param {number} groupId 群id
    * @returns {{ [object]: true }} Map 结构的插件列表
    */
-  getGroupConfig(groupId) {
-    if (!this.groupConfigs[groupId]) {
-      this.groupConfigs[groupId] = this.defaultGroupConfig.reduce((prev, curr) => {
-        prev[curr] = true;
-        return prev;
-      }, {});
-      DBService.insertGroupPluginConfig(groupId, this.defaultGroupConfig);
+  async getGroupConfig(groupId) {
+    if (this.groupConfigs[groupId]) {
+      return this.groupConfigs[groupId];
     }
+    let config = null;
+    try {
+      logger.info(`did not find local group(${groupId}) config cache, getting from redis...`);
+      config = await RedisService.getGroupPluginConfig(groupId);
+      if (!Array.isArray(config) || !config.length) {
+        logger.info('config not found, use default');
+        config = this.defaultGroupConfig;
+      } else {
+        logger.info(`got config, ${JSON.stringify(config)}`);
+      }
+    } catch (e) {
+      logger.error('get from redis error');
+      logger.error(e);
+      config = this.defaultGroupConfig;
+    }
+    logger.info('saving to cache...');
+    this.groupConfigs[groupId] = config.reduce((prev, curr) => {
+      prev[curr] = true;
+      return prev;
+    }, {});
+    await RedisService.updateGroupPluginConfig(groupId, config);
     return this.groupConfigs[groupId];
   }
 
@@ -143,7 +161,7 @@ class PluginService {
   async setGroupConfig(groupId, groupConfigMap) {
     this.groupConfigs[groupId] = groupConfigMap;
     const groupConfigList = Object.keys(groupConfigMap);
-    await DBService.updateGroupPluginConfig(groupId, groupConfigList);
+    await RedisService.updateGroupPluginConfig(groupId, groupConfigList);
   }
 
   /**

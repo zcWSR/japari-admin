@@ -22,13 +22,17 @@ const WAITING_STACK_KEY = 'akhr-waiting';
 })
 class Akhr {
   getImgsFromMsg(msg) {
+    logger.info(`getting img from message: ${msg}`);
     const search = IMG_REG.exec(msg);
     if (search) {
-      return {
+      const result = {
         file: search[1],
         url: search[2]
       };
+      logger.info(`got img: ${JSON.stringify(result)}`);
+      return result;
     }
+    logger.info('get failed');
     return null;
   }
 
@@ -38,7 +42,7 @@ class Akhr {
 
   async isInWaitingStack(groupId, userId) {
     const result = await RedisService.redis.hget(WAITING_STACK_KEY, groupId);
-    if (result) {
+    if (result === userId) {
       logger.info(`akhr: user: ${groupId}-${userId} is in waiting stack`);
       return true;
     }
@@ -82,8 +86,10 @@ class Akhr {
         const imgUrl = this.getImgsFromMsg(message);
         // 存在图片, 直接分析
         if (imgUrl) {
+          logger.info('message with img mod');
           await this.combineAndSend(imgUrl, groupId);
         } else { // 加入等待队列
+          logger.info('message only command mode');
           await this.addIntoWaitingStack(groupId, userId);
         }
         return 'break';

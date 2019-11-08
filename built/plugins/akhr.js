@@ -22,13 +22,17 @@ const WAITING_STACK_KEY = 'akhr-waiting';let
 
 Akhr = (_dec = (0, _plugin.Plugin)({ name: 'Akhr', weight: 99, type: 'group', shortInfo: '明日方舟公开招募计算', info: `明日方舟公开招募计算, 根据游戏截图自动生成招募信息, 使用方法有两种: 
 1. 先发一条!akhr, 然后再发图片, 会自动识别指令后跟着的第一张图片
-2. 发送!akhr后跟一张图片, 会自动识别图片内容`, mute: true }), _dec(_class = class Akhr {getImgsFromMsg(msg) {const search = IMG_REG.exec(msg);
+2. 发送!akhr后跟一张图片, 会自动识别图片内容`, mute: true }), _dec(_class = class Akhr {getImgsFromMsg(msg) {_logger.default.info(`getting img from message: ${msg}`);
+    const search = IMG_REG.exec(msg);
     if (search) {
-      return {
+      const result = {
         file: search[1],
         url: search[2] };
 
+      _logger.default.info(`got img: ${JSON.stringify(result)}`);
+      return result;
     }
+    _logger.default.info('get failed');
     return null;
   }
 
@@ -38,7 +42,7 @@ Akhr = (_dec = (0, _plugin.Plugin)({ name: 'Akhr', weight: 99, type: 'group', sh
 
   isInWaitingStack(groupId, userId) {return _asyncToGenerator(function* () {
       const result = yield _redisService.default.redis.hget(WAITING_STACK_KEY, groupId);
-      if (result) {
+      if (result === userId) {
         _logger.default.info(`akhr: user: ${groupId}-${userId} is in waiting stack`);
         return true;
       }
@@ -82,8 +86,10 @@ Akhr = (_dec = (0, _plugin.Plugin)({ name: 'Akhr', weight: 99, type: 'group', sh
           const imgUrl = _this.getImgsFromMsg(message);
           // 存在图片, 直接分析
           if (imgUrl) {
+            _logger.default.info('message with img mod');
             yield _this.combineAndSend(imgUrl, groupId);
           } else {// 加入等待队列
+            _logger.default.info('message only command mode');
             yield _this.addIntoWaitingStack(groupId, userId);
           }
           return 'break';

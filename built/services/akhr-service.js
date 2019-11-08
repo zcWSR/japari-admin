@@ -53,6 +53,7 @@ class AkhrService {constructor() {this.
       const metaList = yield _this.fetchMetaData();
       const akhrList = _this.formatMetaData(metaList);
       yield _redisService.default.set(AKHR_LIST_KEY, JSON.stringify(akhrList));
+      yield _redisService.default.redis.expire(AKHR_LIST_KEY, 60 * 60 * 24 * 3);
       _this.AKHR_LIST = akhrList;
       _logger.default.info('akhrList has been update');})();
   }
@@ -60,7 +61,11 @@ class AkhrService {constructor() {this.
   getAkhrList() {var _this2 = this;return _asyncToGenerator(function* () {
       if (!_this2.AKHR_LIST) {
         const json = yield _redisService.default.get(AKHR_LIST_KEY);
-        _this2.AKHR_LIST = JSON.parse(json);
+        if (json) {
+          _this2.AKHR_LIST = JSON.parse(json);
+        } else {
+          yield _this2.updateAkhrList();
+        }
       }
       return _this2.AKHR_LIST;})();
   }
@@ -86,7 +91,7 @@ class AkhrService {constructor() {this.
 
   parseTextOutput(list, result) {const
     words = result.words,combined = result.combined;
-    let text = `识别词条: ${words.split('、')}\n\n`;
+    let text = `识别词条: ${words.join('、')}\n\n`;
     text += combined.
     map(({ tags, staffs }) => {
       const staffsWithLevel = staffs.map(staff => {const _list$staffMap$staff =
@@ -104,7 +109,7 @@ class AkhrService {constructor() {this.
         url: 'https://api.ocr.space/parse/imageurl',
         params: {
           apikey: _config.default.OCR_KEY,
-          url: encodeURIComponent(imgUrl),
+          url: imgUrl,
           language: 'chs' } });
 
 

@@ -6,7 +6,7 @@ var _logger = _interopRequireDefault(require("../utils/logger"));var _dec, _clas
 
 const COMMAND_REG = /^[!|！]akhr/;
 
-const IMG_REG = /\[CQ:image,file=([^,]+),url=([^\]]+)\]/g;
+const IMG_REG = /\[CQ:image,file=([^,]+),url=([^\]]+)\]/;
 
 const WAITING_STACK_KEY = 'akhr-waiting';let
 
@@ -78,9 +78,8 @@ Akhr = (_dec = (0, _plugin.Plugin)({ name: 'Akhr', weight: 99, type: 'group', sh
           if (imgUrl) {
             yield _this.combineAndSend(imgUrl.url, groupId);
             yield _this.clearStack(groupId);
-            return 'break';
           }
-          return;
+          return 'break';
         }
         // 如为指令, 则判断启动模式
         if (_this.isCommand(message)) {

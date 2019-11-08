@@ -6,7 +6,7 @@ import logger from '../utils/logger';
 
 const COMMAND_REG = /^[!|！]akhr/;
 
-const IMG_REG = /\[CQ:image,file=([^,]+),url=([^\]]+)\]/g;
+const IMG_REG = /\[CQ:image,file=([^,]+),url=([^\]]+)\]/;
 
 const WAITING_STACK_KEY = 'akhr-waiting';
 
@@ -78,9 +78,8 @@ class Akhr {
         if (imgUrl) {
           await this.combineAndSend(imgUrl.url, groupId);
           await this.clearStack(groupId);
-          return 'break';
         }
-        return;
+        return 'break';
       }
       // 如为指令, 则判断启动模式
       if (this.isCommand(message)) {

@@ -53,6 +53,7 @@ class AkhrService {
     const metaList = await this.fetchMetaData();
     const akhrList = this.formatMetaData(metaList);
     await RedisService.set(AKHR_LIST_KEY, JSON.stringify(akhrList));
+    await RedisService.redis.expire(AKHR_LIST_KEY, 60 * 60 * 24 * 3);
     this.AKHR_LIST = akhrList;
     logger.info('akhrList has been update');
   }
@@ -60,7 +61,11 @@ class AkhrService {
   async getAkhrList() {
     if (!this.AKHR_LIST) {
       const json = await RedisService.get(AKHR_LIST_KEY);
-      this.AKHR_LIST = JSON.parse(json);
+      if (json) {
+        this.AKHR_LIST = JSON.parse(json);
+      } else {
+        await this.updateAkhrList();
+      }
     }
     return this.AKHR_LIST;
   }
@@ -86,7 +91,7 @@ class AkhrService {
 
   parseTextOutput(list, result) {
     const { words, combined } = result;
-    let text = `识别词条: ${words.split('、')}\n\n`;
+    let text = `识别词条: ${words.join('、')}\n\n`;
     text += combined
       .map(({ tags, staffs }) => {
         const staffsWithLevel = staffs.map((staff) => {
@@ -104,7 +109,7 @@ class AkhrService {
       url: 'https://api.ocr.space/parse/imageurl',
       params: {
         apikey: Config.OCR_KEY,
-        url: encodeURIComponent(imgUrl),
+        url: imgUrl,
         language: 'chs'
       }
     });

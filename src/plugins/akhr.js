@@ -42,7 +42,7 @@ class Akhr {
 
   async isInWaitingStack(groupId, userId) {
     const result = await RedisService.redis.hget(WAITING_STACK_KEY, groupId);
-    if (result === userId) {
+    if (result === `${userId}`) {
       logger.info(`akhr: user: ${groupId}-${userId} is in waiting stack`);
       return true;
     }
@@ -73,9 +73,10 @@ class Akhr {
     try {
       // 如在该用户在等待队列中, 则直接开启分析
       if (await this.isInWaitingStack(groupId, userId)) {
+        logger.info('hint waiting stack');
         const imgUrl = this.getImgsFromMsg(message);
         if (imgUrl) {
-          await this.combineAndSend(imgUrl, groupId);
+          await this.combineAndSend(imgUrl.url, groupId);
           await this.clearStack(groupId);
           return 'break';
         }
@@ -87,7 +88,7 @@ class Akhr {
         // 存在图片, 直接分析
         if (imgUrl) {
           logger.info('message with img mod');
-          await this.combineAndSend(imgUrl, groupId);
+          await this.combineAndSend(imgUrl.url, groupId);
         } else { // 加入等待队列
           logger.info('message only command mode');
           await this.addIntoWaitingStack(groupId, userId);

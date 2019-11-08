@@ -42,7 +42,7 @@ Akhr = (_dec = (0, _plugin.Plugin)({ name: 'Akhr', weight: 99, type: 'group', sh
 
   isInWaitingStack(groupId, userId) {return _asyncToGenerator(function* () {
       const result = yield _redisService.default.redis.hget(WAITING_STACK_KEY, groupId);
-      if (result === userId) {
+      if (result === `${userId}`) {
         _logger.default.info(`akhr: user: ${groupId}-${userId} is in waiting stack`);
         return true;
       }
@@ -73,9 +73,10 @@ Akhr = (_dec = (0, _plugin.Plugin)({ name: 'Akhr', weight: 99, type: 'group', sh
       try {
         // 如在该用户在等待队列中, 则直接开启分析
         if (yield _this.isInWaitingStack(groupId, userId)) {
+          _logger.default.info('hint waiting stack');
           const imgUrl = _this.getImgsFromMsg(message);
           if (imgUrl) {
-            yield _this.combineAndSend(imgUrl, groupId);
+            yield _this.combineAndSend(imgUrl.url, groupId);
             yield _this.clearStack(groupId);
             return 'break';
           }
@@ -87,7 +88,7 @@ Akhr = (_dec = (0, _plugin.Plugin)({ name: 'Akhr', weight: 99, type: 'group', sh
           // 存在图片, 直接分析
           if (imgUrl) {
             _logger.default.info('message with img mod');
-            yield _this.combineAndSend(imgUrl, groupId);
+            yield _this.combineAndSend(imgUrl.url, groupId);
           } else {// 加入等待队列
             _logger.default.info('message only command mode');
             yield _this.addIntoWaitingStack(groupId, userId);

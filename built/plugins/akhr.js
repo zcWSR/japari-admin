@@ -4,7 +4,8 @@ var _redisService = _interopRequireDefault(require("../services/redis-service"))
 var _akhrService = _interopRequireDefault(require("../services/akhr-service"));
 var _logger = _interopRequireDefault(require("../utils/logger"));var _dec, _class;function _interopRequireDefault(obj) {return obj && obj.__esModule ? obj : { default: obj };}function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) {try {var info = gen[key](arg);var value = info.value;} catch (error) {reject(error);return;}if (info.done) {resolve(value);} else {Promise.resolve(value).then(_next, _throw);}}function _asyncToGenerator(fn) {return function () {var self = this,args = arguments;return new Promise(function (resolve, reject) {var gen = fn.apply(self, args);function _next(value) {asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value);}function _throw(err) {asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err);}_next(undefined);});};}
 
-const COMMAND_REG = /^[!|！]akhr/;
+const COMMAND_REG = /^[!|！]akhr\s*$/;
+const COMMAND_WITH_IMG_REG = /^[!|！]akhr\s*\n*\[CQ:image/;
 
 const IMG_REG = /\[CQ:image,file=([^,]+),url=([^\]]+)\]/;
 
@@ -20,7 +21,7 @@ const WAITING_STACK_KEY = 'akhr-waiting';let
 
 
 
-Akhr = (_dec = (0, _plugin.Plugin)({ name: 'Akhr', weight: 99, type: 'group', shortInfo: '明日方舟公开招募计算', info: `明日方舟公开招募计算, 根据游戏截图自动生成招募信息, 使用方法有两种: 
+Akhr = (_dec = (0, _plugin.Plugin)({ name: 'akhr', weight: 99, type: 'group', shortInfo: '明日方舟公开招募计算', info: `明日方舟公开招募计算, 根据游戏截图自动生成招募信息, 使用方法有两种: 
 1. 先发一条!akhr, 然后再发图片, 会自动识别指令后跟着的第一张图片
 2. 发送!akhr后跟一张图片, 会自动识别图片内容`, mute: true }), _dec(_class = class Akhr {getImgsFromMsg(msg) {_logger.default.info(`getting img from message: ${msg}`);
     const search = IMG_REG.exec(msg);
@@ -37,7 +38,7 @@ Akhr = (_dec = (0, _plugin.Plugin)({ name: 'Akhr', weight: 99, type: 'group', sh
   }
 
   isCommand(content) {
-    return content.match(COMMAND_REG);
+    return content.match(COMMAND_REG) || content.match(COMMAND_WITH_IMG_REG);
   }
 
   isInWaitingStack(groupId, userId) {return _asyncToGenerator(function* () {
@@ -60,11 +61,12 @@ Akhr = (_dec = (0, _plugin.Plugin)({ name: 'Akhr', weight: 99, type: 'group', sh
   }
 
   combineAndSend(imgUrl, groupId) {return _asyncToGenerator(function* () {
+      _qqService.default.sendGroupMessage(groupId, '识别中...');
       _logger.default.info(`start analyse ${imgUrl}`);
       const words = yield _akhrService.default.getORCResult(imgUrl);
       const hrList = yield _akhrService.default.getAkhrList();
       const result = _akhrService.default.combine(words, hrList);
-      const msg = _akhrService.default.parseTextOutput(hrList, result);
+      const msg = _akhrService.default.parseTextOutput(result);
       _qqService.default.sendGroupMessage(groupId, msg);})();
   }
 
@@ -91,6 +93,7 @@ Akhr = (_dec = (0, _plugin.Plugin)({ name: 'Akhr', weight: 99, type: 'group', sh
           } else {// 加入等待队列
             _logger.default.info('message only command mode');
             yield _this.addIntoWaitingStack(groupId, userId);
+            _qqService.default.sendGroupMessage(groupId, '等待发送图片...');
           }
           return 'break';
         }

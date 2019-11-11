@@ -1,4 +1,4 @@
-"use strict";require("core-js/modules/es.array.filter");require("core-js/modules/es.array.flat-map");require("core-js/modules/es.array.from");require("core-js/modules/es.array.iterator");require("core-js/modules/es.array.map");require("core-js/modules/es.array.unscopables.flat-map");require("core-js/modules/es.promise");require("core-js/modules/es.set");require("core-js/modules/es.string.replace");require("core-js/modules/es.string.split");Object.defineProperty(exports, "__esModule", { value: true });exports.default = void 0;var _axios = _interopRequireDefault(require("axios"));
+"use strict";require("core-js/modules/es.array.filter");require("core-js/modules/es.array.flat-map");require("core-js/modules/es.array.from");require("core-js/modules/es.array.index-of");require("core-js/modules/es.array.iterator");require("core-js/modules/es.array.map");require("core-js/modules/es.array.sort");require("core-js/modules/es.array.unscopables.flat-map");require("core-js/modules/es.promise");require("core-js/modules/es.set");require("core-js/modules/es.string.replace");require("core-js/modules/es.string.split");Object.defineProperty(exports, "__esModule", { value: true });exports.default = void 0;var _axios = _interopRequireDefault(require("axios"));
 var _lodash = _interopRequireDefault(require("lodash"));
 require("lodash.combinations");
 var _redisService = _interopRequireDefault(require("./redis-service"));
@@ -20,7 +20,7 @@ class AkhrService {constructor() {this.
     (prev, staff) => {const
 
       name =
-      staff.name,level = staff.level,sex = staff.sex,type = staff.type;const
+      staff.name,level = staff.level,sex = staff.sex,type = staff.type,hidden = staff.hidden;const
       tags = staff.tags;
       tags.push(`${sex}性干员`);
       tags.push(`${type}干员`);
@@ -35,7 +35,8 @@ class AkhrService {constructor() {this.
         prev.staffMap[name] = {
           tags,
           name,
-          level };
+          level,
+          hidden };
 
       }
       return prev;
@@ -71,10 +72,28 @@ class AkhrService {constructor() {this.
   }
 
   combine(words, list) {
+    // 过滤OCR识别出的文字, 只留tag名
     words = words.filter(word => list.tagMap[word]);
+    // 组合, 3-1个tag的所有组合方式
     const combineTags = _lodash.default.flatMap([3, 2, 1], count => _lodash.default.combinations(words, count));
     const data = combineTags.reduce((result, tags) => {
-      const staffs = _lodash.default.intersection(...tags.map(tag => list.tagMap[tag]));
+      // 取不同tag的干员的交集
+      const staffNames = _lodash.default.intersection(...tags.map(tag => list.tagMap[tag]));
+      // 根据干员名反查干员信息, 并
+      let staffs = staffNames.reduce((staffList, name) => {
+        const staff = list.staffMap[name];
+        // 过滤
+        if (
+        staff &&
+        !staff.hidden // 不在公招池里的
+        && !(staff.level === 6 && tags.indexOf('高级资深干员') === -1) // 6星,但是没有高级资深干员tag
+        ) {
+            staffList.push(staff);
+          }
+        return staffList;
+      }, []);
+      // 按星级排序
+      staffs = staffs.sort((a, b) => b.level - a.level);
       if (staffs.length) {
         result.push({
           tags,
@@ -89,15 +108,12 @@ class AkhrService {constructor() {this.
 
   }
 
-  parseTextOutput(list, result) {const
+  parseTextOutput(result) {const
     words = result.words,combined = result.combined;
     let text = `识别词条: ${words.join('、')}\n\n`;
     text += combined.
     map(({ tags, staffs }) => {
-      const staffsWithLevel = staffs.map(staff => {const _list$staffMap$staff =
-        list.staffMap[staff],level = _list$staffMap$staff.level,name = _list$staffMap$staff.name;
-        return `(${level})${name}`;
-      });
+      const staffsWithLevel = staffs.map(({ level, name }) => `(${level})${name}`);
       return `【${tags.join('+')}】${staffsWithLevel.join(' ')}`;
     }).
     join('\n==========\n');

@@ -19,7 +19,7 @@ class AkhrService {
     const result = list.reduce(
       (prev, staff) => {
         const {
-          name, level, sex, type
+          name, level, sex, type, hidden
         } = staff;
         const { tags } = staff;
         tags.push(`${sex}性干员`);
@@ -35,7 +35,8 @@ class AkhrService {
           prev.staffMap[name] = {
             tags,
             name,
-            level
+            level,
+            hidden
           };
         }
         return prev;
@@ -71,10 +72,28 @@ class AkhrService {
   }
 
   combine(words, list) {
+    // 过滤OCR识别出的文字, 只留tag名
     words = words.filter(word => list.tagMap[word]);
+    // 组合, 3-1个tag的所有组合方式
     const combineTags = _.flatMap([3, 2, 1], count => _.combinations(words, count));
     const data = combineTags.reduce((result, tags) => {
-      const staffs = _.intersection(...tags.map(tag => list.tagMap[tag]));
+      // 取不同tag的干员的交集
+      const staffNames = _.intersection(...tags.map(tag => list.tagMap[tag]));
+      // 根据干员名反查干员信息, 并
+      let staffs = staffNames.reduce((staffList, name) => {
+        const staff = list.staffMap[name];
+        // 过滤
+        if (
+          staff
+          && !staff.hidden // 不在公招池里的
+          && !(staff.level === 6 && tags.indexOf('高级资深干员') === -1) // 6星,但是没有高级资深干员tag
+        ) {
+          staffList.push(staff);
+        }
+        return staffList;
+      }, []);
+      // 按星级排序
+      staffs = staffs.sort((a, b) => b.level - a.level);
       if (staffs.length) {
         result.push({
           tags,
@@ -89,15 +108,12 @@ class AkhrService {
     };
   }
 
-  parseTextOutput(list, result) {
+  parseTextOutput(result) {
     const { words, combined } = result;
     let text = `识别词条: ${words.join('、')}\n\n`;
     text += combined
       .map(({ tags, staffs }) => {
-        const staffsWithLevel = staffs.map((staff) => {
-          const { level, name } = list.staffMap[staff];
-          return `(${level})${name}`;
-        });
+        const staffsWithLevel = staffs.map(({ level, name }) => `(${level})${name}`);
         return `【${tags.join('+')}】${staffsWithLevel.join(' ')}`;
       })
       .join('\n==========\n');

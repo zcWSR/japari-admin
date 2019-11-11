@@ -4,14 +4,15 @@ import RedisService from '../services/redis-service';
 import AkhrService from '../services/akhr-service';
 import logger from '../utils/logger';
 
-const COMMAND_REG = /^[!|！]akhr/;
+const COMMAND_REG = /^[!|！]akhr\s*$/;
+const COMMAND_WITH_IMG_REG = /^[!|！]akhr\s*\n*\[CQ:image/;
 
 const IMG_REG = /\[CQ:image,file=([^,]+),url=([^\]]+)\]/;
 
 const WAITING_STACK_KEY = 'akhr-waiting';
 
 @Plugin({
-  name: 'Akhr',
+  name: 'akhr',
   weight: 99,
   type: 'group',
   shortInfo: '明日方舟公开招募计算',
@@ -37,7 +38,7 @@ class Akhr {
   }
 
   isCommand(content) {
-    return content.match(COMMAND_REG);
+    return content.match(COMMAND_REG) || content.match(COMMAND_WITH_IMG_REG);
   }
 
   async isInWaitingStack(groupId, userId) {
@@ -60,11 +61,12 @@ class Akhr {
   }
 
   async combineAndSend(imgUrl, groupId) {
+    QQService.sendGroupMessage(groupId, '识别中...');
     logger.info(`start analyse ${imgUrl}`);
     const words = await AkhrService.getORCResult(imgUrl);
     const hrList = await AkhrService.getAkhrList();
     const result = AkhrService.combine(words, hrList);
-    const msg = AkhrService.parseTextOutput(hrList, result);
+    const msg = AkhrService.parseTextOutput(result);
     QQService.sendGroupMessage(groupId, msg);
   }
 
@@ -91,6 +93,7 @@ class Akhr {
         } else { // 加入等待队列
           logger.info('message only command mode');
           await this.addIntoWaitingStack(groupId, userId);
+          QQService.sendGroupMessage(groupId, '等待发送图片...');
         }
         return 'break';
       }

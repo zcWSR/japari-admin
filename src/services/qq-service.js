@@ -91,6 +91,9 @@ class QQService {
     if (event.post_type === 'message') {
       return event.message_type;
     }
+    if (event.post_type === 'event') {
+      return 'notice';
+    }
     return event.post_type;
   }
 }

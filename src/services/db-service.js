@@ -43,11 +43,6 @@ class DBService {
     logger.info('all table prepared');
   }
 
-  // async isTableExist(name) {
-  //   const hasTable = await this.DBInstance.schema.hasTable(name);
-  //   return hasTable;
-  // }
-
   // /**
   //  * 获取群通用配置
   //  * @param { knex } table

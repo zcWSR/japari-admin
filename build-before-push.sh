@@ -5,3 +5,4 @@ git add .
 commit="build: $(date '+%Y-%m-%d %H:%M:%S')"
 git commit -m "${commit}"
 git push origin master
+exit 0

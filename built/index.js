@@ -1,4 +1,4 @@
-"use strict";require("core-js/modules/es.promise");var _path = require("path");
+"use strict";var _path = require("path");
 var _koa = _interopRequireDefault(require("koa"));
 var _koaBody = _interopRequireDefault(require("koa-body"));
 var _cfonts = _interopRequireDefault(require("cfonts"));

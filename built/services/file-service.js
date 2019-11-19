@@ -1,4 +1,4 @@
-"use strict";require("core-js/modules/es.array.slice");require("core-js/modules/es.string.replace");Object.defineProperty(exports, "__esModule", { value: true });exports.default = void 0;var _fs = require("fs");
+"use strict";Object.defineProperty(exports, "__esModule", { value: true });exports.default = void 0;var _fs = require("fs");
 var _path = require("path");
 
 var _logger = _interopRequireDefault(require("../utils/logger"));

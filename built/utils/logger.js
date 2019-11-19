@@ -1,4 +1,4 @@
-"use strict";require("core-js/modules/es.array.iterator");require("core-js/modules/es.array.sort");Object.defineProperty(exports, "__esModule", { value: true });exports.blockLog = blockLog;exports.default = void 0;var _log4js = _interopRequireDefault(require("log4js"));
+"use strict";Object.defineProperty(exports, "__esModule", { value: true });exports.blockLog = blockLog;exports.default = void 0;var _log4js = _interopRequireDefault(require("log4js"));
 var _env = require("./env");function _interopRequireDefault(obj) {return obj && obj.__esModule ? obj : { default: obj };}
 
 const logger = _log4js.default.getLogger();

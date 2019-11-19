@@ -1,4 +1,4 @@
-"use strict";require("core-js/modules/es.array.slice");require("core-js/modules/es.promise");Object.defineProperty(exports, "__esModule", { value: true });exports.default = void 0;var _knex = _interopRequireDefault(require("knex"));
+"use strict";Object.defineProperty(exports, "__esModule", { value: true });exports.default = void 0;var _knex = _interopRequireDefault(require("knex"));
 var _env = require("../utils/env");
 var _config = _interopRequireDefault(require("../config"));
 var _logger = _interopRequireDefault(require("../utils/logger"));

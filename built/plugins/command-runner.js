@@ -1,4 +1,4 @@
-"use strict";require("core-js/modules/es.symbol.description");require("core-js/modules/es.array.iterator");require("core-js/modules/es.promise");require("core-js/modules/es.string.match");require("core-js/modules/es.string.trim");Object.defineProperty(exports, "__esModule", { value: true });exports.default = void 0;var _path = _interopRequireDefault(require("path"));
+"use strict";Object.defineProperty(exports, "__esModule", { value: true });exports.default = void 0;var _path = _interopRequireDefault(require("path"));
 var _logger = _interopRequireWildcard(require("../utils/logger"));
 var _fileService = _interopRequireDefault(require("../services/file-service"));
 var _db = require("../decorators/db");

@@ -1,2 +1,2 @@
-"use strict";
+"use strict"; // require('@babel/polyfill');
 require('./index');

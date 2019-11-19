@@ -1,4 +1,4 @@
-"use strict";require("core-js/modules/es.promise");Object.defineProperty(exports, "__esModule", { value: true });exports.default = void 0;
+"use strict";Object.defineProperty(exports, "__esModule", { value: true });exports.default = void 0;
 var _plugin = require("../decorators/plugin");
 var _qqService = _interopRequireDefault(require("../services/qq-service"));
 var _redisService = _interopRequireDefault(require("../services/redis-service"));

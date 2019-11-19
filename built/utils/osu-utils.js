@@ -1,4 +1,4 @@
-"use strict";require("core-js/modules/es.array.index-of");require("core-js/modules/es.array.sort");require("core-js/modules/es.array.splice");require("core-js/modules/es.string.split");Object.defineProperty(exports, "__esModule", { value: true });exports.toBin = toBin;exports.numberToOsuModes = numberToOsuModes;exports.numberToStar = numberToStar;const modeMap = {
+"use strict";Object.defineProperty(exports, "__esModule", { value: true });exports.toBin = toBin;exports.numberToOsuModes = numberToOsuModes;exports.numberToStar = numberToStar;const modeMap = {
   0: 'NF',
   1: 'EZ',
   // 虽然TD已经实装，但是MOD图标还是 不做 不画

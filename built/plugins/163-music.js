@@ -1,4 +1,4 @@
-"use strict";require("core-js/modules/es.symbol.description");require("core-js/modules/es.array.iterator");require("core-js/modules/es.promise");require("core-js/modules/es.regexp.constructor");require("core-js/modules/es.string.match");require("core-js/modules/es.string.split");Object.defineProperty(exports, "__esModule", { value: true });exports.default = void 0;var _axios = _interopRequireDefault(require("axios"));
+"use strict";Object.defineProperty(exports, "__esModule", { value: true });exports.default = void 0;var _axios = _interopRequireDefault(require("axios"));
 var _config = _interopRequireDefault(require("../config"));
 var _plugin = require("../decorators/plugin");
 var _qqService = _interopRequireDefault(require("../services/qq-service"));

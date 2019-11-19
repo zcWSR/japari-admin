@@ -1,4 +1,4 @@
-"use strict";require("core-js/modules/es.array.filter");require("core-js/modules/es.array.map");require("core-js/modules/es.object.get-own-property-descriptors");require("core-js/modules/es.promise");Object.defineProperty(exports, "__esModule", { value: true });exports.default = void 0;var _zlib = require("zlib");
+"use strict";Object.defineProperty(exports, "__esModule", { value: true });exports.default = void 0;var _zlib = require("zlib");
 var _axios = _interopRequireDefault(require("axios"));
 
 var OSU = _interopRequireWildcard(require("ojsama"));

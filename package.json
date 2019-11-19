@@ -4,10 +4,10 @@
   "description": "",
   "main": "www.js",
   "scripts": {
-    "start": "node www.js",
-    "start:dev": "NODE_ENV=dev node www.js",
+    "start": "gulp build && node ./built/index.js",
+    "start:dev": "gulp build && NODE_ENV=dev node ./built/index.js",
     "build": "gulp build",
-    "test": "NODE_ENV=dev node ./test/www.js"
+    "test": "gulp build && NODE_ENV=dev node ./built/test/www.js"
   },
   "author": "zcWSR",
   "license": "MIT",

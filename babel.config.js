@@ -9,7 +9,7 @@ module.exports = {
         targets: {
           node: 6
         },
-        useBuiltIns: 'usage', // or "entry"
+        useBuiltIns: 'entry', // or "entry"
         corejs: 3
       }
     ]

@@ -18,6 +18,8 @@
 2. 随机复读: 对某一群组内的聊天内容进行随机复读, 可为每个群设置不同的复读概率
 3. 指令识别: 对 __!xxx__ 格式的指令进行识别, 并做出响应
 4. 入群提示: 新人入群时提醒
+5. 网易云点歌: 点歌
+6. 明日方舟公开招募查询: 识别并查询所发截图的公招信息
 
 ...完善中
 
@@ -25,22 +27,24 @@
 
 #### 基础指令
 
-1. auth: 查看你的权限
-2. help: 查看所有指令或者某特定指令的使用方法
-3. pr: prprprpr
-4. fd: 设置随机复读概率
-5. roll: roll一个随机数
-~6. save: 固化群聊配置到数据库(目前仅支持储存随机复读概率)~(作废, 换成redis后改为实时更新了)
-7. newNotice 配置入群提醒模板
+1. help: 查看所有指令或者某特定指令的使用方法
+2. pr: prprprpr
+3. fd: 设置随机复读概率
+4. roll: roll一个随机数
+5. newNotice 配置入群提醒模板
+6. plugin: 查看\开启\关闭插件功能
+7. !akhr: 明日方舟公开招募查询(配合公招插件使用)
+8. !akhrUpdate: 更新明日方舟干员基础信息(配合公招插件使用)
 
 ...完善中
 
 #### osu特有指令
 
-1. bp: 查询osu! bp
-2. bpme: 查看osu!所绑定账号的bp
-3. recent: 查询osu!最近游玩记录
-4. unbind: 解绑osu!账号
+1. bind: 绑定账号
+2. unbind: 解绑账号
+3. bp: 查询bp
+4. bpme: 查看所绑定账号的bp
+5. recent: 查询最近游玩记录
 
 ...完善中
 
@@ -55,7 +59,7 @@ PluginService 为插件服务类, 负责所有插件的获取/加载/分类/运�
 
 (如果要做成群聊插件可配置, 举个例子, 入群提醒属于notice事件插件, 但是对于群聊来说是不可配置的, 因为没设计相关逻辑, 如果要可配置, 需要在添加一种配置项, 为通知类插件配置, 违背了只让群管理维护一套插件列表的设计初衷, 放弃方案, 以下为原先设计)
 
-~~服务启动时, 服务类会从 plugins 文件夹内读取并初始化(如果存在则 sync 执行插件的 createTable 和 init 方法), 根据插件的 type 所属事件类型, 以 { plugin.name: plugin } 的形式, 维护在 PluginService.plugins.group/private/notice 中~~
+~~服务启动时, 服务类会从 plugins 文件夹内读取并初始化(如果存在则 sync 执行插件的 createTable 和 init 方法), 根据插件的 type 所属事件类型, 以 `{ plugin.name: plugin }` 的形式, 维护在 PluginService.plugins.group/private/notice 中~~
 
 
 ~~之后服务会 load 并根据权重排序个性化插件配置信息, 为最大限度的节省内存占用和提高运行速度, 存储群配置信息只存插件名~~
@@ -72,7 +76,7 @@ PluginService 为插件服务类, 负责所有插件的获取/加载/分类/运�
 
 服务器启动时会加载所有插件, 收到消息会按照上报类型里的插件列表按权重依次执行, 为了实现可配置, 在执行插件外包装是否执行的逻辑, 根据群所配置的插件名, 如果当前执行到的插件名称没有出现在群配置列表里, 则直接跳过
 
-群配置信息一次性从数据库读取, 存储在 PluginService.groupConfigs 中, { group_id: { plugin.name: true } } 形式, 因为从数据库读出来的群插件配置是数组形式的, 为了保证响应速度, 改成Map的形式存储, hash比Array查找快得多
+群配置信息一次性从数据库读取, 存储在 PluginService.groupConfigs 中, 以 `{ group_id: { plugin.name: true } }` 形式, 因为从数据库读出来的群插件配置是数组形式的, 为了保证响应速度, 改成Map的形式存储, hash比Array查找快得多
 
 此方案相比作废的方案更好理解, 但存在些许性能问题, 如果启动的插件过多, 会导致循环列表过长, 时间效率较低, 相当于一种用时间换空间的方案, 但考虑到, 如指令响应之类的插件有阻断后续插件执行的功能, 日常操作操作时几乎不会走完全部插件列表, 估计对性能影响并不会太大
 
@@ -84,15 +88,15 @@ PluginService 为插件服务类, 负责所有插件的获取/加载/分类/运�
 
 init(): 插件初始化到内存
 
-attachToGroup(groupId): 绑定到某个群聊
+~~attachToGroup(groupId): 绑定到某个群聊~~
 
-attachToPrivate(): 绑定到私聊
+~~attachToPrivate(): 绑定到私聊~~
 
 go(reqBody, type): 执行插件
 
-detachFromGroup(groupId): 与群聊解绑
+~~detachFromGroup(groupId): 与群聊解绑~~
 
-detachFromPrivate(): 与私聊解绑
+~~detachFromPrivate(): 与私聊解绑~~
 
 ##### 其他生命周期
 
@@ -135,7 +139,7 @@ createTable(ctx): 会在初始化插件时提供数据库实例, 便于插件初
 
 有三种权限等级(level): 普通=1, 群管理员=2, 系统管理员=3, 群管理员指令权限在私聊模式下不存在, 默认识别为普通模式
 
-初始化时, 会将所有的指令对象引用以{ command.command: command } (指令名: 对象) 的形式维护在 CommandRunner.command.private/group 中, type=all的指令, 两个里面都放
+初始化时, 会将所有的指令对象引用以 `{ command.command: command }` (指令名: 对象) 的形式维护在 CommandRunner.command.private/group 中, type=all的指令, 两个里面都放
 
 CommandRunner 执行时, 按照数据类型, 分别走私聊和群聊不同的逻辑, 直接在 CommandRunner 层判断指令是否存在, 如不存在直接响应不存在并 break 插件循环
 

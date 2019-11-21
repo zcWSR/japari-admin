@@ -7,12 +7,14 @@ class QQService {
   constructor() {
     if (isDev()) {
       this.sendGroupMessage = (groupId, msg) => {
-        logger.debug(`send to group ${groupId}`);
+        logger.debug(`===== send to group ${groupId}`);
         msg.split('\n').forEach(line => logger.debug(line));
+        logger.debug('===== done');
       };
       this.sendPrivateMessage = (userId, msg) => {
-        logger.debug(`send to user ${userId}`);
+        logger.debug(`===== send to user ${userId}`);
         msg.split('\n').forEach(line => logger.debug(line));
+        logger.debug('===== done');
       };
     }
   }

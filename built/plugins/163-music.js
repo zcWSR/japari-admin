@@ -9,7 +9,19 @@ const commandPrefixList = ['点歌', '来一首', '我想听'];
 
 const MAX_COUNT_PRE_MINUTE = 2;
 
-const MUSIC_ID_CACHE_KEY = '163-music-keyword-cache';let
+const MUSIC_ID_CACHE_KEY = '163-music-keyword-cache';
+
+const CHS_NUMBER_LIST = ['一', '第二', '第三', '第四', '第五', '第六', '第七', '第八', '第九'];
+
+const SUFFIX_TEXT_TEMPLATE_MAP = {
+  prev: count => `前${CHS_NUMBER_LIST[count - 1]}首`,
+  next: count => `后${CHS_NUMBER_LIST[count - 1]}首` };
+
+
+const SHIFT_METHOD_MAP = {
+  prev: (index, count) => index - count,
+  next: (index, count) => index + count };let
+
 
 
 
@@ -28,7 +40,7 @@ NetEastMusic = (_dec = (0, _plugin.Plugin)({ name: '163-music', wight: 99, type:
     let match = null;
     let prefix = null;
     commandPrefixList.some(p => {
-      const result = content.match(new RegExp(`^${p}\\s(.*)$`));
+      const result = content.match(new RegExp(`^${p}(prev|next)?(\\d*)?\\s(.*)$`));
       if (result) {
         match = result;
         prefix = p;
@@ -37,8 +49,13 @@ NetEastMusic = (_dec = (0, _plugin.Plugin)({ name: '163-music', wight: 99, type:
       return false;
     });
     if (match) {const _match =
-      match,_match2 = _slicedToArray(_match, 2),keyword = _match2[1];
-      return { prefix, keyword };
+      match,_match2 = _slicedToArray(_match, 4),suffix = _match2[1],_match2$ = _match2[2],shiftCount = _match2$ === void 0 ? 1 : _match2$,keyword = _match2[3];
+      return {
+        prefix,
+        suffix,
+        shiftCount: +shiftCount,
+        keyword };
+
     }
     return false;
   }
@@ -72,15 +89,22 @@ NetEastMusic = (_dec = (0, _plugin.Plugin)({ name: '163-music', wight: 99, type:
       }})();
   }
 
+  // 返回number类型的id
   checkKeywordCache(keyword) {return _asyncToGenerator(function* () {
-      _logger.default.info(`checking music keyword cache: ${keyword}`);
-      const result = yield _redisService.default.redis.hget(MUSIC_ID_CACHE_KEY, keyword);
-      if (result) {
-        _logger.default.info(`get keyword cache, id: ${result}`);
-      } else {
-        _logger.default.info('cache not found, fetching...');
-      }
-      return result;})();
+      try {
+        _logger.default.info(`checking music keyword cache: ${keyword}`);
+        const result = yield _redisService.default.redis.hget(MUSIC_ID_CACHE_KEY, keyword);
+        if (result) {
+          _logger.default.info(`get keyword cache, id: ${result}`);
+        } else {
+          _logger.default.info('cache not found, fetching...');
+        }
+        return +result;
+      } catch (e) {
+        _logger.default.error('check keyword cache error');
+        _logger.default.error(e);
+        return null;
+      }})();
   }
 
   setKeywordCache(keyword, id) {
@@ -89,10 +113,11 @@ NetEastMusic = (_dec = (0, _plugin.Plugin)({ name: '163-music', wight: 99, type:
   }
 
   getSearchUrl() {
-    if (Math.random() > 0.5) {
-      return `${_config.default.NET_EAST_MUSIC_SERVER}/search`;
-    }
-    return `${_config.default.NET_EAST_MUSIC_SERVER}/search/suggest`;
+    // if (Math.random() > 0.5) {
+    return `${_config.default.NET_EAST_MUSIC_SERVER}/search`;
+    // }
+    // 发现两个接口返回的结果不总是一致的, 暂时改成用一个
+    // return `${Config.NET_EAST_MUSIC_SERVER}/search/suggest`;
   }
 
   fetchMusic(keyword) {var _this2 = this;return _asyncToGenerator(function* () {
@@ -103,18 +128,16 @@ NetEastMusic = (_dec = (0, _plugin.Plugin)({ name: '163-music', wight: 99, type:
           method: 'get',
           params: {
             keywords: keyword,
-            limit: 1,
+            limit: 10, // 留点儿量, 方便支持偏移指令
             type: 1 } });const _meta$data$result =
 
 
         meta.data.result,result = _meta$data$result === void 0 ? {} : _meta$data$result;
         if (!result.songs || !result.songs.length) {
           _logger.default.info('search no result');
-          return `无 '${keyword}' 的搜索结果`;
-        }const _result$songs = _slicedToArray(
-        result.songs, 1),song = _result$songs[0];
-        _logger.default.info(`search success, music title: ${song.name}, id: ${song.id}`);
-        return song;
+          throw new Error(`无 '${keyword}' 的搜索结果`);
+        }
+        return result.songs;
       } catch (e) {
         if (e.isAxiosError && e.response && e.response.data) {const
           msg = e.response.data.msg;
@@ -122,25 +145,64 @@ NetEastMusic = (_dec = (0, _plugin.Plugin)({ name: '163-music', wight: 99, type:
         }
         _logger.default.info('search failed');
         _logger.default.error(e.toString());
-        return null;
+        throw new Error('请求失败, 请重试');
       }})();
   }
 
-  doSearch(keyword) {var _this3 = this;return _asyncToGenerator(function* () {
-      let id = yield _this3.checkKeywordCache(keyword);
-      if (!id) {
-        const result = yield _this3.fetchMusic(keyword);
-        if (result === null) {
-          return '请求失败, 请重试';
+  getShiftedSongId(songs, id, suffix, shiftCount) {
+    // 没有pre或next指令尾缀, 则直接返回查到的id
+    if (!suffix) {
+      return id;
+    }
+    // redis 返回的结果是数字
+    const currIdx = songs.findIndex(song => song.id === id);
+    // 返回结果里找不到了, 默认取第一首
+    if (currIdx === -1) {
+      _logger.default.info('can not find music in search result, use index 0 as default');
+      return songs[0].id;
+    }
+    const shiftedIndex = SHIFT_METHOD_MAP[suffix](currIdx, shiftCount);
+    _logger.default.info(`shifted to index: ${shiftedIndex}`);
+    // 取偏移
+    const shiftedSong = songs[shiftedIndex];
+    if (!shiftedSong) {
+      throw new Error('超出偏移范围, 无结果');
+    }
+    return shiftedSong.id;
+  }
+
+  doSearch({ keyword, suffix, shiftCount }, body, type) {var _this3 = this;return _asyncToGenerator(function* () {
+      try {
+        let id = yield _this3.checkKeywordCache(keyword);
+        if (!id && suffix) {
+          _logger.default.info('with no suffix, return current id');
         }
-        if (typeof result === 'string' && result) {
-          return result;
+        if (id && suffix) {
+          _logger.default.info(`searching music which ${suffix} ${shiftCount} current id`);
+          _this3.sendMessage(`正在查询当前关键词搜索结果的${SUFFIX_TEXT_TEMPLATE_MAP[suffix](shiftCount)}...`, body, type);
         }
-        // eslint-disable-next-line
-        id = result.id;
-        yield _this3.setKeywordCache(keyword, id);
-      }
-      return _this3.buildScheme(id);})();
+        if (!id || suffix) {
+          const songs = yield _this3.fetchMusic(keyword);
+          if (!id) {
+            // 从缓存里没取到, 直接取接口返回的第一首
+            const _songs = _slicedToArray(songs, 1),song = _songs[0];
+            // eslint-disable-next-line
+            id = song.id;
+            yield _this3.setKeywordCache(keyword, id);
+          } else {
+            // 取到了走上一首下一首逻辑
+            const shiftedId = _this3.getShiftedSongId(songs, id, suffix, shiftCount);
+            if (shiftedId !== id) {
+              yield _this3.setKeywordCache(keyword, shiftedId);
+            }
+            // eslint-disable-next-line
+            id = shiftedId;
+          }
+        }
+        return _this3.buildScheme(id);
+      } catch (e) {
+        return e.message;
+      }})();
   }
 
   buildScheme(id) {
@@ -160,8 +222,19 @@ NetEastMusic = (_dec = (0, _plugin.Plugin)({ name: '163-music', wight: 99, type:
       message = body.message;
       const c = _this4.isCommand(message);
       if (!c) return; // 不是指令, 直接跳过流程
+      _logger.default.info(`163-music triggered, params: ${JSON.stringify(c)}`);
+      if (c.shiftCount > 9) {
+        _this4.sendMessage('超出最大偏移量, 最多偏移九位', body, type);
+        return 'break';
+      }
+      if (c.shiftCount === 0) {
+        _this4.sendMessage('偏移0位和不偏移有啥区别呢?', body, type);
+        // 假装无事发生
+        c.suffix = null;
+        c.shiftCount = null;
+      }
       if (yield _this4.canSearch(body, type)) {
-        const msg = yield _this4.doSearch(c.keyword);
+        const msg = yield _this4.doSearch(c, body, type);
         _this4.sendMessage(msg, body, type);
       } else {
         _this4.sendMessage(`每分钟最多可点${MAX_COUNT_PRE_MINUTE}首, 请稍后重试`, body, type);

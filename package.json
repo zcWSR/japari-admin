@@ -5,7 +5,7 @@
   "main": "www.js",
   "scripts": {
     "start": "gulp build && node ./built/index.js",
-    "start:dev": "gulp build && NODE_ENV=dev node ./built/index.js",
+    "start:dev": "gulp build && NODE_ENV=dev node ./built/index.js -p=2333",
     "build": "gulp build",
     "test": "gulp build && NODE_ENV=dev node ./built/test/www.js"
   },

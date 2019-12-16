@@ -1,8 +1,27 @@
-"use strict";Object.defineProperty(exports, "__esModule", { value: true });exports.blockLog = blockLog;exports.default = void 0;var _log4js = _interopRequireDefault(require("log4js"));
+"use strict";Object.defineProperty(exports, "__esModule", { value: true });exports.blockLog = blockLog;exports.default = void 0;var _path = _interopRequireDefault(require("path"));
+var _log4js = _interopRequireDefault(require("log4js"));
 var _env = require("./env");function _interopRequireDefault(obj) {return obj && obj.__esModule ? obj : { default: obj };}
 
-const logger = _log4js.default.getLogger();
-logger.level = (0, _env.isDev)() ? 'debug' : 'info';
+const logPath = _path.default.resolve(__dirname, '../../../logs/japari-admin');
+
+_log4js.default.configure({
+  appenders: {
+    console: { type: 'console' },
+    dateFile: {
+      type: 'dateFile',
+      pattern: `${(0, _env.isDev)() ? 'dev.' : ''}yyyy-MM-dd.log`,
+      alwaysIncludePattern: true,
+      filename: logPath,
+      compress: true,
+      backup: 5 } },
+
+
+  categories: {
+    default: { appenders: ['console', 'dateFile'], level: (0, _env.isDev)() ? 'debug' : 'info' } } });
+
+
+
+const logger = _log4js.default.getLogger('default');
 
 function blockLog(
 content,

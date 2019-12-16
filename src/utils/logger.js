@@ -1,8 +1,27 @@
+import Path from 'path';
 import log4js from 'log4js';
 import { isDev } from './env';
 
-const logger = log4js.getLogger();
-logger.level = isDev() ? 'debug' : 'info';
+const logPath = Path.resolve(__dirname, '../../../logs/japari-admin');
+
+log4js.configure({
+  appenders: {
+    console: { type: 'console' },
+    dateFile: {
+      type: 'dateFile',
+      pattern: `${isDev() ? 'dev.' : ''}yyyy-MM-dd.log`,
+      alwaysIncludePattern: true,
+      filename: logPath,
+      compress: true,
+      backup: 5
+    }
+  },
+  categories: {
+    default: { appenders: ['console', 'dateFile'], level: isDev() ? 'debug' : 'info' }
+  }
+});
+
+const logger = log4js.getLogger('default');
 
 export function blockLog(
   content,

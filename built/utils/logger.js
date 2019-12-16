@@ -17,11 +17,12 @@ _log4js.default.configure({
 
 
   categories: {
-    default: { appenders: ['console', 'dateFile'], level: (0, _env.isDev)() ? 'debug' : 'info' } } });
+    dev: { appenders: ['console', 'dateFile'], level: 'debug' },
+    default: { appenders: ['dateFile'], level: 'info' } } });
 
 
 
-const logger = _log4js.default.getLogger('default');
+const logger = _log4js.default.getLogger((0, _env.isDev)() ? 'dev' : 'default');
 
 function blockLog(
 content,

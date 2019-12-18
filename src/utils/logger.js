@@ -12,7 +12,6 @@ log4js.configure({
       pattern: `${isDev() ? 'dev.' : ''}yyyy-MM-dd.log`,
       alwaysIncludePattern: true,
       filename: logPath,
-      compress: true,
       backup: 5
     }
   },

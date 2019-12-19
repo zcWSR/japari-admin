@@ -3,7 +3,8 @@ var _plugin = require("../decorators/plugin");
 var _qqService = _interopRequireDefault(require("../services/qq-service"));
 var _redisService = _interopRequireDefault(require("../services/redis-service"));
 var _pluginService = _interopRequireDefault(require("../services/plugin-service"));
-var _logger = _interopRequireDefault(require("../utils/logger"));var _dec, _class;function _interopRequireDefault(obj) {return obj && obj.__esModule ? obj : { default: obj };}function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) {try {var info = gen[key](arg);var value = info.value;} catch (error) {reject(error);return;}if (info.done) {resolve(value);} else {Promise.resolve(value).then(_next, _throw);}}function _asyncToGenerator(fn) {return function () {var self = this,args = arguments;return new Promise(function (resolve, reject) {var gen = fn.apply(self, args);function _next(value) {asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value);}function _throw(err) {asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err);}_next(undefined);});};}
+var _logger = _interopRequireDefault(require("../utils/logger"));
+var _readAgainService = _interopRequireDefault(require("../services/read-again-service"));var _dec, _class;function _interopRequireDefault(obj) {return obj && obj.__esModule ? obj : { default: obj };}function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) {try {var info = gen[key](arg);var value = info.value;} catch (error) {reject(error);return;}if (info.done) {resolve(value);} else {Promise.resolve(value).then(_next, _throw);}}function _asyncToGenerator(fn) {return function () {var self = this,args = arguments;return new Promise(function (resolve, reject) {var gen = fn.apply(self, args);function _next(value) {asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value);}function _throw(err) {asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err);}_next(undefined);});};}
 
 const DEFAULT_GROUP_INFO = { message: '', count: 1 };let
 
@@ -15,11 +16,22 @@ const DEFAULT_GROUP_INFO = { message: '', count: 1 };let
 
 
 ReadAgainFollow = (_dec = (0, _plugin.Plugin)({ name: 'read-again-follow', wight: 98, type: 'group', shortInfo: '跟随复读', info: '当同一群聊连续出现相同消息三次时, 进行复读', mute: true }), _dec(_class = class ReadAgainFollow {
+  isSimilar(a, b) {
+    try {
+      // 判断和前一条是否相似
+      return _readAgainService.default.similar(a, b);
+    } catch (e) {
+      _logger.default.error('get similar message error:');
+      _logger.default.error(e);
+      return a === b;
+    }
+  }
+
   go(body) {var _this = this;return _asyncToGenerator(function* () {const
       groupId = body.group_id,message = body.message;
       const redisKey = `${_this.name}-${groupId}`;
       let groupInfo = JSON.parse((yield _redisService.default.get(redisKey))) || DEFAULT_GROUP_INFO;
-      if (groupInfo.message !== message) {
+      if (!_this.isSimilar(groupInfo.message, message)) {
         groupInfo = { message, count: 1 };
         yield _redisService.default.set(redisKey, JSON.stringify(groupInfo));
         return;

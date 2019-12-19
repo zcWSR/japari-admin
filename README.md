@@ -145,3 +145,6 @@ CommandRunner 执行时, 按照数据类型, 分别走私聊和群聊不同的�
 
 Command类构造时, 如果为私聊且 level=2, 则先将 level 置为1, 因为私聊没有群管理级别
 
+## License
+
+GPLv3 © [zcWSR](https://zcwsr.com/)

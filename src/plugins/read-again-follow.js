@@ -4,6 +4,7 @@ import QQService from '../services/qq-service';
 import RedisService from '../services/redis-service';
 import PluginService from '../services/plugin-service';
 import logger from '../utils/logger';
+import ReadAgainService from '../services/read-again-service';
 
 const DEFAULT_GROUP_INFO = { message: '', count: 1 };
 @Plugin({
@@ -15,11 +16,22 @@ const DEFAULT_GROUP_INFO = { message: '', count: 1 };
   mute: true
 })
 class ReadAgainFollow {
+  isSimilar(a, b) {
+    try {
+      // 判断和前一条是否相似
+      return ReadAgainService.similar(a, b);
+    } catch (e) {
+      logger.error('get similar message error:');
+      logger.error(e);
+      return a === b;
+    }
+  }
+
   async go(body) {
     const { group_id: groupId, message } = body;
     const redisKey = `${this.name}-${groupId}`;
     let groupInfo = JSON.parse(await RedisService.get(redisKey)) || DEFAULT_GROUP_INFO;
-    if (groupInfo.message !== message) {
+    if (!this.isSimilar(groupInfo.message, message)) {
       groupInfo = { message, count: 1 };
       await RedisService.set(redisKey, JSON.stringify(groupInfo));
       return;

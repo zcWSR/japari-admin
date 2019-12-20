@@ -2,9 +2,9 @@
 var _plugin = require("../decorators/plugin");
 var _qqService = _interopRequireDefault(require("../services/qq-service"));
 var _redisService = _interopRequireDefault(require("../services/redis-service"));
-var _pluginService = _interopRequireDefault(require("../services/plugin-service"));
+var _readAgainService = _interopRequireDefault(require("../services/read-again-service"));
 var _logger = _interopRequireDefault(require("../utils/logger"));
-var _readAgainService = _interopRequireDefault(require("../services/read-again-service"));var _dec, _class;function _interopRequireDefault(obj) {return obj && obj.__esModule ? obj : { default: obj };}function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) {try {var info = gen[key](arg);var value = info.value;} catch (error) {reject(error);return;}if (info.done) {resolve(value);} else {Promise.resolve(value).then(_next, _throw);}}function _asyncToGenerator(fn) {return function () {var self = this,args = arguments;return new Promise(function (resolve, reject) {var gen = fn.apply(self, args);function _next(value) {asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value);}function _throw(err) {asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err);}_next(undefined);});};}
+var _process = require("../utils/process");var _dec, _class;function _interopRequireDefault(obj) {return obj && obj.__esModule ? obj : { default: obj };}function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) {try {var info = gen[key](arg);var value = info.value;} catch (error) {reject(error);return;}if (info.done) {resolve(value);} else {Promise.resolve(value).then(_next, _throw);}}function _asyncToGenerator(fn) {return function () {var self = this,args = arguments;return new Promise(function (resolve, reject) {var gen = fn.apply(self, args);function _next(value) {asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value);}function _throw(err) {asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err);}_next(undefined);});};}
 
 const DEFAULT_GROUP_INFO = { message: '', count: 1 };let
 
@@ -39,7 +39,7 @@ ReadAgainFollow = (_dec = (0, _plugin.Plugin)({ name: 'read-again-follow', wight
       groupInfo.count += 1;
       if (!(groupInfo.count % 3)) {
         _logger.default.info(`group ${groupId} random read follow: '${message}'`);
-        yield _pluginService.default.sleep();
+        yield (0, _process.sleep)();
         _qqService.default.sendGroupMessage(groupId, message);
         yield _redisService.default.set(redisKey, JSON.stringify(groupInfo));
         return 'break';

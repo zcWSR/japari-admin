@@ -11,7 +11,8 @@ var _env = require("./utils/env");
 var _redisService = _interopRequireDefault(require("./services/redis-service"));
 var _dbService = _interopRequireDefault(require("./services/db-service"));
 var _pluginService = _interopRequireDefault(require("./services/plugin-service"));
-var _fileService = _interopRequireDefault(require("./services/file-service"));function _interopRequireDefault(obj) {return obj && obj.__esModule ? obj : { default: obj };}function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) {try {var info = gen[key](arg);var value = info.value;} catch (error) {reject(error);return;}if (info.done) {resolve(value);} else {Promise.resolve(value).then(_next, _throw);}}function _asyncToGenerator(fn) {return function () {var self = this,args = arguments;return new Promise(function (resolve, reject) {var gen = fn.apply(self, args);function _next(value) {asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value);}function _throw(err) {asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err);}_next(undefined);});};}
+var _fileService = _interopRequireDefault(require("./services/file-service"));
+var _qqService = _interopRequireDefault(require("./services/qq-service"));function _interopRequireDefault(obj) {return obj && obj.__esModule ? obj : { default: obj };}function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) {try {var info = gen[key](arg);var value = info.value;} catch (error) {reject(error);return;}if (info.done) {resolve(value);} else {Promise.resolve(value).then(_next, _throw);}}function _asyncToGenerator(fn) {return function () {var self = this,args = arguments;return new Promise(function (resolve, reject) {var gen = fn.apply(self, args);function _next(value) {asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value);}function _throw(err) {asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err);}_next(undefined);});};}
 
 function initServer(port) {
   const app = new _koa.default();
@@ -50,6 +51,7 @@ start() {return _start.apply(this, arguments);}function _start() {_start = _asyn
       yield _dbService.default.checkTables();
       yield _pluginService.default.loadPlugins(_dbService.default.DBInstance);
       initServer(getPort());
+      _qqService.default.sendReadyMessage();
     } catch (e) {
       _logger.default.error(e);
       process.exit(1);

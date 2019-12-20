@@ -2,9 +2,9 @@
 import { Plugin } from '../decorators/plugin';
 import QQService from '../services/qq-service';
 import RedisService from '../services/redis-service';
-import PluginService from '../services/plugin-service';
-import logger from '../utils/logger';
 import ReadAgainService from '../services/read-again-service';
+import logger from '../utils/logger';
+import { sleep } from '../utils/process';
 
 const DEFAULT_GROUP_INFO = { message: '', count: 1 };
 @Plugin({
@@ -39,7 +39,7 @@ class ReadAgainFollow {
     groupInfo.count += 1;
     if (!(groupInfo.count % 3)) {
       logger.info(`group ${groupId} random read follow: '${message}'`);
-      await PluginService.sleep();
+      await sleep();
       QQService.sendGroupMessage(groupId, message);
       await RedisService.set(redisKey, JSON.stringify(groupInfo));
       return 'break';

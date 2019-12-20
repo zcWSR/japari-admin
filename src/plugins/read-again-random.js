@@ -2,7 +2,7 @@ import { Plugin } from '../decorators/plugin';
 // import { withTransaction } from '../decorators/db';
 import QQService from '../services/qq-service';
 import RedisService from '../services/redis-service';
-import PluginService from '../services/plugin-service';
+import { sleep } from '../utils/process';
 import logger from '../utils/logger';
 
 // 默认随机复读频率 5%
@@ -24,7 +24,7 @@ class ReadAgainRandom {
     const groupRate = await this.getGroupRandomRate(groupId);
     if (randomRate < groupRate) {
       logger.info(`group ${groupId} random read again: '${message}'`);
-      await PluginService.sleep();
+      await sleep();
       QQService.sendGroupMessage(groupId, message);
       return 'block';
     }

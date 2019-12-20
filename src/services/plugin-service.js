@@ -15,14 +15,6 @@ class PluginService {
   defaultGroupConfig = [];
   privateConfigs = [];
 
-  sleep(timeout = 2000) {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve();
-      }, timeout);
-    });
-  }
-
   sortByWeight(pluginA, pluginB) {
     return pluginB.weight - pluginA.weight;
   }

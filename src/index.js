@@ -12,6 +12,7 @@ import RedisService from './services/redis-service';
 import DBService from './services/db-service';
 import PluginService from './services/plugin-service';
 import FileService from './services/file-service';
+import QQService from './services/qq-service';
 
 function initServer(port) {
   const app = new Koa();
@@ -50,6 +51,7 @@ async function start() {
     await DBService.checkTables();
     await PluginService.loadPlugins(DBService.DBInstance);
     initServer(getPort());
+    QQService.sendReadyMessage();
   } catch (e) {
     logger.error(e);
     process.exit(1);

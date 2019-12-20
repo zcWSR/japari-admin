@@ -1,7 +1,9 @@
 import axios from 'axios';
+import moment from 'moment-timezone';
 import logger from '../utils/logger';
 import Config from '../config';
 import { isDev } from '../utils/env';
+import { sleep } from '../utils/process';
 
 class QQService {
   constructor() {
@@ -81,7 +83,11 @@ class QQService {
   }
 
   banGroupUser(groupId, userId, duration) {
-    axios.post(`${Config.QQ_SERVER}/set_group_ban`, { group_id: groupId, user_id: userId, duration });
+    axios.post(`${Config.QQ_SERVER}/set_group_ban`, {
+      group_id: groupId,
+      user_id: userId,
+      duration
+    });
   }
 
   /**
@@ -97,6 +103,18 @@ class QQService {
       return 'notice';
     }
     return event.post_type;
+  }
+
+  async sendReadyMessage() {
+    const message = `服务(重)启动于: ${moment()
+      .tz('Asia/Shanghai')
+      .format('YYYY年MM月DD日 HH:mm:ss')}`;
+    logger.info(message);
+    await Config.ADMINS.map(async (admin, index) => {
+      await this.sendPrivateMessage(admin, message);
+      await sleep();
+      return index;
+    });
   }
 }
 

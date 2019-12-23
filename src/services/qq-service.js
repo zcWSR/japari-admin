@@ -78,8 +78,40 @@ class QQService {
     axios.post(`${Config.QQ_SERVER}/send_private_msg`, { user_id: userId, message });
   }
 
+  sendPrivateMusic(userId, musicId) {
+    this.sendPrivateMessage(userId, [
+      {
+        type: 'music',
+        data: {
+          type: '163',
+          id: `${musicId}`
+        }
+      }
+    ]);
+  }
+
   sendGroupMessage(groupId, message) {
+    if (typeof message === 'string') {
+      message = {
+        type: 'text',
+        data: {
+          text: message
+        }
+      };
+    }
     axios.post(`${Config.QQ_SERVER}/send_group_msg`, { group_id: groupId, message });
+  }
+
+  sendGroupMusic(groupId, musicId) {
+    this.sendGroupMessage(groupId, [
+      {
+        type: 'music',
+        data: {
+          type: '163',
+          id: `${musicId}`
+        }
+      }
+    ]);
   }
 
   banGroupUser(groupId, userId, duration) {

@@ -199,14 +199,10 @@ class NetEastMusic {
           id = shiftedId;
         }
       }
-      return this.buildScheme(id);
+      return id;
     } catch (e) {
       return e.message;
     }
-  }
-
-  buildScheme(id) {
-    return `[CQ:music,type=163,id=${id}]`;
   }
 
   sendMessage(msg, body, type) {
@@ -215,6 +211,15 @@ class NetEastMusic {
     }
     if (type === 'private') {
       QQService.sendPrivateMessage(body.user_id, msg);
+    }
+  }
+
+  sendMusic(id, body, type) {
+    if (type === 'group') {
+      QQService.sendGroupMusic(body.group_id, id);
+    }
+    if (type === 'private') {
+      QQService.sendPrivateMusic(body.user_id, id);
     }
   }
 
@@ -234,8 +239,8 @@ class NetEastMusic {
       c.shiftCount = null;
     }
     if (await this.canSearch(body, type)) {
-      const msg = await this.doSearch(c, body, type);
-      this.sendMessage(msg, body, type);
+      const id = await this.doSearch(c, body, type);
+      this.sendMusic(id, body, type);
     } else {
       this.sendMessage(`每分钟最多可点${MAX_COUNT_PRE_MINUTE}首, 请稍后重试`, body, type);
     }

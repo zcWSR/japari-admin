@@ -199,14 +199,10 @@ NetEastMusic = (_dec = (0, _plugin.Plugin)({ name: '163-music', wight: 99, type:
             id = shiftedId;
           }
         }
-        return _this3.buildScheme(id);
+        return id;
       } catch (e) {
         return e.message;
       }})();
-  }
-
-  buildScheme(id) {
-    return `[CQ:music,type=163,id=${id}]`;
   }
 
   sendMessage(msg, body, type) {
@@ -215,6 +211,15 @@ NetEastMusic = (_dec = (0, _plugin.Plugin)({ name: '163-music', wight: 99, type:
     }
     if (type === 'private') {
       _qqService.default.sendPrivateMessage(body.user_id, msg);
+    }
+  }
+
+  sendMusic(id, body, type) {
+    if (type === 'group') {
+      _qqService.default.sendGroupMusic(body.group_id, id);
+    }
+    if (type === 'private') {
+      _qqService.default.sendPrivateMusic(body.user_id, id);
     }
   }
 
@@ -234,8 +239,8 @@ NetEastMusic = (_dec = (0, _plugin.Plugin)({ name: '163-music', wight: 99, type:
         c.shiftCount = null;
       }
       if (yield _this4.canSearch(body, type)) {
-        const msg = yield _this4.doSearch(c, body, type);
-        _this4.sendMessage(msg, body, type);
+        const id = yield _this4.doSearch(c, body, type);
+        _this4.sendMusic(id, body, type);
       } else {
         _this4.sendMessage(`每分钟最多可点${MAX_COUNT_PRE_MINUTE}首, 请稍后重试`, body, type);
       }

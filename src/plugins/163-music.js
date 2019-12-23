@@ -240,7 +240,13 @@ class NetEastMusic {
     }
     if (await this.canSearch(body, type)) {
       const id = await this.doSearch(c, body, type);
-      this.sendMusic(id, body, type);
+      if (Number.isNaN(+id)) {
+        logger.info(`an error occured: ${id}`);
+        this.sendMessage(id, body, type);
+      } else {
+        logger.info(`send music with id: ${id}`);
+        this.sendMusic(id, body, type);
+      }
     } else {
       this.sendMessage(`每分钟最多可点${MAX_COUNT_PRE_MINUTE}首, 请稍后重试`, body, type);
     }

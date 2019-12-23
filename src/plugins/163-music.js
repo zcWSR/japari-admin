@@ -49,6 +49,7 @@ class NetEastMusic {
       return false;
     });
     if (match) {
+      // shiftCount只会在suffix有值时才会生效, 所以正常点歌时可以随便给默认值
       const [, suffix, shiftCount = 1, keyword] = match;
       return {
         prefix,
@@ -241,7 +242,7 @@ class NetEastMusic {
     if (await this.canSearch(body, type)) {
       const id = await this.doSearch(c, body, type);
       if (Number.isNaN(+id)) {
-        logger.info(`an error occured: ${id}`);
+        logger.info(`an error occurred: ${id}`);
         this.sendMessage(id, body, type);
       } else {
         logger.info(`send music with id: ${id}`);

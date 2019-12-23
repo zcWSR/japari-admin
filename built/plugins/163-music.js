@@ -48,8 +48,9 @@ NetEastMusic = (_dec = (0, _plugin.Plugin)({ name: '163-music', wight: 99, type:
       }
       return false;
     });
-    if (match) {const _match =
-      match,_match2 = _slicedToArray(_match, 4),suffix = _match2[1],_match2$ = _match2[2],shiftCount = _match2$ === void 0 ? 1 : _match2$,keyword = _match2[3];
+    if (match) {
+      // shiftCount只会在suffix有值时才会生效, 所以正常点歌时可以随便给默认值
+      const _match = match,_match2 = _slicedToArray(_match, 4),suffix = _match2[1],_match2$ = _match2[2],shiftCount = _match2$ === void 0 ? 1 : _match2$,keyword = _match2[3];
       return {
         prefix,
         suffix,
@@ -241,7 +242,7 @@ NetEastMusic = (_dec = (0, _plugin.Plugin)({ name: '163-music', wight: 99, type:
       if (yield _this4.canSearch(body, type)) {
         const id = yield _this4.doSearch(c, body, type);
         if (Number.isNaN(+id)) {
-          _logger.default.info(`an error occured: ${id}`);
+          _logger.default.info(`an error occurred: ${id}`);
           _this4.sendMessage(id, body, type);
         } else {
           _logger.default.info(`send music with id: ${id}`);

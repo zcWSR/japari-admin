@@ -240,7 +240,13 @@ NetEastMusic = (_dec = (0, _plugin.Plugin)({ name: '163-music', wight: 99, type:
       }
       if (yield _this4.canSearch(body, type)) {
         const id = yield _this4.doSearch(c, body, type);
-        _this4.sendMusic(id, body, type);
+        if (Number.isNaN(+id)) {
+          _logger.default.info(`an error occured: ${id}`);
+          _this4.sendMessage(id, body, type);
+        } else {
+          _logger.default.info(`send music with id: ${id}`);
+          _this4.sendMusic(id, body, type);
+        }
       } else {
         _this4.sendMessage(`每分钟最多可点${MAX_COUNT_PRE_MINUTE}首, 请稍后重试`, body, type);
       }

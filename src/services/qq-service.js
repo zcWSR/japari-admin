@@ -91,14 +91,6 @@ class QQService {
   }
 
   sendGroupMessage(groupId, message) {
-    if (typeof message === 'string') {
-      message = {
-        type: 'text',
-        data: {
-          text: message
-        }
-      };
-    }
     axios.post(`${Config.QQ_SERVER}/send_group_msg`, { group_id: groupId, message });
   }
 

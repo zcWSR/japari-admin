@@ -22,6 +22,25 @@
       "sourceMaps": true,
       "outFiles": ["${workspaceFolder}/.built-dev/**"],
       "outputCapture": "std"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "test",
+      "cwd": "${workspaceFolder}",
+      // "autoAttachChildProcesses": true,
+      "program": "${workspaceFolder}/.built-dev/test/index.js",
+      "args": ["-p=2333"],
+      "runtimeArgs": ["--nolazy"],
+      "preLaunchTask": "devBuild",
+      "postDebugTask": "clearDevBuild",
+      "env": {
+        "NODE_ENV": "test"
+      },
+      "smartStep": true,
+      "sourceMaps": true,
+      "outFiles": ["${workspaceFolder}/.built-dev/**"],
+      // "outputCapture": "std"
     }
   ]
 }

@@ -35,6 +35,7 @@ class AkhrService {
           prev.staffMap[name] = {
             tags,
             name,
+            enName: staff['name-en'],
             level,
             hidden
           };
@@ -79,6 +80,8 @@ class AkhrService {
     const data = combineTags.reduce((result, tags) => {
       // 取不同tag的干员的交集
       const staffNames = _.intersection(...tags.map(tag => list.tagMap[tag]));
+      // 干员等级总和, 后排序用
+      let levelSum = 0;
       // 根据干员名反查干员信息, 并
       let staffs = staffNames.reduce((staffList, name) => {
         const staff = list.staffMap[name];
@@ -88,6 +91,7 @@ class AkhrService {
           && !staff.hidden // 不在公招池里的
           && !(staff.level === 6 && tags.indexOf('高级资深干员') === -1) // 6星,但是没有高级资深干员tag
         ) {
+          levelSum += staff.level;
           staffList.push(staff);
         }
         return staffList;
@@ -97,6 +101,7 @@ class AkhrService {
       if (staffs.length) {
         result.push({
           tags,
+          averageLevel: levelSum / staffs.length,
           staffs
         });
       }
@@ -104,20 +109,9 @@ class AkhrService {
     }, []);
     return {
       words,
-      combined: data
+      // 按平均等级排序
+      combined: data.sort((a, b) => b.averageLevel - a.averageLevel)
     };
-  }
-
-  parseTextOutput(result) {
-    const { words, combined } = result;
-    let text = `识别词条: ${words.join('、')}\n\n`;
-    text += combined
-      .map(({ tags, staffs }) => {
-        const staffsWithLevel = staffs.map(({ level, name }) => `(${level})${name}`);
-        return `【${tags.join('+')}】${staffsWithLevel.join(' ')}`;
-      })
-      .join('\n==========\n');
-    return text;
   }
 
   async getORCResult(imgUrl) {
@@ -138,6 +132,20 @@ class AkhrService {
     }
     throw new Error('ocr parse error');
   }
+
+  parseTextOutput(result) {
+    const { words, combined } = result;
+    let text = `识别词条: ${words.join('、')}\n\n`;
+    text += combined
+      .map(({ tags, staffs }) => {
+        const staffsWithLevel = staffs.map(({ level, name }) => `(${level})${name}`);
+        return `【${tags.join('+')}】${staffsWithLevel.join(' ')}`;
+      })
+      .join('\n==========\n');
+    return text;
+  }
+
+  // async getImgOutput() {}
 }
 
 export default new AkhrService();

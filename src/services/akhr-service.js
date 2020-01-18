@@ -130,7 +130,7 @@ class AkhrService {
         .replace(/冫口了/g, '治疗')
         .split('\r\n');
     }
-    throw new Error('ocr parse error');
+    throw new Error(`ocr parse error\n${meta.data.ErrorMessage.join('\n')}`);
   }
 
   parseTextOutput(result) {

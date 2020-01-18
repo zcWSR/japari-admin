@@ -64,6 +64,10 @@ class Akhr {
     QQService.sendGroupMessage(groupId, '识别中...');
     logger.info(`start analyse ${imgUrl}`);
     const words = await AkhrService.getORCResult(imgUrl);
+    if (!words || !words.length) {
+      QQService.sendGroupMessage(groupId, '无结果, 请重试指令');
+      return;
+    }
     const hrList = await AkhrService.getAkhrList();
     const result = AkhrService.combine(words, hrList);
     const msg = AkhrService.parseTextOutput(result);
@@ -88,17 +92,18 @@ class Akhr {
         const imgUrl = this.getImgsFromMsg(message);
         // 存在图片, 直接分析
         if (imgUrl) {
-          logger.info('message with img mod');
+          logger.info('message "with img" mod');
           await this.combineAndSend(imgUrl.url, groupId);
         } else { // 加入等待队列
-          logger.info('message only command mode');
+          logger.info('message "only command" mode');
           await this.addIntoWaitingStack(groupId, userId);
           QQService.sendGroupMessage(groupId, '等待发送图片...');
         }
         return 'break';
       }
     } catch (e) {
-      QQService.sendGroupMessage(groupId, '解析失败');
+      await this.clearStack(groupId);
+      QQService.sendGroupMessage(groupId, '解析失败, 请重试指令');
       throw e;
     }
   }

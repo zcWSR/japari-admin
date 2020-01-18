@@ -64,6 +64,10 @@ Akhr = (_dec = (0, _plugin.Plugin)({ name: 'akhr', weight: 99, type: 'group', sh
       _qqService.default.sendGroupMessage(groupId, '识别中...');
       _logger.default.info(`start analyse ${imgUrl}`);
       const words = yield _akhrService.default.getORCResult(imgUrl);
+      if (!words || !words.length) {
+        _qqService.default.sendGroupMessage(groupId, '无结果, 请重试指令');
+        return;
+      }
       const hrList = yield _akhrService.default.getAkhrList();
       const result = _akhrService.default.combine(words, hrList);
       const msg = _akhrService.default.parseTextOutput(result);
@@ -88,17 +92,18 @@ Akhr = (_dec = (0, _plugin.Plugin)({ name: 'akhr', weight: 99, type: 'group', sh
           const imgUrl = _this.getImgsFromMsg(message);
           // 存在图片, 直接分析
           if (imgUrl) {
-            _logger.default.info('message with img mod');
+            _logger.default.info('message "with img" mod');
             yield _this.combineAndSend(imgUrl.url, groupId);
           } else {// 加入等待队列
-            _logger.default.info('message only command mode');
+            _logger.default.info('message "only command" mode');
             yield _this.addIntoWaitingStack(groupId, userId);
             _qqService.default.sendGroupMessage(groupId, '等待发送图片...');
           }
           return 'break';
         }
       } catch (e) {
-        _qqService.default.sendGroupMessage(groupId, '解析失败');
+        yield _this.clearStack(groupId);
+        _qqService.default.sendGroupMessage(groupId, '解析失败, 请重试指令');
         throw e;
       }})();
   }}) || _class);var _default =

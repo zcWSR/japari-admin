@@ -4,3 +4,4 @@ dump.rdb
 .built-dev/
 config.json
 .DS_Store
+res/

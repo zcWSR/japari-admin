@@ -1,17 +1,22 @@
+import path from 'path';
+import fs from 'fs';
 import axios from 'axios';
 import _ from 'lodash';
 import 'lodash.combinations';
-import RedisService from './redis-service';
-import Config from '../config';
-import logger from '../utils/logger';
+import RedisService from '../redis-service';
+import Config from '../../config';
+import logger from '../../utils/logger';
+import { Measurer, Drawer } from './image-drawer';
+import { isDev } from '../../utils/env';
 
 const AKHR_LIST_KEY = 'akhr-list';
+Measurer.registerFont(path.resolve(__dirname, '../../../res/font/SourceHanSansSC-Regular.otf'), 'SourceHanSansSC');
 
 class AkhrService {
   AKHR;
   async fetchMetaData() {
     logger.info('fetching akhr origin list...');
-    const meta = await axios.get('https://graueneko.github.io/akhr.json');
+    const meta = await axios.get('https://aktools.graueneko.xyz/assets/data/akhr.json');
     return meta.data;
   }
 
@@ -115,6 +120,9 @@ class AkhrService {
   }
 
   async getORCResult(imgUrl) {
+    if (isDev()) {
+      return ['辅助干员', '先锋干员', '远程位', '新手', '费用回复'];
+    }
     const meta = await axios({
       url: 'https://api.ocr.space/parse/imageurl',
       params: {
@@ -145,7 +153,24 @@ class AkhrService {
     return text;
   }
 
-  // async getImgOutput() {}
+  async parseImageOutPut(result, withStaffImage) {
+    try {
+      const drawer = new Drawer(result, 1200, 20, withStaffImage);
+      const draw = await drawer.draw();
+      // const stream = draw.createPNGStream();
+      // const filePath = path.resolve(__dirname, '../../../res/', `outPut${Date.now()}.png`);
+      // const out = fs.createWriteStream(filePath);
+      // stream.pipe(out);
+      // out.on('finish', () => {
+      //   console.log('write file to:');
+      //   console.log(filePath);
+      //   done('done');
+      // });
+      return draw.toBuffer('image/jpeg').toString('base64');
+    } catch (e) {
+      throw e;
+    }
+  }
 }
 
 export default new AkhrService();

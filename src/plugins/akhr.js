@@ -70,8 +70,10 @@ class Akhr {
     }
     const hrList = await AkhrService.getAkhrList();
     const result = AkhrService.combine(words, hrList);
-    const msg = AkhrService.parseTextOutput(result);
-    QQService.sendGroupMessage(groupId, msg);
+    const data = await AkhrService.parseImageOutPut(result, true);
+    QQService.sendGroupImage(groupId, data);
+    // const msg = AkhrService.parseTextOutput(result);
+    // QQService.sendGroupMessage(groupId, msg);
   }
 
   async go(body) {

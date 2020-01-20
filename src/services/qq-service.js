@@ -10,12 +10,20 @@ class QQService {
     if (isDev()) {
       this.sendGroupMessage = (groupId, msg) => {
         logger.debug(`===== send to group ${groupId}`);
-        msg.split('\n').forEach(line => logger.debug(line));
+        if (msg.split) {
+          msg.split('\n').forEach(line => logger.debug(line));
+        } else {
+          logger.debug(msg);
+        }
         logger.debug('===== done');
       };
       this.sendPrivateMessage = (userId, msg) => {
         logger.debug(`===== send to user ${userId}`);
-        msg.split('\n').forEach(line => logger.debug(line));
+        if (msg.split) {
+          msg.split('\n').forEach(line => logger.debug(line));
+        } else {
+          logger.debug(msg);
+        }
         logger.debug('===== done');
       };
     }
@@ -92,6 +100,17 @@ class QQService {
 
   sendGroupMessage(groupId, message) {
     axios.post(`${Config.QQ_SERVER}/send_group_msg`, { group_id: groupId, message });
+  }
+
+  sendGroupImage(groupId, dataUrl) {
+    this.sendGroupMessage(groupId, [
+      {
+        type: 'image',
+        data: {
+          file: `base64://${dataUrl}`
+        }
+      }
+    ]);
   }
 
   sendGroupMusic(groupId, musicId) {

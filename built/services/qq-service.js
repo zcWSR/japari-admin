@@ -10,12 +10,20 @@ class QQService {
     if ((0, _env.isDev)()) {
       this.sendGroupMessage = (groupId, msg) => {
         _logger.default.debug(`===== send to group ${groupId}`);
-        msg.split('\n').forEach(line => _logger.default.debug(line));
+        if (msg.split) {
+          msg.split('\n').forEach(line => _logger.default.debug(line));
+        } else {
+          _logger.default.debug(msg);
+        }
         _logger.default.debug('===== done');
       };
       this.sendPrivateMessage = (userId, msg) => {
         _logger.default.debug(`===== send to user ${userId}`);
-        msg.split('\n').forEach(line => _logger.default.debug(line));
+        if (msg.split) {
+          msg.split('\n').forEach(line => _logger.default.debug(line));
+        } else {
+          _logger.default.debug(msg);
+        }
         _logger.default.debug('===== done');
       };
     }
@@ -92,6 +100,17 @@ class QQService {
 
   sendGroupMessage(groupId, message) {
     _axios.default.post(`${_config.default.QQ_SERVER}/send_group_msg`, { group_id: groupId, message });
+  }
+
+  sendGroupImage(groupId, dataUrl) {
+    this.sendGroupMessage(groupId, [
+    {
+      type: 'image',
+      data: {
+        file: `base64://${dataUrl}` } }]);
+
+
+
   }
 
   sendGroupMusic(groupId, musicId) {

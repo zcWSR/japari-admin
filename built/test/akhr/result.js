@@ -1,5 +1,5 @@
 "use strict";Object.defineProperty(exports, "__esModule", { value: true });exports.default = void 0;const result = {
-  words: ['辅助干员', '位移', '爆发', '支援机械', '支援'],
+  words: ['辅助干员', '先锋干员', '远程位', '新手', '费用回复'],
   combined: [
   {
     tags: ['爆发'],

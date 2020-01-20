@@ -70,9 +70,11 @@ Akhr = (_dec = (0, _plugin.Plugin)({ name: 'akhr', weight: 99, type: 'group', sh
       }
       const hrList = yield _akhrService.default.getAkhrList();
       const result = _akhrService.default.combine(words, hrList);
-      const msg = _akhrService.default.parseTextOutput(result);
-      _qqService.default.sendGroupMessage(groupId, msg);})();
-  }
+      const data = yield _akhrService.default.parseImageOutPut(result, true);
+      _qqService.default.sendGroupImage(groupId, data);
+      // const msg = AkhrService.parseTextOutput(result);
+      // QQService.sendGroupMessage(groupId, msg);
+    })();}
 
   go(body) {var _this = this;return _asyncToGenerator(function* () {const
       message = body.message,groupId = body.group_id,userId = body.user_id;

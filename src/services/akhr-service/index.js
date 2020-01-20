@@ -1,5 +1,4 @@
 import path from 'path';
-import fs from 'fs';
 import axios from 'axios';
 import _ from 'lodash';
 import 'lodash.combinations';

@@ -35,7 +35,10 @@ class AkhrService {constructor() {this.
         if (!prev.tagMap[tag]) prev.tagMap[tag] = new Set();
         prev.tagMap[tag].add(name);
       });
-      if (!prev.staffMap[name]) {
+      // 数据源列表存在name重复但内容不同的项目, 采用覆盖原则
+      // 优先选择tag多的, 或者不隐藏的
+      const staffCache = prev.staffMap[name];
+      if (!staffCache || staffCache.tags.length < tags.length || !hidden) {
         prev.staffMap[name] = {
           tags,
           name,

@@ -73,6 +73,7 @@ class HsoService {
     return [
     {
       type: 'image',
+      cache: 0,
       data: {
         file: hso.plus ? hso.preview : hso.sample } },
 
@@ -80,7 +81,7 @@ class HsoService {
     {
       type: 'text',
       data: {
-        text: `\n${hso.source}` } }];
+        text: hso.source ? `\n${hso.source}` : '' } }];
 
 
 

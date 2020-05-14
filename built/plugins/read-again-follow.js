@@ -30,7 +30,7 @@ ReadAgainFollow = (_dec = (0, _plugin.Plugin)({ name: 'read-again-follow', wight
   go(body) {var _this = this;return _asyncToGenerator(function* () {const
       groupId = body.group_id,message = body.message;
       const redisKey = `${_this.name}-${groupId}`;
-      let groupInfo = JSON.parse((yield _redisService.default.get(redisKey))) || DEFAULT_GROUP_INFO;
+      let groupInfo = JSON.parse(yield _redisService.default.get(redisKey)) || DEFAULT_GROUP_INFO;
       if (!_this.isSimilar(groupInfo.message, message)) {
         groupInfo = { message, count: 1 };
         yield _redisService.default.set(redisKey, JSON.stringify(groupInfo));

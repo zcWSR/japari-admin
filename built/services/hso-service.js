@@ -74,7 +74,7 @@ class HsoService {
     {
       type: 'image',
       data: {
-        url: hso.plus ? hso.preview : hso.sample } },
+        file: hso.plus ? hso.preview : hso.sample } },
 
 
     {

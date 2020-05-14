@@ -8,7 +8,8 @@ import OSUService from '../../services/osu-service';
   type: 'group',
   info: `绑定osu!账号和mode, 使用'!bind 你的id,mode'来调用
   mode不写默认为osu!模式
-  模式代码: (0 = osu!, 1 = Taiko, 2 = CtB, 3 = osu!mania)`
+  模式代码: (0 = osu!, 1 = Taiko, 2 = CtB, 3 = osu!mania)
+  例子: !bind zcWSR,3`
 })
 class OSUBind {
   async run(params, body) {

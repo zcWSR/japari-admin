@@ -8,7 +8,8 @@ import OSUService from '../../services/osu-service';
   type: 'group',
   info: `查询某特定账号的bp数据, '!bp 玩家名,第几bp,mode'来调用
   第几bp不传默认为第一bp, mode不写默认为osu!模式
-  模式代码: (0 = osu!, 1 = Taiko, 2 = CtB, 3 = osu!mania)`
+  模式代码: (0 = osu!, 1 = Taiko, 2 = CtB, 3 = osu!mania)
+  例子: !bp zcWSR,2,3  !bp zcWSR`
 })
 class OSUBp {
   async run(params, body) {

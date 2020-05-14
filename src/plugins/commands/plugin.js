@@ -1,5 +1,4 @@
 import { Command } from '../../decorators/plugin';
-import Config from '../../config';
 import PluginService from '../../services/plugin-service';
 import QQService from '../../services/qq-service';
 

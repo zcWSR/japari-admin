@@ -93,7 +93,7 @@ class CommandRunner {
       QQService.sendGroupMessage(body.group_id, COMMAND_404);
       return;
     }
-    commandInstance.trigger(command.params, body, type, this.command.group);
+    return commandInstance.trigger(command.params, body, type, this.command.group);
   }
 
   privateCommand(body, command, type) {
@@ -102,7 +102,7 @@ class CommandRunner {
       QQService.sendPrivateMessage(body.user_id, COMMAND_404);
       return;
     }
-    commandInstance.trigger(command.params, body, type, this.command.private);
+    return commandInstance.trigger(command.params, body, type, this.command.private);
   }
 
   async go(body, type) {

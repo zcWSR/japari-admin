@@ -3,7 +3,7 @@ import QQService from '../../services/qq-service';
 import OSUService from '../../services/osu-service';
 
 @Command({
-  name: 'osu绑定账号',
+  name: '查询osu!最近游玩记录',
   command: 'recent',
   type: 'group',
   info: `查看所绑定账号的最近一次游玩记录, '!recent 最近的第几次'来调用, 第几次不传默认为最近一次

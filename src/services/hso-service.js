@@ -73,6 +73,7 @@ class HsoService {
     return [
       {
         type: 'image',
+        cache: 0,
         data: {
           file: hso.plus ? hso.preview : hso.sample
         }

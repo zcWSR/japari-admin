@@ -10,10 +10,11 @@ var _osuService = _interopRequireDefault(require("../../services/osu-service"));
 
 
 
+
 OSUBind = (_dec = (0, _plugin.Command)({ name: 'osu绑定账号', command: 'bind', type: 'group', info: `绑定osu!账号和mode, 使用'!bind 你的id,mode'来调用
   mode不写默认为osu!模式
-  模式代码: (0 = osu!, 1 = Taiko, 2 = CtB, 3 = osu!mania)` }), _dec(_class = class OSUBind {run(params, body) {return _asyncToGenerator(function* () {const groupId = body.group_id,userId = body.user_id;
-      if (!params) {
+  模式代码: (0 = osu!, 1 = Taiko, 2 = CtB, 3 = osu!mania)
+  例子: !bind zcWSR,3` }), _dec(_class = class OSUBind {run(params, body) {return _asyncToGenerator(function* () {const groupId = body.group_id,userId = body.user_id;if (!params) {
         _qqService.default.sendGroupMessage(groupId, '非法调用, 使用\'!help bind\'查看调用方式');
         return;
       }

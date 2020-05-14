@@ -9,10 +9,9 @@ var _osuService = _interopRequireDefault(require("../../services/osu-service"));
 
 
 
-
-OSURecent = (_dec = (0, _plugin.Command)({ name: 'osu绑定账号', command: 'recent', type: 'group', info: `绑定osu!账号和mode, 使用'!bind 你的id,mode'来调用
-  mode不写默认为osu!模式
-  模式代码: (0 = osu!, 1 = Taiko, 2 = CtB, 3 = osu!mania)` }), _dec(_class = class OSURecent {run(params, body) {return _asyncToGenerator(function* () {const groupId = body.group_id,userId = body.user_id;
+OSURecent = (_dec = (0, _plugin.Command)({ name: 'osu绑定账号', command: 'recent', type: 'group', info: `查看所绑定账号的最近一次游玩记录, '!recent 最近的第几次'来调用, 第几次不传默认为最近一次
+  例子: '!recent 2' 或 '!recent` }), _dec(_class = class OSURecent {run(params, body) {return _asyncToGenerator(function* () {const
+      groupId = body.group_id,userId = body.user_id;
       params = (params || '1').trim();
       const index = parseInt(params, 10);
       if (!index) {

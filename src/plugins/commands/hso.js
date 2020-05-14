@@ -7,6 +7,7 @@ import logger from '../../utils/logger';
   name: 'hso',
   command: 'hso',
   type: 'all',
+  level: 2,
   info: '好爽哦'
 })
 class NewNotice {

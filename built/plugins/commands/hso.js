@@ -9,7 +9,8 @@ var _logger = _interopRequireDefault(require("../../utils/logger"));var _dec, _c
 
 
 
-NewNotice = (_dec = (0, _plugin.Command)({ name: 'hso', command: 'hso', type: 'group', info: '好爽哦' }), _dec(_class = class NewNotice {
+
+NewNotice = (_dec = (0, _plugin.Command)({ name: 'hso', command: 'hso', type: 'all', level: 2, info: '好爽哦' }), _dec(_class = class NewNotice {
   sendMessage(msg, body, type) {
     if (type === 'group') {
       _qqService.default.sendGroupMessage(body.group_id, msg);

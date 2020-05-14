@@ -80,7 +80,7 @@ class HsoService {
       {
         type: 'text',
         data: {
-          text: `\n${hso.source}`
+          text: hso.source ? `\n${hso.source}` : ''
         }
       }
     ];

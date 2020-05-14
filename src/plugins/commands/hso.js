@@ -6,7 +6,7 @@ import logger from '../../utils/logger';
 @Command({
   name: 'hso',
   command: 'hso',
-  type: 'group',
+  type: 'all',
   info: '好爽哦'
 })
 class NewNotice {

@@ -15,7 +15,7 @@ class AkhrService {
   AKHR;
   async fetchMetaData() {
     logger.info('fetching akhr origin list...');
-    const meta = await axios.get('https://aktools.graueneko.xyz/assets/data/akhr.json');
+    const meta = await axios.get('https://www.bigfun.cn/static/aktools/1588868210/data/akhr.json');
     return meta.data;
   }
 

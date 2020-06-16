@@ -31,7 +31,7 @@ const SHIFT_METHOD_MAP = {
 
 
 
-NetEastMusic = (_dec = (0, _plugin.Plugin)({ name: '163-music', wight: 99, type: 'message', shortInfo: '网易云点歌', info: '网易云音乐点歌, 使用方法: 点歌 xx, 来一首 xx, 我想听 xx', mute: true }), _dec(_class = class NetEastMusic {
+NetEastMusic = (_dec = (0, _plugin.Plugin)({ name: '163-music', wight: 99, type: 'message', shortInfo: '网易云点歌', info: '网易云音乐点歌, 使用方法: 点歌 xx, 来一首 xx, 我想听 xx\n 支持 ', mute: true }), _dec(_class = class NetEastMusic {
   getRedisKey(id) {
     return `163-music-${id}`;
   }
@@ -40,7 +40,7 @@ NetEastMusic = (_dec = (0, _plugin.Plugin)({ name: '163-music', wight: 99, type:
     let match = null;
     let prefix = null;
     commandPrefixList.some(p => {
-      const result = content.match(new RegExp(`^${p}(prev|next)?(\\d*)?\\s(.*)$`));
+      const result = content.match(new RegExp(`^${p}(prev|next|clear)?(\\d*)?\\s(.*)$`));
       if (result) {
         match = result;
         prefix = p;
@@ -174,11 +174,14 @@ NetEastMusic = (_dec = (0, _plugin.Plugin)({ name: '163-music', wight: 99, type:
 
   doSearch({ keyword, suffix, shiftCount }, body, type) {var _this3 = this;return _asyncToGenerator(function* () {
       try {
-        let id = yield _this3.checkKeywordCache(keyword);
-        if (!id && suffix) {
-          _logger.default.info('with no suffix, return current id');
+        let id = suffix !== 'clear' ? yield _this3.checkKeywordCache(keyword) : null;
+        // if (!id && suffix) {
+        //   logger.info('with no suffix, return current id');
+        // }
+        if (suffix === 'clear') {
+          _logger.default.info('clear mode, skip check cache');
         }
-        if (id && suffix) {
+        if (id && suffix && suffix !== 'clear') {
           _logger.default.info(`searching music which ${suffix} ${shiftCount} current id`);
           _this3.sendMessage(`正在查询当前关键词搜索结果的${SUFFIX_TEXT_TEMPLATE_MAP[suffix](shiftCount)}...`, body, type);
         }

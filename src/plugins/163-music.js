@@ -28,7 +28,7 @@ const SHIFT_METHOD_MAP = {
   wight: 99,
   type: 'message',
   shortInfo: '网易云点歌',
-  info: '网易云音乐点歌, 使用方法: 点歌 xx, 来一首 xx, 我想听 xx',
+  info: '网易云音乐点歌, 使用方法: 点歌 xx, 来一首 xx, 我想听 xx\n 支持 ',
   mute: true
 })
 class NetEastMusic {
@@ -40,7 +40,7 @@ class NetEastMusic {
     let match = null;
     let prefix = null;
     commandPrefixList.some((p) => {
-      const result = content.match(new RegExp(`^${p}(prev|next)?(\\d*)?\\s(.*)$`));
+      const result = content.match(new RegExp(`^${p}(prev|next|clear)?(\\d*)?\\s(.*)$`));
       if (result) {
         match = result;
         prefix = p;
@@ -174,11 +174,14 @@ class NetEastMusic {
 
   async doSearch({ keyword, suffix, shiftCount }, body, type) {
     try {
-      let id = await this.checkKeywordCache(keyword);
-      if (!id && suffix) {
-        logger.info('with no suffix, return current id');
+      let id = suffix !== 'clear' ? await this.checkKeywordCache(keyword) : null;
+      // if (!id && suffix) {
+      //   logger.info('with no suffix, return current id');
+      // }
+      if (suffix === 'clear') {
+        logger.info('clear mode, skip check cache');
       }
-      if (id && suffix) {
+      if (id && suffix && suffix !== 'clear') {
         logger.info(`searching music which ${suffix} ${shiftCount} current id`);
         this.sendMessage(`正在查询当前关键词搜索结果的${SUFFIX_TEXT_TEMPLATE_MAP[suffix](shiftCount)}...`, body, type);
       }

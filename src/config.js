@@ -25,6 +25,7 @@ class Config {
       osuAppKey,
       qqServer,
       netEastMusicServer,
+      akhrUpdateServer,
       admins,
       botQQId,
       ocrSpaceKey
@@ -39,6 +40,7 @@ class Config {
     this.OSU_APP_KEY = osuAppKey;
     this.QQ_SERVER = qqServer;
     this.NET_EAST_MUSIC_SERVER = netEastMusicServer;
+    this.AKHR_UPDATE_SERVER = akhrUpdateServer;
     this.ADMINS = admins;
     this.BOT_QQ_ID = botQQId;
     this.OCR_KEY = ocrSpaceKey;

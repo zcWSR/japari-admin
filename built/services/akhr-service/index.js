@@ -15,7 +15,7 @@ class AkhrService {constructor() {this.
     AKHR = void 0;}
   fetchMetaData() {return _asyncToGenerator(function* () {
       _logger.default.info('fetching akhr origin list...');
-      const meta = yield _axios.default.get('https://www.bigfun.cn/static/aktools/1588868210/data/akhr.json');
+      const meta = yield _axios.default.get(_config.default.AKHR_UPDATE_SERVER);
       return meta.data;})();
   }
 

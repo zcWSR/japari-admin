@@ -6,7 +6,7 @@ import logger from '../utils/logger';
 
 // 默认随机复读频率 10%
 const DEFAULT_RATE = 0.1;
-const ARRAY_MESSAGE_FOLLOW_RATE = 0.5
+const ARRAY_MESSAGE_FOLLOW_RATE = 0.5;
 
 @Plugin({
   name: 'such-is-the-case',
@@ -17,16 +17,19 @@ const ARRAY_MESSAGE_FOLLOW_RATE = 0.5
   mute: true
 })
 class SuchIsTheCase {
-
   async go(body) {
     const { message, group_id: groupId } = body;
     const randomRate = Math.random();
     const groupRate = await this.getGroupRandomRate(groupId);
-    if((Array.isArray(message) && randomRate < ARRAY_MESSAGE_FOLLOW_RATE) || randomRate < groupRate){
+    if (
+      (Array.isArray(message) && randomRate < ARRAY_MESSAGE_FOLLOW_RATE) ||
+      randomRate < groupRate
+    ) {
       logger.info(`group ${groupId} message '${message}', follow 'such-is-the-case'`);
       await sleep();
       QQService.sendGroupMessage(groupId, '确实');
       return 'block';
+    }
     return null;
   }
 

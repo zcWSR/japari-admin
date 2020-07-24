@@ -25,7 +25,7 @@ const SHIFT_METHOD_MAP = {
 
 @Plugin({
   name: '163-music',
-  wight: 99,
+  weight: 99,
   type: 'message',
   shortInfo: '网易云点歌',
   info: '网易云音乐点歌, 使用方法: 点歌 xx, 来一首 xx, 我想听 xx\n 支持 ',

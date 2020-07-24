@@ -11,7 +11,7 @@ const DEFAULT_RATE = 0.05;
 
 @Plugin({
   name: 'read-again-random',
-  wight: 97,
+  weight: 97,
   type: 'group',
   shortInfo: '随机复读',
   info: '当同一群聊连续出现相同消息三次时, 进行复读',

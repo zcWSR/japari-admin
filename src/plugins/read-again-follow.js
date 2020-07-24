@@ -9,7 +9,7 @@ import { sleep } from '../utils/process';
 const DEFAULT_GROUP_INFO = { message: '', count: 1 };
 @Plugin({
   name: 'read-again-follow',
-  wight: 98,
+  weight: 98,
   type: 'group',
   shortInfo: '跟随复读',
   info: '当同一群聊连续出现相同消息三次时, 进行复读',

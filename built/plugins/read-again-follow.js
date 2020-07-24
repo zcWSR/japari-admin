@@ -15,7 +15,7 @@ const DEFAULT_GROUP_INFO = { message: '', count: 1 };let
 
 
 
-ReadAgainFollow = (_dec = (0, _plugin.Plugin)({ name: 'read-again-follow', wight: 98, type: 'group', shortInfo: '跟随复读', info: '当同一群聊连续出现相同消息三次时, 进行复读', mute: true }), _dec(_class = class ReadAgainFollow {
+ReadAgainFollow = (_dec = (0, _plugin.Plugin)({ name: 'read-again-follow', weight: 98, type: 'group', shortInfo: '跟随复读', info: '当同一群聊连续出现相同消息三次时, 进行复读', mute: true }), _dec(_class = class ReadAgainFollow {
   isSimilar(a, b) {
     try {
       // 判断和前一条是否相似

@@ -17,7 +17,7 @@ const DEFAULT_RATE = 0.0114514 * Math.ceil(GARBAGE_WORD_LIST.length / 2);let
 
 
 
-GarbageWordRandom = (_dec = (0, _plugin.Plugin)({ name: 'garbage-word-random', wight: 96, type: 'group', shortInfo: '垃圾话', info: '随机回复垃圾话', mute: true }), _dec(_class = class GarbageWordRandom {
+GarbageWordRandom = (_dec = (0, _plugin.Plugin)({ name: 'garbage-word-random', weight: 96, type: 'group', shortInfo: '垃圾话', info: '随机回复垃圾话', mute: true }), _dec(_class = class GarbageWordRandom {
   go(body) {var _this = this;return _asyncToGenerator(function* () {const
       groupId = body.group_id;
       const randomRate = Math.random();

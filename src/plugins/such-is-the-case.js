@@ -4,8 +4,8 @@ import RedisService from '../services/redis-service';
 import { sleep } from '../utils/process';
 import logger from '../utils/logger';
 
-// 默认随机复读频率 10%
-const DEFAULT_RATE = 0.1;
+// 确实频率 1.14514%
+const DEFAULT_RATE = 0.0114514;
 const ARRAY_MESSAGE_FOLLOW_RATE = 0.5;
 
 @Plugin({

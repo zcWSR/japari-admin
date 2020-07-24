@@ -4,30 +4,29 @@ import RedisService from '../services/redis-service';
 import { sleep } from '../utils/process';
 import logger from '../utils/logger';
 
-// 确实频率 1.14514%
-const DEFAULT_RATE = 0.0114514;
-const ARRAY_MESSAGE_FOLLOW_RATE = 0.5;
+
+const GARBAGE_WORD_LIST = ['确实', '你在教我做事?', '他急了他急了', '就这?', '不会吧? 不会吧?'];
+// 默认频率 1.14514%
+const DEFAULT_RATE = 0.0114514 * Math.ceil(GARBAGE_WORD_LIST.length / 2);
 
 @Plugin({
-  name: 'such-is-the-case',
+  name: 'garbage-word-random',
   wight: 96,
   type: 'group',
-  shortInfo: '确实',
-  info: '随机回复：确实',
+  shortInfo: '垃圾话',
+  info: '随机回复垃圾话',
   mute: true
 })
-class SuchIsTheCase {
+class GarbageWordRandom {
   async go(body) {
-    const { message, group_id: groupId } = body;
+    const { group_id: groupId } = body;
     const randomRate = Math.random();
     const groupRate = await this.getGroupRandomRate(groupId);
-    if (
-      (Array.isArray(message) && randomRate < ARRAY_MESSAGE_FOLLOW_RATE) ||
-      randomRate < groupRate
-    ) {
-      logger.info(`group ${groupId} message '${message}', follow 'such-is-the-case'`);
+    if (randomRate < groupRate) {
+      const word = this.getGarbageWord();
+      logger.info(`group ${groupId}, send garbage: '${word}'`);
       await sleep();
-      QQService.sendGroupMessage(groupId, '确实');
+      QQService.sendGroupMessage(groupId, word);
       return 'block';
     }
     return null;
@@ -45,6 +44,10 @@ class SuchIsTheCase {
   setGroupRandomRate(groupId, rate) {
     return RedisService.set(`${this.name}-${groupId}`, rate);
   }
+
+  getGarbageWord() {
+    return GARBAGE_WORD_LIST[Math.floor(Math.random() * GARBAGE_WORD_LIST.length)];
+  }
 }
 
-export default SuchIsTheCase;
+export default GarbageWordRandom;

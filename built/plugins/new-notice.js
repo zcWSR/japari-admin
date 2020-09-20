@@ -15,8 +15,8 @@ const defaultMsg = name => `欢迎 ${name} 加入本群! 请使用"!help"查看�
 
 NewNotice = (_dec = (0, _plugin.Plugin)({ name: 'new-notice', weight: 99, type: 'notice', default: true, shortInfo: '入群提醒', info: '入群提醒' }), _dec(_class = (_class2 = class NewNotice {
   go(body) {var _this = this;return _asyncToGenerator(function* () {const
-      event = body.event,groupId = body.group_id,userId = body.user_id;
-      if (event !== 'group_increase') return 'break';
+      noticeType = body.notice_type,groupId = body.group_id,userId = body.user_id;
+      if (noticeType !== 'group_increase') return 'break';
       _logger.default.info(`群 ${groupId} 有新成员 ${userId} 加入, 正在查询昵称...`);
       const memberName = yield _qqService.default.getGroupUserName(groupId, userId);
       if (!memberName) return 'break';

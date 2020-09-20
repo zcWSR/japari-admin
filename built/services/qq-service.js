@@ -7,7 +7,8 @@ var _process = require("../utils/process");function _interopRequireDefault(obj) 
 
 class QQService {
   constructor() {
-    if ((0, _env.isDev)()) {
+    // if (isDev()) {
+    if (false) {
       this.sendGroupMessage = (groupId, msg) => {
         _logger.default.debug(`===== send to group ${groupId}`);
         if (msg.split) {
@@ -141,9 +142,6 @@ class QQService {
   convertMessageType(event) {
     if (event.post_type === 'message') {
       return event.message_type;
-    }
-    if (event.post_type === 'event') {
-      return 'notice';
     }
     return event.post_type;
   }

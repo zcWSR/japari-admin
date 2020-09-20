@@ -7,7 +7,8 @@ import { sleep } from '../utils/process';
 
 class QQService {
   constructor() {
-    if (isDev()) {
+    // if (isDev()) {
+    if (false) {
       this.sendGroupMessage = (groupId, msg) => {
         logger.debug(`===== send to group ${groupId}`);
         if (msg.split) {
@@ -141,9 +142,6 @@ class QQService {
   convertMessageType(event) {
     if (event.post_type === 'message') {
       return event.message_type;
-    }
-    if (event.post_type === 'event') {
-      return 'notice';
     }
     return event.post_type;
   }

@@ -39,7 +39,8 @@
     "moment-timezone": "^0.5.27",
     "node-schedule-tz": "^1.2.1-4",
     "ojsama": "^1.2.1",
-    "sqlite3": "^4.0.6"
+    "sqlite3": "^4.0.6",
+    "tesseract.js": "^2.1.1"
   },
   "devDependencies": {
     "@babel/cli": "^7.5.5",

@@ -2,7 +2,7 @@ import knex from 'knex';
 import { isDev } from '../utils/env';
 import Config from '../config';
 import logger from '../utils/logger';
-import { createWithLog, withTransaction } from '../decorators/db';
+import { createWithLog } from '../decorators/db';
 
 class DBService {
   constructor() {

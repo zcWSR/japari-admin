@@ -8,14 +8,41 @@ var _logger = _interopRequireDefault(require("../../utils/logger"));
 var _imageDrawer = require("./image-drawer");
 var _env = require("../../utils/env");function _interopRequireDefault(obj) {return obj && obj.__esModule ? obj : { default: obj };}function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) {try {var info = gen[key](arg);var value = info.value;} catch (error) {reject(error);return;}if (info.done) {resolve(value);} else {Promise.resolve(value).then(_next, _throw);}}function _asyncToGenerator(fn) {return function () {var self = this,args = arguments;return new Promise(function (resolve, reject) {var gen = fn.apply(self, args);function _next(value) {asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value);}function _throw(err) {asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err);}_next(undefined);});};}
 
+// 更新用数据源 redis key
+const AKHR_UPDATE_URL_KEY = 'akhr-update-url';
 const AKHR_LIST_KEY = 'akhr-list';
+const AKHR_LIST_EXPIRE_TIME = 60 * 60 * 24 * 7;
 _imageDrawer.Measurer.registerFont(_path.default.resolve(__dirname, '../../../res/font/SourceHanSansSC-Regular.otf'), 'SourceHanSansSC');
 
 class AkhrService {constructor() {this.
     AKHR = void 0;}
-  fetchMetaData() {return _asyncToGenerator(function* () {
-      _logger.default.info('fetching akhr origin list...');
-      const meta = yield _axios.default.get(_config.default.AKHR_UPDATE_SERVER);
+  fetchMetaData(newUrl) {return _asyncToGenerator(function* () {
+      let url = '';
+      try {
+        if (newUrl) {
+          _logger.default.info('has new update url, update redis');
+          yield _redisService.default.set(AKHR_UPDATE_URL_KEY, newUrl);
+          url = newUrl;
+        } else {
+          _logger.default.info('get update url from redis');
+          url = yield _redisService.default.get(AKHR_UPDATE_URL_KEY);
+          if (!url) {
+            _logger.default.info('no url find, use config as default');
+            url = _config.default.AKHR_UPDATE_SERVER;
+          }
+        }
+      } catch (e) {
+        e.customErrorMsg = 'Redis url操作失败';
+        throw e;
+      }
+      let meta;
+      try {
+        _logger.default.info('fetching akhr origin list...');
+        meta = yield _axios.default.get(url);
+      } catch (e) {
+        e.customErrorMsg = '远端数据获取失败';
+        throw e;
+      }
       return meta.data;})();
   }
 
@@ -58,12 +85,17 @@ class AkhrService {constructor() {this.
     return result;
   }
 
-  updateAkhrList() {var _this = this;return _asyncToGenerator(function* () {
-      const metaList = yield _this.fetchMetaData();
-      const akhrList = _this.formatMetaData(metaList);
-      yield _redisService.default.set(AKHR_LIST_KEY, JSON.stringify(akhrList));
-      yield _redisService.default.redis.expire(AKHR_LIST_KEY, 60 * 60 * 24 * 3);
-      _this.AKHR_LIST = akhrList;
+  updateAkhrList(newUrl) {var _this = this;return _asyncToGenerator(function* () {
+      const metaList = yield _this.fetchMetaData(newUrl);
+      try {
+        const akhrList = _this.formatMetaData(metaList);
+        yield _redisService.default.set(AKHR_LIST_KEY, JSON.stringify(akhrList));
+        yield _redisService.default.redis.expire(AKHR_LIST_KEY, AKHR_LIST_EXPIRE_TIME);
+        _this.AKHR_LIST = akhrList;
+      } catch (e) {
+        e.customErrorMsg = '格式转换或存储失败';
+        throw e;
+      }
       _logger.default.info('akhrList has been update');})();
   }
 

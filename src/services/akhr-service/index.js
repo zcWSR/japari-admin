@@ -8,14 +8,41 @@ import logger from '../../utils/logger';
 import { Measurer, Drawer } from './image-drawer';
 import { isDev } from '../../utils/env';
 
+// 更新用数据源 redis key
+const AKHR_UPDATE_URL_KEY = 'akhr-update-url';
 const AKHR_LIST_KEY = 'akhr-list';
+const AKHR_LIST_EXPIRE_TIME = 60 * 60 * 24 * 7;
 Measurer.registerFont(path.resolve(__dirname, '../../../res/font/SourceHanSansSC-Regular.otf'), 'SourceHanSansSC');
 
 class AkhrService {
   AKHR;
-  async fetchMetaData() {
-    logger.info('fetching akhr origin list...');
-    const meta = await axios.get(Config.AKHR_UPDATE_SERVER);
+  async fetchMetaData(newUrl) {
+    let url = '';
+    try {
+      if (newUrl) {
+        logger.info('has new update url, update redis');
+        await RedisService.set(AKHR_UPDATE_URL_KEY, newUrl);
+        url = newUrl;
+      } else {
+        logger.info('get update url from redis');
+        url = await RedisService.get(AKHR_UPDATE_URL_KEY);
+        if (!url) {
+          logger.info('no url find, use config as default');
+          url = Config.AKHR_UPDATE_SERVER;
+        }
+      }
+    } catch (e) {
+      e.customErrorMsg = 'Redis url操作失败';
+      throw e;
+    }
+    let meta;
+    try {
+      logger.info('fetching akhr origin list...');
+      meta = await axios.get(url);
+    } catch (e) {
+      e.customErrorMsg = '远端数据获取失败';
+      throw e;
+    }
     return meta.data;
   }
 
@@ -58,12 +85,17 @@ class AkhrService {
     return result;
   }
 
-  async updateAkhrList() {
-    const metaList = await this.fetchMetaData();
-    const akhrList = this.formatMetaData(metaList);
-    await RedisService.set(AKHR_LIST_KEY, JSON.stringify(akhrList));
-    await RedisService.redis.expire(AKHR_LIST_KEY, 60 * 60 * 24 * 3);
-    this.AKHR_LIST = akhrList;
+  async updateAkhrList(newUrl) {
+    const metaList = await this.fetchMetaData(newUrl);
+    try {
+      const akhrList = this.formatMetaData(metaList);
+      await RedisService.set(AKHR_LIST_KEY, JSON.stringify(akhrList));
+      await RedisService.redis.expire(AKHR_LIST_KEY, AKHR_LIST_EXPIRE_TIME);
+      this.AKHR_LIST = akhrList;
+    } catch (e) {
+      e.customErrorMsg = '格式转换或存储失败';
+      throw e;
+    }
     logger.info('akhrList has been update');
   }
 

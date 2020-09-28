@@ -7,7 +7,7 @@ import logger from '../../utils/logger';
   name: '更新明日方舟公招干员数据',
   command: 'akhrUpdate',
   type: 'all',
-  info: '更新明日方舟公招干员数据',
+  info: '更新明日方舟公招干员数据, 参数为数据源地址',
   level: 3
 })
 class AkhrUpdate {
@@ -21,10 +21,10 @@ class AkhrUpdate {
 
   async run(params, body, type) {
     try {
-      await AkhrService.updateAkhrList();
+      await AkhrService.updateAkhrList(params);
       this.sendMsg(body, type, '公招数据已更新');
     } catch (e) {
-      this.sendMsg(body, type, '公招数据更新失败');
+      this.sendMsg(body, type, `公招数据更新出错, ${e.customErrorMsg || '未知错误'}`);
       logger.error('update akhr origin list error');
       throw e;
     }

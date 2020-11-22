@@ -35,7 +35,7 @@ class GarbageWordRandom {
     const randomRate = Math.random();
     const groupRate = await this.getGroupRandomRate(groupId);
     if (randomRate < groupRate) {
-      const word = await this.getGarbageWord();
+      const word = await this.getGarbageWord(groupId);
       logger.info(`group ${groupId}, send garbage: '${word}'`);
       await sleep();
       QQService.sendGroupMessage(groupId, word);

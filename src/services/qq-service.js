@@ -7,8 +7,7 @@ import { sleep } from '../utils/process';
 
 class QQService {
   constructor() {
-    // if (isDev()) {
-    if (false) {
+    if (isDev()) {
       this.sendGroupMessage = (groupId, msg) => {
         logger.debug(`===== send to group ${groupId}`);
         if (msg.split) {
@@ -156,6 +155,46 @@ class QQService {
       await sleep();
       return index;
     });
+  }
+
+  authCheckFuncMap = {
+    owner: this.isGroupOwner,
+    admin: this.isGroupAdminOrOwner
+  };
+
+  async checkRateWithMessage(
+    rate,
+    groupId,
+    userId,
+    min = 0,
+    max = 1,
+    rateNeedAuth = 0.5,
+    authLevel = 'owner'
+  ) {
+    if (Number.isNaN(rate)) {
+      this.sendGroupMessage(groupId, '参数非法');
+      return false;
+    }
+    if (rate < min) {
+      this.sendGroupMessage(groupId, `不可设置小于${(min * 100).toFixed(0)}%的值`);
+      return false;
+    }
+    if (rate > max) {
+      this.sendGroupMessage(groupId, `不可设置大于${(max * 100).toFixed(0)}%的值`);
+      return false;
+    }
+    if (rateNeedAuth && rate > rateNeedAuth) {
+      if (await this.authCheckFuncMap[authLevel].call(this, groupId, userId)) {
+        return true;
+      }
+      const level = authLevel === 'auth' ? '管理员及以上' : '群主';
+      this.sendGroupMessage(
+        groupId,
+        `设置概率为${(rateNeedAuth * 100).toFixed(0)}%及以上仅${level}有权限`
+      );
+      return false;
+    }
+    return true;
   }
 }
 

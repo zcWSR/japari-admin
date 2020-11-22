@@ -4,10 +4,18 @@ import RedisService from '../services/redis-service';
 import { sleep } from '../utils/process';
 import logger from '../utils/logger';
 
-
-const GARBAGE_WORD_LIST = ['确实', '你在教我做事?', '他急了他急了', '就这?', '不会吧? 不会吧?'];
+const DEFAULT_GARBAGE_WORD_LIST = [
+  '确实',
+  '你在教我做事?',
+  '他急了他急了',
+  '就这?',
+  '呐',
+  '呐呐呐',
+  '不会吧?',
+  '不会吧不会吧?'
+];
 // 默认频率 1.14514%
-const DEFAULT_RATE = 0.0114514 * Math.ceil(GARBAGE_WORD_LIST.length / 2);
+const DEFAULT_RATE = 0.0114514 * Math.ceil(DEFAULT_GARBAGE_WORD_LIST.length / 3);
 
 @Plugin({
   name: 'garbage-word-random',
@@ -18,12 +26,16 @@ const DEFAULT_RATE = 0.0114514 * Math.ceil(GARBAGE_WORD_LIST.length / 2);
   mute: true
 })
 class GarbageWordRandom {
+  getWordListRedisKey(groupId) {
+    return `${this.name}-word-list-${groupId}`;
+  }
+
   async go(body) {
     const { group_id: groupId } = body;
     const randomRate = Math.random();
     const groupRate = await this.getGroupRandomRate(groupId);
     if (randomRate < groupRate) {
-      const word = this.getGarbageWord();
+      const word = await this.getGarbageWord();
       logger.info(`group ${groupId}, send garbage: '${word}'`);
       await sleep();
       QQService.sendGroupMessage(groupId, word);
@@ -45,8 +57,15 @@ class GarbageWordRandom {
     return RedisService.set(`${this.name}-${groupId}`, rate);
   }
 
-  getGarbageWord() {
-    return GARBAGE_WORD_LIST[Math.floor(Math.random() * GARBAGE_WORD_LIST.length)];
+  async getGarbageWord(groupId) {
+    const redisKey = this.getWordListRedisKey(groupId);
+    let word = await RedisService.redis.srandmember(redisKey);
+    if (!word) {
+      const list = DEFAULT_GARBAGE_WORD_LIST;
+      await RedisService.redis.sadd(redisKey, ...list);
+      word = list[Math.floor(Math.random() * list.length)];
+    }
+    return word;
   }
 }
 

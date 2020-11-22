@@ -21,7 +21,10 @@ class ReadAgainFollow {
 
   async setReadAgainRate(rate, groupId) {
     await RedisService.set(this.getRedisKey(groupId), rate);
-    QQService.sendGroupMessage(groupId, `设置当前随机复读概率为: ${(rate * 100).toFixed(2)}%`);
+    QQService.sendGroupMessage(
+      groupId,
+      `设置当前随机复读概率为: ${(rate * 100).toFixed(2)}%`
+    );
   }
 
   async run(params, body) {
@@ -32,23 +35,9 @@ class ReadAgainFollow {
       return;
     }
     const rate = parseFloat(params);
-    if (Number.isNaN(rate)) {
-      QQService.sendGroupMessage(groupId, '参数非法');
-      return;
+    if (await QQService.checkRateWithMessage(rate, groupId, userId)) {
+      this.setReadAgainRate(rate, groupId);
     }
-    if (rate >= 1) {
-      QQService.sendGroupMessage(groupId, '不可设置大于100%的值');
-      return;
-    }
-    if (rate >= 0.5) {
-      if (await QQService.isGroupOwner(groupId, userId)) {
-        this.setReadAgainRate(rate, groupId);
-      } else {
-        QQService.sendGroupMessage(groupId, '由于设置概率为50%及以上极有可能造成性能影响, 仅群主拥有权限');
-      }
-      return;
-    }
-    this.setReadAgainRate(rate, groupId);
   }
 }
 

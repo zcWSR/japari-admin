@@ -21,7 +21,10 @@ ReadAgainFollow = (_dec = (0, _plugin.Command)({ name: '设置随机复读概率
 
   setReadAgainRate(rate, groupId) {var _this2 = this;return _asyncToGenerator(function* () {
       yield _redisService.default.set(_this2.getRedisKey(groupId), rate);
-      _qqService.default.sendGroupMessage(groupId, `设置当前随机复读概率为: ${(rate * 100).toFixed(2)}%`);})();
+      _qqService.default.sendGroupMessage(
+      groupId,
+      `设置当前随机复读概率为: ${(rate * 100).toFixed(2)}%`);})();
+
   }
 
   run(params, body) {var _this3 = this;return _asyncToGenerator(function* () {
@@ -32,23 +35,9 @@ ReadAgainFollow = (_dec = (0, _plugin.Command)({ name: '设置随机复读概率
         return;
       }
       const rate = parseFloat(params);
-      if (Number.isNaN(rate)) {
-        _qqService.default.sendGroupMessage(groupId, '参数非法');
-        return;
-      }
-      if (rate >= 1) {
-        _qqService.default.sendGroupMessage(groupId, '不可设置大于100%的值');
-        return;
-      }
-      if (rate >= 0.5) {
-        if (yield _qqService.default.isGroupOwner(groupId, userId)) {
-          _this3.setReadAgainRate(rate, groupId);
-        } else {
-          _qqService.default.sendGroupMessage(groupId, '由于设置概率为50%及以上极有可能造成性能影响, 仅群主拥有权限');
-        }
-        return;
-      }
-      _this3.setReadAgainRate(rate, groupId);})();
+      if (yield _qqService.default.checkRateWithMessage(rate, groupId, userId)) {
+        _this3.setReadAgainRate(rate, groupId);
+      }})();
   }}) || _class);var _default =
 
 

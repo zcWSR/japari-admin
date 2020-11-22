@@ -35,7 +35,7 @@ GarbageWordRandom = (_dec = (0, _plugin.Plugin)({ name: 'garbage-word-random', w
       const randomRate = Math.random();
       const groupRate = yield _this.getGroupRandomRate(groupId);
       if (randomRate < groupRate) {
-        const word = yield _this.getGarbageWord();
+        const word = yield _this.getGarbageWord(groupId);
         _logger.default.info(`group ${groupId}, send garbage: '${word}'`);
         yield (0, _process.sleep)();
         _qqService.default.sendGroupMessage(groupId, word);

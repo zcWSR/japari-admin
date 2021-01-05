@@ -25,14 +25,14 @@ class ReadAgainFollow {
     QQService.sendGroupMessage(groupId, `已添加: ${word}`);
   }
 
-  async removeGarbageWord(groupId, index) {
+  async removeGarbageWord(groupId, inputIndex) {
     const redisKey = this.getListRedisKey(groupId);
-    const word = await RedisService.redis.lindex(redisKey, Number(index) - 1);
+    const word = await RedisService.redis.lindex(redisKey, +inputIndex - 1);
     if (!word) {
       QQService.sendGroupMessage(groupId, 'index 不存在');
       return;
     }
-    await RedisService.redis.lrem(redisKey, index);
+    await RedisService.redis.lrem(redisKey, 0, word);
     QQService.sendGroupMessage(groupId, `已移除: ${word}`);
   }
 

@@ -68,7 +68,7 @@ class ReadAgainFollow {
       await this.getGarbageWordRate(groupId);
       return;
     }
-    const match = params.match(/(add\s|remove\s|list)(.*)?/);
+    const match = params.match(/(add\s|remove\s|list)(.*)?/s);
     if (match) {
       const [, op, word] = match;
       const operation = op.trim();
@@ -76,7 +76,7 @@ class ReadAgainFollow {
         await this.addGarbageWord(groupId, word.trim());
       } else if (operation === 'remove') {
         await this.removeGarbageWord(groupId, word.trim());
-      } else {
+      } else if (operation === 'list') {
         await this.getGarbageWordList(groupId);
       }
       return;

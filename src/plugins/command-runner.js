@@ -73,7 +73,7 @@ class CommandRunner {
    * @param {string} content 完整内容
    */
   isCommand(content) {
-    let match = content.match(/^[!|\uff01]([a-zA-Z]{2,})\s(.*)$/);
+    let match = content.match(/^[!|\uFF01]([a-zA-Z]{2,})\s([\0-\uFFFF]*)$/);
     if (match) {
       const [, name, params] = match;
       return { name, params: params.trim() };

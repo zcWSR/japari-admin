@@ -19,18 +19,30 @@ class ReadAgainFollow {
   }
 
   async addGarbageWord(groupId, word) {
-    await RedisService.redis.sadd(this.getListRedisKey(groupId), word);
+    const redisKey = this.getListRedisKey(groupId);
+    await RedisService.redis.lrem(redisKey, 0, word);
+    await RedisService.redis.rpush(redisKey, word);
     QQService.sendGroupMessage(groupId, `已添加: ${word}`);
   }
 
-  async removeGarbageWord(groupId, word) {
-    await RedisService.redis.srem(this.getListRedisKey(groupId), word);
+  async removeGarbageWord(groupId, index) {
+    const redisKey = this.getListRedisKey(groupId);
+    const word = await RedisService.redis.lindex(redisKey, index - 1);
+    if (!word) {
+      QQService.sendGroupMessage(groupId, 'index 不存在');
+      return;
+    }
+    await RedisService.redis.lrem(redisKey, index);
     QQService.sendGroupMessage(groupId, `已移除: ${word}`);
   }
 
   async getGarbageWordList(groupId) {
-    const list = await RedisService.redis.smembers(this.getListRedisKey(groupId));
-    QQService.sendGroupMessage(groupId, `当前垃圾话列表:\n${list.join('\n')}`);
+    const list = await RedisService.redis.lrange(this.getListRedisKey(groupId), 0, -1);
+    const listString = list.reduce((result, curr, index) => {
+      result += `\n${index + 1}. ${curr}`;
+      return result;
+    }, '');
+    QQService.sendGroupMessage(groupId, `当前垃圾话列表:${listString}`);
   }
 
   async getGarbageWordRate(groupId) {

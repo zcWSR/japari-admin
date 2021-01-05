@@ -59,13 +59,14 @@ class GarbageWordRandom {
 
   async getGarbageWord(groupId) {
     const redisKey = this.getWordListRedisKey(groupId);
-    let word = await RedisService.redis.srandmember(redisKey);
-    if (!word) {
+    const length = await RedisService.redis.llen(redisKey);
+    if (length === 0) {
       const list = DEFAULT_GARBAGE_WORD_LIST;
-      await RedisService.redis.sadd(redisKey, ...list);
-      word = list[Math.floor(Math.random() * list.length)];
+      await RedisService.redis.rpush(redisKey, list);
+      return list[Math.floor(Math.random() * list.length)];
     }
-    return word;
+    const wordIndex = Math.floor(Math.random() * length);
+    return RedisService.redis.lindex(redisKey, wordIndex);
   }
 }
 

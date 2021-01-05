@@ -19,18 +19,30 @@ ReadAgainFollow = (_dec = (0, _plugin.Command)({ name: '设置随机垃圾话及
   }
 
   addGarbageWord(groupId, word) {var _this = this;return _asyncToGenerator(function* () {
-      yield _redisService.default.redis.sadd(_this.getListRedisKey(groupId), word);
+      const redisKey = _this.getListRedisKey(groupId);
+      yield _redisService.default.redis.lrem(redisKey, 0, word);
+      yield _redisService.default.redis.rpush(redisKey, word);
       _qqService.default.sendGroupMessage(groupId, `已添加: ${word}`);})();
   }
 
-  removeGarbageWord(groupId, word) {var _this2 = this;return _asyncToGenerator(function* () {
-      yield _redisService.default.redis.srem(_this2.getListRedisKey(groupId), word);
+  removeGarbageWord(groupId, index) {var _this2 = this;return _asyncToGenerator(function* () {
+      const redisKey = _this2.getListRedisKey(groupId);
+      const word = yield _redisService.default.redis.lindex(redisKey, index - 1);
+      if (!word) {
+        _qqService.default.sendGroupMessage(groupId, 'index 不存在');
+        return;
+      }
+      yield _redisService.default.redis.lrem(redisKey, index);
       _qqService.default.sendGroupMessage(groupId, `已移除: ${word}`);})();
   }
 
   getGarbageWordList(groupId) {var _this3 = this;return _asyncToGenerator(function* () {
-      const list = yield _redisService.default.redis.smembers(_this3.getListRedisKey(groupId));
-      _qqService.default.sendGroupMessage(groupId, `当前垃圾话列表:\n${list.join('\n')}`);})();
+      const list = yield _redisService.default.redis.lrange(_this3.getListRedisKey(groupId), 0, -1);
+      const listString = list.reduce((result, curr, index) => {
+        result += `\n${index + 1}. ${curr}`;
+        return result;
+      }, '');
+      _qqService.default.sendGroupMessage(groupId, `当前垃圾话列表:${listString}`);})();
   }
 
   getGarbageWordRate(groupId) {var _this4 = this;return _asyncToGenerator(function* () {

@@ -59,13 +59,14 @@ GarbageWordRandom = (_dec = (0, _plugin.Plugin)({ name: 'garbage-word-random', w
 
   getGarbageWord(groupId) {var _this3 = this;return _asyncToGenerator(function* () {
       const redisKey = _this3.getWordListRedisKey(groupId);
-      let word = yield _redisService.default.redis.srandmember(redisKey);
-      if (!word) {
+      const length = yield _redisService.default.redis.llen(redisKey);
+      if (length === 0) {
         const list = DEFAULT_GARBAGE_WORD_LIST;
-        yield _redisService.default.redis.sadd(redisKey, ...list);
-        word = list[Math.floor(Math.random() * list.length)];
+        yield _redisService.default.redis.rpush(redisKey, list);
+        return list[Math.floor(Math.random() * list.length)];
       }
-      return word;})();
+      const wordIndex = Math.floor(Math.random() * length);
+      return _redisService.default.redis.lindex(redisKey, wordIndex);})();
   }}) || _class);var _default =
 
 

@@ -25,14 +25,14 @@ ReadAgainFollow = (_dec = (0, _plugin.Command)({ name: '设置随机垃圾话及
       _qqService.default.sendGroupMessage(groupId, `已添加: ${word}`);})();
   }
 
-  removeGarbageWord(groupId, index) {var _this2 = this;return _asyncToGenerator(function* () {
+  removeGarbageWord(groupId, inputIndex) {var _this2 = this;return _asyncToGenerator(function* () {
       const redisKey = _this2.getListRedisKey(groupId);
-      const word = yield _redisService.default.redis.lindex(redisKey, Number(index) - 1);
+      const word = yield _redisService.default.redis.lindex(redisKey, +inputIndex - 1);
       if (!word) {
         _qqService.default.sendGroupMessage(groupId, 'index 不存在');
         return;
       }
-      yield _redisService.default.redis.lrem(redisKey, index);
+      yield _redisService.default.redis.lrem(redisKey, 0, word);
       _qqService.default.sendGroupMessage(groupId, `已移除: ${word}`);})();
   }
 

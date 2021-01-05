@@ -68,7 +68,7 @@ ReadAgainFollow = (_dec = (0, _plugin.Command)({ name: '设置随机垃圾话及
         yield _this6.getGarbageWordRate(groupId);
         return;
       }
-      const match = params.match(/(add\s|remove\s|list)(.*)?/);
+      const match = params.match(/(add[\t-\r \xA0\u1680\u2000-\u200A\u2028\u2029\u202F\u205F\u3000\uFEFF]|remove[\t-\r \xA0\u1680\u2000-\u200A\u2028\u2029\u202F\u205F\u3000\uFEFF]|list)([\0-\uFFFF]*)?/);
       if (match) {const _match = _slicedToArray(
         match, 3),op = _match[1],word = _match[2];
         const operation = op.trim();
@@ -76,7 +76,7 @@ ReadAgainFollow = (_dec = (0, _plugin.Command)({ name: '设置随机垃圾话及
           yield _this6.addGarbageWord(groupId, word.trim());
         } else if (operation === 'remove') {
           yield _this6.removeGarbageWord(groupId, word.trim());
-        } else {
+        } else if (operation === 'list') {
           yield _this6.getGarbageWordList(groupId);
         }
         return;

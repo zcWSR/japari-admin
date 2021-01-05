@@ -73,7 +73,7 @@ CommandRunner = (_dec = (0, _plugin.Plugin)({ name: 'command-runner', weight: 99
      * @param {string} content 完整内容
      */
   isCommand(content) {
-    let match = content.match(/^[!|\uff01]([a-zA-Z]{2,})\s(.*)$/);
+    let match = content.match(/^[!|\uFF01]([a-zA-Z]{2,})\s([\0-\uFFFF]*)$/);
     if (match) {const _match =
       match,_match2 = _slicedToArray(_match, 3),name = _match2[1],params = _match2[2];
       return { name, params: params.trim() };

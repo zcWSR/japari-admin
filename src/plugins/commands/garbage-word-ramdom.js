@@ -27,7 +27,7 @@ class ReadAgainFollow {
 
   async removeGarbageWord(groupId, index) {
     const redisKey = this.getListRedisKey(groupId);
-    const word = await RedisService.redis.lindex(redisKey, index - 1);
+    const word = await RedisService.redis.lindex(redisKey, Number(index) - 1);
     if (!word) {
       QQService.sendGroupMessage(groupId, 'index 不存在');
       return;

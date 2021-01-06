@@ -5,3 +5,4 @@ dump.rdb
 config.json
 .DS_Store
 res/
+.vs/

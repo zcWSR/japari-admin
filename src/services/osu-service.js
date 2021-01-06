@@ -238,18 +238,31 @@ export default class OSUService {
     parser.feed(mapString);
     const { map } = parser;
     // eslint-disable-next-line new-cap
-    const stars = new OSU.diff().calc({
-      map,
-      mods: +enabledMods
-    });
-    const pp = OSU.ppv2({
-      stars,
-      combo: +maxcombo,
-      nmiss: +countmiss,
-      n50: +count50,
-      n100: +count100,
-      n300: +count300
-    });
+
+    try { //FIXED : NotImplementedError when calculate diff or pp for unsupported game modes
+      const stars = new OSU.diff().calc({
+        map,
+        mods: +enabledMods
+      });
+      const pp = OSU.ppv2({
+        stars,
+        combo: +maxcombo,
+        nmiss: +countmiss,
+        n50: +count50,
+        n100: +count100,
+        n300: +count300
+      });
+    } catch (e) {
+      // Return when catch a NotImplementedError
+      if (e.name === "NotImplementedError")
+        return {
+          acc: 0,
+          pp: "N/A",
+          map
+        };
+      throw e;
+    }
+
     return {
       acc: pp.computed_accuracy.value(),
       pp: pp.total.toFixed(2),

@@ -56,7 +56,7 @@ export default class OSUService {
             },
             params
           ),
-          timeout: (3 ** (retryTimes + 1)) * 1000,
+          timeout: 3 ** (retryTimes + 1) * 1000,
           ...config
         });
         retryTimes = 10;
@@ -91,7 +91,9 @@ export default class OSUService {
       mode
     });
     if (!users || !users.length) {
-      const message = `获取玩家'${osuName}'的信息失败, ${!users ? '请求出错' : '用户不存在'}`;
+      const message = `获取玩家'${osuName}'的信息失败, ${
+        !users ? '请求出错' : '用户不存在'
+      }`;
       logger.warn(message);
       return message;
     }
@@ -135,9 +137,7 @@ export default class OSUService {
       logger.warn(`qq${userId}${message}`);
       return message;
     }
-    await dbInstance('osu_bind')
-      .where({ group_id: groupId, user_id: userId })
-      .del();
+    await dbInstance('osu_bind').where({ group_id: groupId, user_id: userId }).del();
     return '解绑成功';
   }
 
@@ -199,13 +199,13 @@ export default class OSUService {
   }
 
   async getMap(mapId) {
-    const meta = await dbInstance('osu_map')
-      .where('id', mapId)
-      .first();
+    const meta = await dbInstance('osu_map').where('id', mapId).first();
     if (meta) {
       return unzipSync(Buffer.from(meta.map, 'base64')).toString();
     }
-    const map = await this.fetch(`${GET_OSU_FILE_UTL}/${mapId}`, null, { responseType: 'text' });
+    const map = await this.fetch(`${GET_OSU_FILE_UTL}/${mapId}`, null, {
+      responseType: 'text'
+    });
     if (!map) {
       return null;
     }
@@ -238,13 +238,14 @@ export default class OSUService {
     parser.feed(mapString);
     const { map } = parser;
     // eslint-disable-next-line new-cap
-
-    try { //FIXED : NotImplementedError when calculate diff or pp for unsupported game modes
+    let pp = null;
+    try {
+      // eslint-disable-next-line new-cap
       const stars = new OSU.diff().calc({
         map,
         mods: +enabledMods
       });
-      const pp = OSU.ppv2({
+      pp = OSU.ppv2({
         stars,
         combo: +maxcombo,
         nmiss: +countmiss,
@@ -253,13 +254,11 @@ export default class OSUService {
         n300: +count300
       });
     } catch (e) {
-      // Return when catch a NotImplementedError
-      if (e.name === "NotImplementedError")
-        return {
-          acc: 0,
-          pp: "N/A",
-          map
-        };
+      // mode 不支持
+      if (e.name === 'NotImplementedError') {
+        return { map };
+      }
+      e.message = '未知错误';
       throw e;
     }
 
@@ -314,13 +313,15 @@ export default class OSUService {
     message += `Score: ${score}\n`;
     message += `Rank: ${rank}\n`;
     message += `Mod: ${numberToOsuModes(enabledMods).join(' ')}\n`;
-    message += `Acc: ${(acc * 100).toFixed(2)}%\n`;
+    message += acc ? `Acc: ${(acc * 100).toFixed(2)}%\n` : 'Acc: N/A';
     message += `Max Combo: ${maxcombo}/${map.max_combo()}\n`;
     message += `${count300}x300, ${count100}x100, ${count50}x50, ${countmiss}xmiss\n`;
     if (info.playInfo.pp) {
       message += `${parseFloat(info.playInfo.pp).toFixed(2)} pp (官方)\n`;
     }
-    message += `${pp} pp (离线计算)`;
+    if (pp) {
+      message += `${pp} pp (离线计算)`;
+    }
     logger.info(`格式化玩家'${osuName}'的${prefix}数据成功`);
     logger.info(`地图id: ${beatmapsetId}, 难度[${map.version}], ${pp} pp`);
     QQService.sendGroupMessage(groupId, message);

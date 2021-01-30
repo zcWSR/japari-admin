@@ -91,7 +91,9 @@ class OSUService {constructor() {this.
         mode });
 
       if (!users || !users.length) {
-        const message = `获取玩家'${osuName}'的信息失败, ${!users ? '请求出错' : '用户不存在'}`;
+        const message = `获取玩家'${osuName}'的信息失败, ${
+        !users ? '请求出错' : '用户不存在'
+        }`;
         _logger.default.warn(message);
         return message;
       }
@@ -135,9 +137,7 @@ class OSUService {constructor() {this.
         _logger.default.warn(`qq${userId}${message}`);
         return message;
       }
-      yield dbInstance('osu_bind').
-      where({ group_id: groupId, user_id: userId }).
-      del();
+      yield dbInstance('osu_bind').where({ group_id: groupId, user_id: userId }).del();
       return '解绑成功';})();
   }
 
@@ -199,13 +199,13 @@ class OSUService {constructor() {this.
   }
 
   getMap(mapId) {var _this6 = this;return _asyncToGenerator(function* () {
-      const meta = yield dbInstance('osu_map').
-      where('id', mapId).
-      first();
+      const meta = yield dbInstance('osu_map').where('id', mapId).first();
       if (meta) {
         return (0, _zlib.unzipSync)(Buffer.from(meta.map, 'base64')).toString();
       }
-      const map = yield _this6.fetch(`${GET_OSU_FILE_UTL}/${mapId}`, null, { responseType: 'text' });
+      const map = yield _this6.fetch(`${GET_OSU_FILE_UTL}/${mapId}`, null, {
+        responseType: 'text' });
+
       if (!map) {
         return null;
       }
@@ -238,17 +238,29 @@ class OSUService {constructor() {this.
       parser.feed(mapString);const
       map = parser.map;
       // eslint-disable-next-line new-cap
-      const stars = new OSU.diff().calc({
-        map,
-        mods: +enabledMods });
+      let pp = null;
+      try {
+        // eslint-disable-next-line new-cap
+        const stars = new OSU.diff().calc({
+          map,
+          mods: +enabledMods });
 
-      const pp = OSU.ppv2({
-        stars,
-        combo: +maxcombo,
-        nmiss: +countmiss,
-        n50: +count50,
-        n100: +count100,
-        n300: +count300 });
+        pp = OSU.ppv2({
+          stars,
+          combo: +maxcombo,
+          nmiss: +countmiss,
+          n50: +count50,
+          n100: +count100,
+          n300: +count300 });
+
+      } catch (e) {
+        // mode 不支持
+        if (e.name === 'NotImplementedError') {
+          return { map };
+        }
+        e.message = '未知错误';
+        throw e;
+      }
 
       return {
         acc: pp.computed_accuracy.value(),
@@ -301,13 +313,15 @@ class OSUService {constructor() {this.
       message += `Score: ${score}\n`;
       message += `Rank: ${rank}\n`;
       message += `Mod: ${(0, _osuUtils.numberToOsuModes)(enabledMods).join(' ')}\n`;
-      message += `Acc: ${(acc * 100).toFixed(2)}%\n`;
+      message += acc ? `Acc: ${(acc * 100).toFixed(2)}%\n` : 'Acc: N/A';
       message += `Max Combo: ${maxcombo}/${map.max_combo()}\n`;
       message += `${count300}x300, ${count100}x100, ${count50}x50, ${countmiss}xmiss\n`;
       if (info.playInfo.pp) {
         message += `${parseFloat(info.playInfo.pp).toFixed(2)} pp (官方)\n`;
       }
-      message += `${pp} pp (离线计算)`;
+      if (pp) {
+        message += `${pp} pp (离线计算)`;
+      }
       _logger.default.info(`格式化玩家'${osuName}'的${prefix}数据成功`);
       _logger.default.info(`地图id: ${beatmapsetId}, 难度[${map.version}], ${pp} pp`);
       _qqService.default.sendGroupMessage(groupId, message);})();

@@ -91,11 +91,11 @@ class Loader {
 
 class Drawer {
   /**
-               *
-               * @param {HR_RESULT} hrList
-               * @param {number} width
-               * @param {number} padding
-               */
+   *
+   * @param {HR_RESULT} hrList
+   * @param {number} width
+   * @param {number} padding
+   */
   constructor(hrList, width, padding, withStaffImage) {
     this.hrList = hrList;
     this.width = width;
@@ -385,14 +385,14 @@ class Drawer {
       const startX = startPointer.x;
       const paths = yield staffs.reduce( /*#__PURE__*/function () {var _ref = _asyncToGenerator(function* (result, staff) {
           result = yield result;
-          const getPathFunc = _this4[_this4.withStaffImage ? 'getStaffImageTextBox' : 'getStaffTextBox'];const _ref2 = yield (
+          const getPathFunc = _this4[_this4.withStaffImage ? 'getStaffImageTextBox' : 'getStaffTextBox'];const _yield$getPathFunc$ca = yield (
 
 
             getPathFunc.call(
             _this4,
             startPointer,
             staff,
-            boxHeight)),boxWidth = _ref2.boxWidth,resetXY = _ref2.resetXY,rectPath = _ref2.rectPath,textPath = _ref2.textPath,imagePath = _ref2.imagePath;
+            boxHeight)),boxWidth = _yield$getPathFunc$ca.boxWidth,resetXY = _yield$getPathFunc$ca.resetXY,rectPath = _yield$getPathFunc$ca.rectPath,textPath = _yield$getPathFunc$ca.textPath,imagePath = _yield$getPathFunc$ca.imagePath;
 
           if (width + boxWidth > maxWidth) {
             // 一行放不下, 自动换行
@@ -426,12 +426,12 @@ class Drawer {
       const staffsMaxWidth = _this5.width - tagsContainerMaxWidth;
       const tagsStartPointer = { x: rowPadding, y: _this5.height + rowPadding };
       const staffsStartPointer = { x: tagsContainerMaxWidth, y: _this5.height + rowPadding };const _this5$getCombineTags =
-      _this5.getCombineTagsPath(tagsStartPointer, tags),tagsHeight = _this5$getCombineTags.height,tagPaths = _this5$getCombineTags.paths;const _ref3 = yield (
+      _this5.getCombineTagsPath(tagsStartPointer, tags),tagsHeight = _this5$getCombineTags.height,tagPaths = _this5$getCombineTags.paths;const _yield$_this5$getStaf = yield (
         _this5.getStaffsPath(
         staffsStartPointer,
         staffsMaxWidth,
         staffs,
-        true)),staffsHeight = _ref3.height,staffPaths = _ref3.paths;
+        true)),staffsHeight = _yield$_this5$getStaf.height,staffPaths = _yield$_this5$getStaf.paths;
 
       const maxHeight = Math.max(tagsHeight, staffsHeight) + rowPadding * 2;
       _this5.addPureBoxPath(

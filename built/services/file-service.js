@@ -6,9 +6,9 @@ var _stringUtils = require("../utils/string-utils");function _interopRequireDefa
 
 class FileService {
   /**
-                    * @param {string} path
-                    * @returns {[{path: string, name: string}]}
-                    */
+   * @param {string} path
+   * @returns {[{path: string, name: string}]}
+   */
   getDirFiles(path) {
     return (0, _fs.readdirSync)(path).reduce((prev, name) => {
       const fullPath = (0, _path.resolve)(path, name);

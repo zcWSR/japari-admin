@@ -2,7 +2,7 @@
 var _fileService = _interopRequireDefault(require("./file-service"));
 var _redisService = _interopRequireDefault(require("./redis-service"));
 
-var _logger = _interopRequireDefault(require("../utils/logger"));function _interopRequireDefault(obj) {return obj && obj.__esModule ? obj : { default: obj };}function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) {try {var info = gen[key](arg);var value = info.value;} catch (error) {reject(error);return;}if (info.done) {resolve(value);} else {Promise.resolve(value).then(_next, _throw);}}function _asyncToGenerator(fn) {return function () {var self = this,args = arguments;return new Promise(function (resolve, reject) {var gen = fn.apply(self, args);function _next(value) {asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value);}function _throw(err) {asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err);}_next(undefined);});};}
+var _logger = _interopRequireDefault(require("../utils/logger"));function _interopRequireDefault(obj) {return obj && obj.__esModule ? obj : { default: obj };}function _createForOfIteratorHelper(o, allowArrayLike) {var it;if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) {if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") {if (it) o = it;var i = 0;var F = function F() {};return { s: F, n: function n() {if (i >= o.length) return { done: true };return { done: false, value: o[i++] };}, e: function e(_e) {throw _e;}, f: F };}throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");}var normalCompletion = true,didErr = false,err;return { s: function s() {it = o[Symbol.iterator]();}, n: function n() {var step = it.next();normalCompletion = step.done;return step;}, e: function e(_e2) {didErr = true;err = _e2;}, f: function f() {try {if (!normalCompletion && it.return != null) it.return();} finally {if (didErr) throw err;}} };}function _unsupportedIterableToArray(o, minLen) {if (!o) return;if (typeof o === "string") return _arrayLikeToArray(o, minLen);var n = Object.prototype.toString.call(o).slice(8, -1);if (n === "Object" && o.constructor) n = o.constructor.name;if (n === "Map" || n === "Set") return Array.from(o);if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen);}function _arrayLikeToArray(arr, len) {if (len == null || len > arr.length) len = arr.length;for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i];return arr2;}function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) {try {var info = gen[key](arg);var value = info.value;} catch (error) {reject(error);return;}if (info.done) {resolve(value);} else {Promise.resolve(value).then(_next, _throw);}}function _asyncToGenerator(fn) {return function () {var self = this,args = arguments;return new Promise(function (resolve, reject) {var gen = fn.apply(self, args);function _next(value) {asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value);}function _throw(err) {asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err);}_next(undefined);});};}
 
 class PluginService {constructor() {this.
     plugins = {
@@ -66,7 +66,7 @@ class PluginService {constructor() {this.
   loadPlugins(db) {var _this2 = this;return _asyncToGenerator(function* () {
       _logger.default.info('======== start load plugin ========');
       // eslint-disable-next-line no-restricted-syntax
-      var _iteratorNormalCompletion = true;var _didIteratorError = false;var _iteratorError = undefined;try {for (var _iterator = _fileService.default.getDirFiles(_path.default.resolve(__dirname, '../plugins'))[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {const file = _step.value;
+      var _iterator = _createForOfIteratorHelper(_fileService.default.getDirFiles(_path.default.resolve(__dirname, '../plugins'))),_step;try {for (_iterator.s(); !(_step = _iterator.n()).done;) {const file = _step.value;
           // eslint-disable-next-line import/no-dynamic-require, global-require
           const required = require(file.path);
           if (!required || !required.default) {
@@ -91,7 +91,7 @@ class PluginService {constructor() {this.
           }
           _this2.classifyPlugin(plugin);
           _logger.default.info(`load plugin '${plugin.name}' complete`);
-        }} catch (err) {_didIteratorError = true;_iteratorError = err;} finally {try {if (!_iteratorNormalCompletion && _iterator.return != null) {_iterator.return();}} finally {if (_didIteratorError) {throw _iteratorError;}}}
+        }} catch (err) {_iterator.e(err);} finally {_iterator.f();}
       _this2.defaultGroupConfig = _this2.plugins.group.reduce((prev, curr) => {
         if (curr.default) {
           prev.push(curr.name);
@@ -104,19 +104,19 @@ class PluginService {constructor() {this.
   }
 
   /**
-     * 获取对应postType的所有插件列表
-     * @param { string } postType 上报事件类型
-     * @return {[Plugin]} 插件列表
-     */
+   * 获取对应postType的所有插件列表
+   * @param { string } postType 上报事件类型
+   * @return {[Plugin]} 插件列表
+   */
   getPlugins(postType) {
     return this.plugins[postType] || [];
   }
 
   /**
-     * 根据groupId 获取群插件列表
-     * @param {number} groupId 群id
-     * @returns {{ [object]: true }} Map 结构的插件列表
-     */
+   * 根据groupId 获取群插件列表
+   * @param {number} groupId 群id
+   * @returns {{ [object]: true }} Map 结构的插件列表
+   */
   getGroupConfig(groupId) {var _this3 = this;return _asyncToGenerator(function* () {
       if (_this3.groupConfigs[groupId]) {
         return _this3.groupConfigs[groupId];
@@ -146,10 +146,10 @@ class PluginService {constructor() {this.
   }
 
   /**
-     * 根绝groupId 设置群插件列表
-     * @param {number} groupId 群id
-     * @param {{ [object]: true }} groupConfigMap Map 结构插件列表
-     */
+   * 根绝groupId 设置群插件列表
+   * @param {number} groupId 群id
+   * @param {{ [object]: true }} groupConfigMap Map 结构插件列表
+   */
   setGroupConfig(groupId, groupConfigMap) {var _this4 = this;return _asyncToGenerator(function* () {
       _this4.groupConfigs[groupId] = groupConfigMap;
       const groupConfigList = Object.keys(groupConfigMap);
@@ -157,11 +157,11 @@ class PluginService {constructor() {this.
   }
 
   /**
-     * 获取配置组
-     * @param {string} type 组名
-     * @param {{ group_id: string }} event 上报事件内容
-     * @returns {{}} 配置组
-     */
+   * 获取配置组
+   * @param {string} type 组名
+   * @param {{ group_id: string }} event 上报事件内容
+   * @returns {{}} 配置组
+   */
   getConfig(type, { group_id: groupId }) {
     switch (type) {
       case 'notice':

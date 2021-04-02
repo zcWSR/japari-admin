@@ -1,4 +1,5 @@
 "use strict";Object.defineProperty(exports, "__esModule", { value: true });exports.default = void 0;var _path = _interopRequireDefault(require("path"));
+var _htmlEntities = require("html-entities");
 var _logger = _interopRequireWildcard(require("../utils/logger"));
 var _fileService = _interopRequireDefault(require("../services/file-service"));
 
@@ -76,7 +77,8 @@ CommandRunner = (_dec = (0, _plugin.Plugin)({ name: 'command-runner', weight: 99
     let match = content.match(/^[!|\uFF01]([a-zA-Z]{2,})\s([\0-\uFFFF]*)$/);
     if (match) {const _match =
       match,_match2 = _slicedToArray(_match, 3),name = _match2[1],params = _match2[2];
-      return { name, params: params.trim() };
+      // 需要 html decode，发现标点符号会被转译
+      return { name, params: (0, _htmlEntities.decode)(params.trim()) };
     }
     // 对无参数指令做分别处理, 防止出现!recent1 类似这样不加空格也能匹配成功的问题
     match = content.match(/^[!|\uff01]([a-zA-Z]{2,})$/);

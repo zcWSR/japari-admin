@@ -1,4 +1,5 @@
 import path from 'path';
+import { decode } from 'html-entities';
 import logger, { blockLog } from '../utils/logger';
 import FileService from '../services/file-service';
 // import { withTransaction } from '../decorators/db';
@@ -76,7 +77,8 @@ class CommandRunner {
     let match = content.match(/^[!|\uFF01]([a-zA-Z]{2,})\s([\0-\uFFFF]*)$/);
     if (match) {
       const [, name, params] = match;
-      return { name, params: params.trim() };
+      // 需要 html decode，发现标点符号会被转译
+      return { name, params: decode(params.trim()) };
     }
     // 对无参数指令做分别处理, 防止出现!recent1 类似这样不加空格也能匹配成功的问题
     match = content.match(/^[!|\uff01]([a-zA-Z]{2,})$/);

@@ -9,8 +9,9 @@ var _scheduleService = _interopRequireDefault(require("../services/schedule-serv
 
 
 ScheduleDBLoader = (_dec = (0, _plugin.Plugin)({ name: 'schedule-db-loader', weight: 1, type: null, // 类型为空, 不添加到插件队列内
-  mute: true }), _dec(_class = (_class2 = class ScheduleDBLoader {init() {
-    _scheduleService.default.setDBInstance(this.DBInstance);
+  mute: true }), _dec(_class = (_class2 = class ScheduleDBLoader {init() {var _this = this;return _asyncToGenerator(function* () {
+      _scheduleService.default.setDBInstance(_this.DBInstance);
+      yield _scheduleService.default.runAllSchedule();})();
   }
 
 

@@ -1,7 +1,7 @@
 import path from 'path';
 import logger, { blockLog } from '../utils/logger';
 import FileService from '../services/file-service';
-import { withTransaction } from '../decorators/db';
+// import { withTransaction } from '../decorators/db';
 import { Plugin } from '../decorators/plugin';
 import QQService from '../services/qq-service';
 

@@ -56,6 +56,7 @@ export default class OSUService {
             },
             params
           ),
+          // eslint-disable-next-line no-mixed-operators
           timeout: 3 ** (retryTimes + 1) * 1000,
           ...config
         });

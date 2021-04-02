@@ -9,8 +9,9 @@ import ScheduleService from '../services/schedule-service';
   mute: true
 })
 class ScheduleDBLoader {
-  init() {
+  async init() {
     ScheduleService.setDBInstance(this.DBInstance);
+    await ScheduleService.runAllSchedule();
   }
 
   @withTransaction

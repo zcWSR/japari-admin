@@ -1,5 +1,5 @@
 import moment from 'moment-timezone';
-import schedule, { scheduleJob } from 'node-schedule-tz';
+import schedule, { scheduleJob } from 'node-schedule';
 import logger from '../utils/logger';
 import QQService from './qq-service';
 
@@ -101,7 +101,11 @@ class ScheduleService {
   runSchedule(groupId, name, ruleString, text) {
     const { hours, days, rule } = this.getRuleFromString(ruleString);
     logger.info(`rule '${rule}'`);
-    scheduleJob(name, rule, 'Asia/Shanghai', this.sendText.bind(null, groupId, text));
+    scheduleJob(
+      name,
+      { rule, tz: 'Asia/Shanghai' },
+      this.sendText.bind(this, groupId, text)
+    );
     return { hours, days };
   }
 

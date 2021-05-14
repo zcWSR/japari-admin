@@ -10,6 +10,7 @@ class Config {
   NET_EAST_MUSIC_SERVER = null;
   ADMINS = null;
   BOT_QQ_ID = null;
+  FIREBASE_KEY_PATH = null;
   constructor() {
     this.loadConfig();
   }
@@ -23,6 +24,7 @@ class Config {
       redisPort,
       redisPw,
       osuAppKey,
+      firebaseKeyPath,
       qqServer,
       netEastMusicServer,
       akhrUpdateServer,
@@ -44,6 +46,12 @@ class Config {
     this.ADMINS = admins;
     this.BOT_QQ_ID = botQQId;
     this.OCR_KEY = ocrSpaceKey;
+
+    const firebaseKeyJson = fs.readFileSync(
+      path.resolve(__dirname, '../', firebaseKeyPath || './firebaseKey.json')
+    );
+
+    this.FIREBASE_KEY = JSON.parse(firebaseKeyJson);
   }
 }
 

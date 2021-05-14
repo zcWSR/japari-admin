@@ -3,6 +3,7 @@ node_modules/
 dump.rdb
 .built-dev/
 config.json
+firebase*.json
 .DS_Store
 res/
 .vs/

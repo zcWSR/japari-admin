@@ -27,6 +27,7 @@
     "eslint": "^5.14.0",
     "eslint-config-airbnb-base": "^13.1.0",
     "eslint-plugin-import": "^2.16.0",
+    "firebase-admin": "^9.6.0",
     "html-entities": "^2.3.2",
     "ioredis": "^4.6.2",
     "knex": "^0.19.5",

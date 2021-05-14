@@ -1,5 +1,6 @@
-"use strict";Object.defineProperty(exports, "__esModule", { value: true });exports.Drawer = exports.Measurer = void 0;var _path = _interopRequireDefault(require("path"));
+"use strict";Object.defineProperty(exports, "__esModule", { value: true });exports.Drawer = void 0;var _path = _interopRequireDefault(require("path"));
 var _canvas = require("canvas");
+var _textMeasurer = _interopRequireDefault(require("../../utils/text-measurer"));
 var _logger = _interopRequireDefault(require("../../utils/logger"));function _interopRequireDefault(obj) {return obj && obj.__esModule ? obj : { default: obj };}function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) {try {var info = gen[key](arg);var value = info.value;} catch (error) {reject(error);return;}if (info.done) {resolve(value);} else {Promise.resolve(value).then(_next, _throw);}}function _asyncToGenerator(fn) {return function () {var self = this,args = arguments;return new Promise(function (resolve, reject) {var gen = fn.apply(self, args);function _next(value) {asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value);}function _throw(err) {asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err);}_next(undefined);});};}
 
 const BG_IMG_FOLDER = _path.default.resolve(__dirname, '../../../res/img/akhr/bg');
@@ -28,43 +29,6 @@ const STAFF_LEVEL_FONT_COLOR_MAP = {
   4: TEXT_COLOR.WHITE,
   5: TEXT_COLOR.BLACK,
   6: TEXT_COLOR.WHITE };
-
-
-class Measurer {
-
-  static registerFont(fontPath, name) {
-    (0, _canvas.registerFont)(fontPath, { family: name });
-  }
-
-  static getInstance(fontFamily) {
-    if (!Measurer.instance) {
-      Measurer.instance = new Measurer(fontFamily);
-    }
-    return Measurer.instance;
-  }
-
-  constructor(fontFamily) {
-    const canvas = (0, _canvas.createCanvas)(0, 0);
-    this.ctx = canvas.getContext('2d');
-    this.fontFamily = fontFamily;
-    this.cache = {};
-  }
-
-  text(text, fontSize = 16) {
-    const key = `${text}${fontSize}`;
-    if (!this.cache[key]) {
-      this.ctx.textBaseline = 'top';
-      this.ctx.font = `${fontSize}px "${this.fontFamily}"`;
-      const measure = this.ctx.measureText(text);
-      const result = {
-        width: measure.width,
-        height: measure.actualBoundingBoxDescent };
-
-      this.cache[key] = result;
-    }
-    return this.cache[key];
-  }}exports.Measurer = Measurer;Measurer.instance = null;
-
 
 class Loader {
   constructor() {
@@ -103,7 +67,7 @@ class Drawer {
     this.height = 0;
     this.paths = [];
     this.withStaffImage = withStaffImage;
-    this.measurer = Measurer.getInstance('SourceHanSansSC');
+    this.measurer = _textMeasurer.default.getInstance('SourceHanSansSC');
     this.loader = new Loader();
   }
 
@@ -273,7 +237,16 @@ class Drawer {
   }
 
   addTagTextBox(pointer, tag, boxHeight) {
-    return this.addPureTextBoxPath(pointer, tag, 28, 20, boxHeight, '#6c757d', TEXT_COLOR.WHITE, 6);
+    return this.addPureTextBoxPath(
+    pointer,
+    tag,
+    28,
+    20,
+    boxHeight,
+    '#6c757d',
+    TEXT_COLOR.WHITE,
+    6);
+
   }
 
   getTagTextBox(pointer, tag, boxHeight) {
@@ -426,7 +399,10 @@ class Drawer {
       const staffsMaxWidth = _this5.width - tagsContainerMaxWidth;
       const tagsStartPointer = { x: rowPadding, y: _this5.height + rowPadding };
       const staffsStartPointer = { x: tagsContainerMaxWidth, y: _this5.height + rowPadding };const _this5$getCombineTags =
-      _this5.getCombineTagsPath(tagsStartPointer, tags),tagsHeight = _this5$getCombineTags.height,tagPaths = _this5$getCombineTags.paths;const _yield$_this5$getStaf = yield (
+      _this5.getCombineTagsPath(
+      tagsStartPointer,
+      tags),tagsHeight = _this5$getCombineTags.height,tagPaths = _this5$getCombineTags.paths;const _yield$_this5$getStaf = yield (
+
         _this5.getStaffsPath(
         staffsStartPointer,
         staffsMaxWidth,

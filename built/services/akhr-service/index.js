@@ -1,5 +1,4 @@
-"use strict";Object.defineProperty(exports, "__esModule", { value: true });exports.default = void 0;var _path = _interopRequireDefault(require("path"));
-var _axios = _interopRequireDefault(require("axios"));
+"use strict";Object.defineProperty(exports, "__esModule", { value: true });exports.default = void 0;var _axios = _interopRequireDefault(require("axios"));
 var _lodash = _interopRequireDefault(require("lodash"));
 require("lodash.combinations");
 var _redisService = _interopRequireDefault(require("../redis-service"));
@@ -12,7 +11,6 @@ var _env = require("../../utils/env");function _interopRequireDefault(obj) {retu
 const AKHR_UPDATE_URL_KEY = 'akhr-update-url';
 const AKHR_LIST_KEY = 'akhr-list';
 const AKHR_LIST_EXPIRE_TIME = 60 * 60 * 24 * 7;
-_imageDrawer.Measurer.registerFont(_path.default.resolve(__dirname, '../../../res/font/SourceHanSansSC-Regular.otf'), 'SourceHanSansSC');
 
 class AkhrService {constructor() {this.
     AKHR = void 0;}

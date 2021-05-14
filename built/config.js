@@ -10,7 +10,8 @@ class Config {
 
 
 
-  constructor() {this.DB = null;this.REDIS = null;this.OSU_APP_KEY = null;this.QQ_SERVER = null;this.NET_EAST_MUSIC_SERVER = null;this.ADMINS = null;this.BOT_QQ_ID = null;
+
+  constructor() {this.DB = null;this.REDIS = null;this.OSU_APP_KEY = null;this.QQ_SERVER = null;this.NET_EAST_MUSIC_SERVER = null;this.ADMINS = null;this.BOT_QQ_ID = null;this.FIREBASE_KEY_PATH = null;
     this.loadConfig();
   }
 
@@ -29,7 +30,8 @@ class Config {
 
 
 
-    config.dbFilePath,redisPort = config.redisPort,redisPw = config.redisPw,osuAppKey = config.osuAppKey,qqServer = config.qqServer,netEastMusicServer = config.netEastMusicServer,akhrUpdateServer = config.akhrUpdateServer,admins = config.admins,botQQId = config.botQQId,ocrSpaceKey = config.ocrSpaceKey;
+
+    config.dbFilePath,redisPort = config.redisPort,redisPw = config.redisPw,osuAppKey = config.osuAppKey,firebaseKeyPath = config.firebaseKeyPath,qqServer = config.qqServer,netEastMusicServer = config.netEastMusicServer,akhrUpdateServer = config.akhrUpdateServer,admins = config.admins,botQQId = config.botQQId,ocrSpaceKey = config.ocrSpaceKey;
     this.DB = {
       filePath: dbFilePath };
 
@@ -44,6 +46,12 @@ class Config {
     this.ADMINS = admins;
     this.BOT_QQ_ID = botQQId;
     this.OCR_KEY = ocrSpaceKey;
+
+    const firebaseKeyJson = _fs.default.readFileSync(
+    _path.default.resolve(__dirname, '../', firebaseKeyPath || './firebaseKey.json'));
+
+
+    this.FIREBASE_KEY = JSON.parse(firebaseKeyJson);
   }}var _default =
 
 

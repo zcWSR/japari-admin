@@ -1,5 +1,6 @@
 import path from 'path';
-import { registerFont, createCanvas, Image } from 'canvas';
+import { createCanvas, Image } from 'canvas';
+import Measurer from '../../utils/text-measurer';
 import logger from '../../utils/logger';
 
 const BG_IMG_FOLDER = path.resolve(__dirname, '../../../res/img/akhr/bg');
@@ -29,43 +30,6 @@ const STAFF_LEVEL_FONT_COLOR_MAP = {
   5: TEXT_COLOR.BLACK,
   6: TEXT_COLOR.WHITE
 };
-
-export class Measurer {
-  static instance = null;
-  static registerFont(fontPath, name) {
-    registerFont(fontPath, { family: name });
-  }
-
-  static getInstance(fontFamily) {
-    if (!Measurer.instance) {
-      Measurer.instance = new Measurer(fontFamily);
-    }
-    return Measurer.instance;
-  }
-
-  constructor(fontFamily) {
-    const canvas = createCanvas(0, 0);
-    this.ctx = canvas.getContext('2d');
-    this.fontFamily = fontFamily;
-    this.cache = {};
-  }
-
-  text(text, fontSize = 16) {
-    const key = `${text}${fontSize}`;
-    if (!this.cache[key]) {
-      this.ctx.textBaseline = 'top';
-      this.ctx.font = `${fontSize}px "${this.fontFamily}"`;
-      const measure = this.ctx.measureText(text);
-      const result = {
-        width: measure.width,
-        height: measure.actualBoundingBoxDescent
-      };
-      this.cache[key] = result;
-    }
-    return this.cache[key];
-  }
-}
-
 class Loader {
   constructor() {
     this.imageCache = {};
@@ -273,7 +237,16 @@ export class Drawer {
   }
 
   addTagTextBox(pointer, tag, boxHeight) {
-    return this.addPureTextBoxPath(pointer, tag, 28, 20, boxHeight, '#6c757d', TEXT_COLOR.WHITE, 6);
+    return this.addPureTextBoxPath(
+      pointer,
+      tag,
+      28,
+      20,
+      boxHeight,
+      '#6c757d',
+      TEXT_COLOR.WHITE,
+      6
+    );
   }
 
   getTagTextBox(pointer, tag, boxHeight) {
@@ -426,7 +399,10 @@ export class Drawer {
     const staffsMaxWidth = this.width - tagsContainerMaxWidth;
     const tagsStartPointer = { x: rowPadding, y: this.height + rowPadding };
     const staffsStartPointer = { x: tagsContainerMaxWidth, y: this.height + rowPadding };
-    const { height: tagsHeight, paths: tagPaths } = this.getCombineTagsPath(tagsStartPointer, tags);
+    const { height: tagsHeight, paths: tagPaths } = this.getCombineTagsPath(
+      tagsStartPointer,
+      tags
+    );
     const { height: staffsHeight, paths: staffPaths } = await this.getStaffsPath(
       staffsStartPointer,
       staffsMaxWidth,

@@ -1,18 +1,16 @@
-import path from 'path';
 import axios from 'axios';
 import _ from 'lodash';
 import 'lodash.combinations';
 import RedisService from '../redis-service';
 import Config from '../../config';
 import logger from '../../utils/logger';
-import { Measurer, Drawer } from './image-drawer';
+import { Drawer } from './image-drawer';
 import { isDev } from '../../utils/env';
 
 // 更新用数据源 redis key
 const AKHR_UPDATE_URL_KEY = 'akhr-update-url';
 const AKHR_LIST_KEY = 'akhr-list';
 const AKHR_LIST_EXPIRE_TIME = 60 * 60 * 24 * 7;
-Measurer.registerFont(path.resolve(__dirname, '../../../res/font/SourceHanSansSC-Regular.otf'), 'SourceHanSansSC');
 
 class AkhrService {
   AKHR;

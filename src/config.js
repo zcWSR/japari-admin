@@ -10,7 +10,7 @@ class Config {
   NET_EAST_MUSIC_SERVER = null;
   ADMINS = null;
   BOT_QQ_ID = null;
-  FIREBASE_KEY_PATH = null;
+  FIREBASE_KEY = null;
   constructor() {
     this.loadConfig();
   }

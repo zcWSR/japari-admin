@@ -4,7 +4,7 @@ import 'lodash.combinations';
 import RedisService from '../redis-service';
 import Config from '../../config';
 import logger from '../../utils/logger';
-import { Drawer } from './image-drawer';
+import Drawer from './image-drawer';
 import { isDev } from '../../utils/env';
 
 // 更新用数据源 redis key

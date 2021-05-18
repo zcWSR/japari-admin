@@ -4,7 +4,7 @@ import Config from '../config';
 class FirebaseService {
   init() {
     this.app = admin.initializeApp({
-      credential: admin.credential.cert(Config.FIREBASE_KEY_PATH)
+      credential: admin.credential.cert(Config.FIREBASE_KEY)
     });
     this.db = this.app.firestore();
     this.groupCollection = this.db.collection('qqGroup');

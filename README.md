@@ -145,6 +145,12 @@ CommandRunner 执行时, 按照数据类型, 分别走私聊和群聊不同的�
 
 Command类构造时, 如果为私聊且 level=2, 则先将 level 置为1, 因为私聊没有群管理级别
 
+## 安装
+
+需要依赖 sqlite 和 canvas，canvas 有其对应依赖，请参考其 repo 的 README
+
+对于 M1 用户，brew 安装 canvas 依赖请添加 `arch -arm64` 前缀
+
 ## License
 
 GPLv3 © [zcWSR](https://zcwsr.com/)

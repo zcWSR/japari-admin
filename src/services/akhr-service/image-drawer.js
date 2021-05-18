@@ -53,7 +53,7 @@ class Loader {
   }
 }
 
-export class Drawer {
+export default class Drawer {
   /**
    *
    * @param {HR_RESULT} hrList

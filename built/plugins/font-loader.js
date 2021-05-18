@@ -15,11 +15,11 @@ FontLoader = (_dec = (0, _plugin.Plugin)({ name: 'font-loader', weight: 1, type:
     'SourceHanSansSC');
 
     _textMeasurer.default.registerFont(
-    _path.default.resolve(__dirname, '../../res/font/NotoSansSC-Regular.otf'),
+    _path.default.resolve(__dirname, '../../res/font/NotoSansSC-Bold.otf'),
     'NotoSansSC');
 
     _textMeasurer.default.registerFont(
-    _path.default.resolve(__dirname, '../../res/font/NotoSerifSC-Regular.otf'),
+    _path.default.resolve(__dirname, '../../res/font/NotoSerifSC-Black.otf'),
     'NotoSerifSC');
 
   }}) || _class);var _default =

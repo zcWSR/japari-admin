@@ -15,11 +15,11 @@ class FontLoader {
       'SourceHanSansSC'
     );
     TextMeasurer.registerFont(
-      path.resolve(__dirname, '../../res/font/NotoSansSC-Regular.otf'),
+      path.resolve(__dirname, '../../res/font/NotoSansSC-Bold.otf'),
       'NotoSansSC'
     );
     TextMeasurer.registerFont(
-      path.resolve(__dirname, '../../res/font/NotoSerifSC-Regular.otf'),
+      path.resolve(__dirname, '../../res/font/NotoSerifSC-Black.otf'),
       'NotoSerifSC'
     );
   }

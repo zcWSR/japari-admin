@@ -6,6 +6,11 @@ export default class Measurer {
     registerFont(fontPath, { family: name });
   }
 
+  /**
+   * singleton
+   * @param {string} fontFamily fontFamily
+   * @returns {Measurer} instance
+   */
   static getInstance(fontFamily) {
     if (!Measurer.instanceMap[fontFamily]) {
       Measurer.instanceMap[fontFamily] = new Measurer(fontFamily);
@@ -18,6 +23,8 @@ export default class Measurer {
     this.ctx = canvas.getContext('2d');
     this.fontFamily = fontFamily;
     this.cache = {};
+    // 原始数据缓存
+    this.originCache = {};
   }
 
   text(text, fontSize = 16) {
@@ -33,5 +40,21 @@ export default class Measurer {
       this.cache[key] = result;
     }
     return this.cache[key];
+  }
+
+  /**
+   * get origin measure object
+   * @param {*} text text value
+   * @param {*} fontSize fontSize
+   * @returns {TextMetrics} TextMetrics
+   */
+  origin(text, fontSize) {
+    const key = `${text}${fontSize}`;
+    if (!this.originCache[key]) {
+      this.ctx.font = `${fontSize}px "${this.fontFamily}"`;
+      const measure = this.ctx.measureText(text);
+      this.originCache[key] = measure;
+    }
+    return this.originCache[key];
   }
 }

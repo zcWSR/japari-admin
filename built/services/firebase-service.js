@@ -4,7 +4,7 @@ var _config = _interopRequireDefault(require("../config"));function _interopRequ
 class FirebaseService {
   init() {
     this.app = _firebaseAdmin.default.initializeApp({
-      credential: _firebaseAdmin.default.credential.cert(_config.default.FIREBASE_KEY_PATH) });
+      credential: _firebaseAdmin.default.credential.cert(_config.default.FIREBASE_KEY) });
 
     this.db = this.app.firestore();
     this.groupCollection = this.db.collection('qqGroup');

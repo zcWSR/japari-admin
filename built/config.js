@@ -11,7 +11,7 @@ class Config {
 
 
 
-  constructor() {this.DB = null;this.REDIS = null;this.OSU_APP_KEY = null;this.QQ_SERVER = null;this.NET_EAST_MUSIC_SERVER = null;this.ADMINS = null;this.BOT_QQ_ID = null;this.FIREBASE_KEY_PATH = null;
+  constructor() {this.DB = null;this.REDIS = null;this.OSU_APP_KEY = null;this.QQ_SERVER = null;this.NET_EAST_MUSIC_SERVER = null;this.ADMINS = null;this.BOT_QQ_ID = null;this.FIREBASE_KEY = null;
     this.loadConfig();
   }
 

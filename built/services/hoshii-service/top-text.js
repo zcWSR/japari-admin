@@ -6,7 +6,6 @@ class TopText extends _text.default {
    * @param {CanvasRenderingContext2D} ctx context
    */
   draw(ctx) {
-    console.log(this.y);
     ctx.font = `${this.fontSize}px "${this.fontFamily}"`;
     ctx.setTransform(1, 0, -0.45, 1, 0, 0);
 

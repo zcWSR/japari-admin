@@ -4,8 +4,8 @@ import BottomText from './bottom-text';
 
 export default class Drawer {
   constructor(topText, bottomText) {
-    this.topText = new TopText(topText, 'NotoSansSC, NotoColorEmoji');
-    this.bottomText = new BottomText(bottomText, 'NotoSerifSC, NotoColorEmoji');
+    this.topText = new TopText(topText, 'NotoSansSC');
+    this.bottomText = new BottomText(bottomText, 'NotoSerifSC');
     this.bottomLeftShift = 180;
     this.width = 0;
     this.height = 0;

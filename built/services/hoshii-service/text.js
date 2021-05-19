@@ -15,7 +15,7 @@ class Text {
   }
 
   parseText(text) {
-    return text.replaceAll('！', '!').trim();
+    return text.replace(/\uFF01/g, '!').trim();
   }
 
   measureText() {

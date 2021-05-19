@@ -10,7 +10,7 @@ var _logger = _interopRequireDefault(require("../../utils/logger"));var _dec, _c
 
 
 
-AkhrUpdate = (_dec = (0, _plugin.Command)({ name: '5000兆円表情包生成器', command: 'hoshii', type: 'all', info: 'http://yurafuca.com/5000choyen/ 翻版', level: 3 }), _dec(_class = class AkhrUpdate {
+AkhrUpdate = (_dec = (0, _plugin.Command)({ name: '5000兆円表情包生成器', command: 'hoshii', type: 'all', info: 'http://yurafuca.com/5000choyen/ 翻版', level: 1 }), _dec(_class = class AkhrUpdate {
   sendMsg(body, type, msg) {
     if (type === 'group') {
       _qqService.default.sendGroupMessage(body.group_id, msg);

@@ -22,6 +22,10 @@ class FontLoader {
       path.resolve(__dirname, '../../res/font/NotoSerifSC-Black.otf'),
       'NotoSerifSC'
     );
+    // TextMeasurer.registerFont(
+    //   path.resolve(__dirname, '../../res/font/NotoColorEmoji.ttf'),
+    //   'NotoColorEmoji'
+    // );
   }
 }
 

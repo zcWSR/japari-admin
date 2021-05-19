@@ -96,7 +96,8 @@ Akhr = (_dec = (0, _plugin.Plugin)({ name: 'akhr', weight: 99, type: 'group', sh
           if (imgUrl) {
             _logger.default.info('message "with img" mod');
             yield _this.combineAndSend(imgUrl.url, groupId);
-          } else {// 加入等待队列
+          } else {
+            // 加入等待队列
             _logger.default.info('message "only command" mode');
             yield _this.addIntoWaitingStack(groupId, userId);
             _qqService.default.sendGroupMessage(groupId, '等待发送图片...');

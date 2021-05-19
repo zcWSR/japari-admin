@@ -22,6 +22,10 @@ FontLoader = (_dec = (0, _plugin.Plugin)({ name: 'font-loader', weight: 1, type:
     _path.default.resolve(__dirname, '../../res/font/NotoSerifSC-Black.otf'),
     'NotoSerifSC');
 
+    // TextMeasurer.registerFont(
+    //   path.resolve(__dirname, '../../res/font/NotoColorEmoji.ttf'),
+    //   'NotoColorEmoji'
+    // );
   }}) || _class);var _default =
 
 

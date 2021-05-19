@@ -12,10 +12,12 @@ Help = (_dec = (0, _plugin.Command)({ name: '帮助', command: 'help', type: 'al
   getCommandInstance(commandName, body, commandMap) {
     const isAdmin = _qqService.default.isSuperAdmin(body.user_id);
     const commandInstance = commandMap[commandName];
-    if (commandInstance === this) {// 忽略自身
+    if (commandInstance === this) {
+      // 忽略自身
       return null;
     }
-    if (commandInstance.level === 3) {// 如为管理员专属指令, 则判断用户权限
+    if (commandInstance.level === 3) {
+      // 如为管理员专属指令, 则判断用户权限
       return isAdmin ? commandInstance : null;
     }
     return commandInstance;

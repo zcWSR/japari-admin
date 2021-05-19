@@ -4,8 +4,8 @@ import BottomText from './bottom-text';
 
 export default class Drawer {
   constructor(topText, bottomText) {
-    this.topText = new TopText(topText, 'Noto Sans SC');
-    this.bottomText = new BottomText(bottomText, 'Noto Serif SC');
+    this.topText = new TopText(topText, 'NotoSansSC, NotoColorEmoji');
+    this.bottomText = new BottomText(bottomText, 'NotoSerifSC, NotoColorEmoji');
     this.bottomLeftShift = 180;
     this.width = 0;
     this.height = 0;
@@ -17,15 +17,19 @@ export default class Drawer {
     this.topText.x = pl + this.topText.height * 0.45;
     this.topText.y = pt;
     this.bottomText.x = this.topText.x + this.bottomLeftShift;
-    this.bottomText.y = this.topText.y + this.topText.height + spacing;
-    this.width = this.bottomText.x + this.bottomText.width + pr;
+    this.bottomText.y = this.topText.y + spacing + this.topText.height;
+    this.width =
+      Math.max(
+        this.topText.x + this.topText.width,
+        this.bottomText.x + this.bottomText.width
+      ) + pr;
     this.height = this.bottomText.y + this.bottomText.height + pb;
     this.topText.fixYPosition();
     this.bottomText.fixYPosition();
   }
 
   draw() {
-    this.measureAll([20, 70, 20, 70], 30);
+    this.measureAll([20, 0, 20, 60], 30);
     const canvas = createCanvas(this.width, this.height);
     this.ctx = canvas.getContext('2d');
     this.ctx.fillStyle = 'white';

@@ -15,13 +15,13 @@ export default class Text {
   }
 
   parseText(text) {
-    return text.replaceAll('！', '!');
+    return text.replaceAll('！', '!').trim();
   }
 
   measureText() {
     this.textMetrics = this.measurer.origin(this.value, this.fontSize);
     const { actualBoundingBoxAscent, actualBoundingBoxDescent } = this.textMetrics;
-    this.width = this.textMetrics.width + 30;
+    this.width = this.textMetrics.width;
     this.height = Math.abs(actualBoundingBoxAscent) + Math.abs(actualBoundingBoxDescent);
     this.textBaseLineToTop = Math.abs(actualBoundingBoxAscent);
   }

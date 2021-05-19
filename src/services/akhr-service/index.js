@@ -198,7 +198,7 @@ class AkhrService {
       //   console.log(filePath);
       //   done('done');
       // });
-      return draw.toBuffer('image/jpeg').toString('base64');
+      return draw.toBuffer('image/png').toString('base64');
     } catch (e) {
       throw e;
     }

@@ -98,6 +98,17 @@ class QQService {
     ]);
   }
 
+  sendPrivateImage(userId, dataUrl) {
+    this.sendPrivateMessage(userId, [
+      {
+        type: 'image',
+        data: {
+          file: `base64://${dataUrl}`
+        }
+      }
+    ]);
+  }
+
   sendGroupMessage(groupId, message) {
     axios.post(`${Config.QQ_SERVER}/send_group_msg`, { group_id: groupId, message });
   }

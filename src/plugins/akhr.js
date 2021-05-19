@@ -96,7 +96,8 @@ class Akhr {
         if (imgUrl) {
           logger.info('message "with img" mod');
           await this.combineAndSend(imgUrl.url, groupId);
-        } else { // 加入等待队列
+        } else {
+          // 加入等待队列
           logger.info('message "only command" mode');
           await this.addIntoWaitingStack(groupId, userId);
           QQService.sendGroupMessage(groupId, '等待发送图片...');

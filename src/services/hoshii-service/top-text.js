@@ -16,7 +16,7 @@ export default class TopText extends Text {
 
     // 銀色
     {
-      const grad = ctx.createLinearGradient(0, 24, 0, 122);
+      const grad = ctx.createLinearGradient(0, this.y - 81, 0, this.y + 17);
       grad.addColorStop(0.0, 'rgb(0,15,36)');
       grad.addColorStop(0.1, 'rgb(255,255,255)');
       grad.addColorStop(0.18, 'rgb(55,58,59)');
@@ -39,7 +39,7 @@ export default class TopText extends Text {
 
     // 金色
     {
-      const grad = ctx.createLinearGradient(0, 20, 0, 100);
+      const grad = ctx.createLinearGradient(0, this.y - 85, 0, this.y - 5);
       grad.addColorStop(0, 'rgb(253,241,0)');
       grad.addColorStop(0.25, 'rgb(245,253,187)');
       grad.addColorStop(0.4, 'rgb(255,255,255)');
@@ -63,7 +63,7 @@ export default class TopText extends Text {
 
     // 赤
     {
-      const grad = ctx.createLinearGradient(0, 20, 0, 100);
+      const grad = ctx.createLinearGradient(0, this.y - 85, 0, this.y - 5);
       grad.addColorStop(0, 'rgb(255,100,0)');
       grad.addColorStop(0.5, 'rgb(123,0,0)');
       grad.addColorStop(0.51, 'rgb(240,0,0)');
@@ -75,7 +75,7 @@ export default class TopText extends Text {
 
     // 赤
     {
-      const grad = ctx.createLinearGradient(0, 20, 0, 100);
+      const grad = ctx.createLinearGradient(0, this.y - 85, 0, this.y - 5);
       grad.addColorStop(0, 'rgb(230,0,0)');
       grad.addColorStop(0.5, 'rgb(123,0,0)');
       grad.addColorStop(0.51, 'rgb(240,0,0)');

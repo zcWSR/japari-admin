@@ -8,7 +8,7 @@ import logger from '../../utils/logger';
   command: 'hoshii',
   type: 'all',
   info: 'http://yurafuca.com/5000choyen/ 翻版',
-  level: 3
+  level: 1
 })
 class AkhrUpdate {
   sendMsg(body, type, msg) {

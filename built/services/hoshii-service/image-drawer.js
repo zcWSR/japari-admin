@@ -4,8 +4,8 @@ var _bottomText = _interopRequireDefault(require("./bottom-text"));function _int
 
 class Drawer {
   constructor(topText, bottomText) {
-    this.topText = new _topText.default(topText, 'NotoSansSC, NotoColorEmoji');
-    this.bottomText = new _bottomText.default(bottomText, 'NotoSerifSC, NotoColorEmoji');
+    this.topText = new _topText.default(topText, 'NotoSansSC');
+    this.bottomText = new _bottomText.default(bottomText, 'NotoSerifSC');
     this.bottomLeftShift = 180;
     this.width = 0;
     this.height = 0;

@@ -26,6 +26,7 @@ class HoShiiService {
       const file = _firebaseService.default.bucket.file(filePath);
       const fileDownloadToken = (0, _uuid.v4)();
       yield file.save(imageBuffer, {
+        validation: 'md5',
         metadata: {
           contentType: 'image/png',
           cacheControl: 'max-age=31536000',

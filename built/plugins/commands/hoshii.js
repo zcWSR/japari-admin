@@ -34,7 +34,7 @@ AkhrUpdate = (_dec = (0, _plugin.Command)({ name: '5000兆円表情包生成器'
         return;
       }
       _logger.default.info(`getting img from message: ${topText} ${bottomText}`);
-      const dataUrl = _hoshiiService.default.drawImage(topText, bottomText);
+      const dataUrl = yield _hoshiiService.default.drawAndGetRemoteUrl(topText, bottomText);
       _this.sendImg(body, type, dataUrl);})();
   }}) || _class);var _default =
 

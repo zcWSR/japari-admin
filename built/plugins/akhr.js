@@ -71,7 +71,7 @@ Akhr = (_dec = (0, _plugin.Plugin)({ name: 'akhr', weight: 99, type: 'group', sh
       const hrList = yield _akhrService.default.getAkhrList();
       const result = _akhrService.default.combine(words, hrList);
       const data = yield _akhrService.default.parseImageOutPut(result, true);
-      _qqService.default.sendGroupImage(groupId, data);
+      _qqService.default.sendGroupImage(groupId, data, { isBase64: true });
       // const msg = AkhrService.parseTextOutput(result);
       // QQService.sendGroupMessage(groupId, msg);
     })();}

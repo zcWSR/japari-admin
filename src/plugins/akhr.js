@@ -71,7 +71,7 @@ class Akhr {
     const hrList = await AkhrService.getAkhrList();
     const result = AkhrService.combine(words, hrList);
     const data = await AkhrService.parseImageOutPut(result, true);
-    QQService.sendGroupImage(groupId, data);
+    QQService.sendGroupImage(groupId, data, { isBase64: true });
     // const msg = AkhrService.parseTextOutput(result);
     // QQService.sendGroupMessage(groupId, msg);
   }

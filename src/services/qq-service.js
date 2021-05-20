@@ -11,7 +11,9 @@ class QQService {
       this.sendGroupMessage = (groupId, msg) => {
         logger.debug(`===== send to group ${groupId}`);
         if (msg.split) {
-          msg.split('\n').forEach(line => logger.debug(line));
+          msg.split('\n').forEach((line) => {
+            logger.debug(line);
+          });
         } else {
           logger.debug(msg);
         }
@@ -20,7 +22,9 @@ class QQService {
       this.sendPrivateMessage = (userId, msg) => {
         logger.debug(`===== send to user ${userId}`);
         if (msg.split) {
-          msg.split('\n').forEach(line => logger.debug(line));
+          msg.split('\n').forEach((line) => {
+            logger.debug(line);
+          });
         } else {
           logger.debug(msg);
         }
@@ -98,12 +102,12 @@ class QQService {
     ]);
   }
 
-  sendPrivateImage(userId, dataUrl) {
+  sendPrivateImage(userId, dataUrl, option = { isBase64: false }) {
     this.sendPrivateMessage(userId, [
       {
         type: 'image',
         data: {
-          file: `base64://${dataUrl}`
+          file: option.isBase64 ? `base64://${dataUrl}` : dataUrl
         }
       }
     ]);
@@ -113,12 +117,12 @@ class QQService {
     axios.post(`${Config.QQ_SERVER}/send_group_msg`, { group_id: groupId, message });
   }
 
-  sendGroupImage(groupId, dataUrl) {
+  sendGroupImage(groupId, dataUrl, option = { isBase64: false }) {
     this.sendGroupMessage(groupId, [
       {
         type: 'image',
         data: {
-          file: `base64://${dataUrl}`
+          file: option.isBase64 ? `base64://${dataUrl}` : dataUrl
         }
       }
     ]);

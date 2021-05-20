@@ -3,10 +3,13 @@ var _config = _interopRequireDefault(require("../config"));function _interopRequ
 
 class FirebaseService {
   init() {
+    this.bucketUrl = 'japari-park-e9cc5.appspot.com';
     this.app = _firebaseAdmin.default.initializeApp({
-      credential: _firebaseAdmin.default.credential.cert(_config.default.FIREBASE_KEY) });
+      credential: _firebaseAdmin.default.credential.cert(_config.default.FIREBASE_KEY),
+      storageBucket: this.bucketUrl });
 
     this.db = this.app.firestore();
+    this.bucket = this.app.storage().bucket();
     this.groupCollection = this.db.collection('qqGroup');
   }}var _default =
 

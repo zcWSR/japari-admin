@@ -33,8 +33,12 @@ class AkhrUpdate {
       this.sendMsg(body, type, '非法参数');
       return;
     }
+    if (topText.length + bottomText.length >= 20) {
+      this.sendMsg(body, type, '太长了，塞不下了~');
+      return;
+    }
     logger.info(`getting img from message: ${topText} ${bottomText}`);
-    const dataUrl = await HoShiiService.drawAndGetRemoteUrl(topText, bottomText);
+    const dataUrl = await HoShiiService.drawAndGetRemoteUrl(topText, bottomText, `${topText}-${bottomText}`);
     this.sendImg(body, type, dataUrl);
   }
 }

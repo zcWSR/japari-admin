@@ -33,8 +33,12 @@ AkhrUpdate = (_dec = (0, _plugin.Command)({ name: '5000兆円表情包生成器'
         _this.sendMsg(body, type, '非法参数');
         return;
       }
+      if (topText.length + bottomText.length >= 20) {
+        _this.sendMsg(body, type, '太长了，塞不下了~');
+        return;
+      }
       _logger.default.info(`getting img from message: ${topText} ${bottomText}`);
-      const dataUrl = yield _hoshiiService.default.drawAndGetRemoteUrl(topText, bottomText);
+      const dataUrl = yield _hoshiiService.default.drawAndGetRemoteUrl(topText, bottomText, `${topText}-${bottomText}`);
       _this.sendImg(body, type, dataUrl);})();
   }}) || _class);var _default =
 

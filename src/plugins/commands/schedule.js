@@ -9,7 +9,7 @@ import ScheduleService from '../../services/schedule-service';
   info:
     // eslint-disable-next-line no-template-curly-in-string
     "设置定时显示文字内容, '!schedule 内容' 来调用\n内容不写为查看当前配置\n'!schedule clear' 为清除当前配置\n提供参数 year month date day hour minute second, 用${xxx}来插入",
-  level: 3
+  level: 2
 })
 class Schedule {
   async run(params, body) {

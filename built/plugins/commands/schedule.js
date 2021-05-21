@@ -12,7 +12,7 @@ var _scheduleService = _interopRequireDefault(require("../../services/schedule-s
 
 
 Schedule = (_dec = (0, _plugin.Command)({ name: '设置定时内容', command: 'schedule', type: 'group', info: // eslint-disable-next-line no-template-curly-in-string
-  "设置定时显示文字内容, '!schedule 内容' 来调用\n内容不写为查看当前配置\n'!schedule clear' 为清除当前配置\n提供参数 year month date day hour minute second, 用${xxx}来插入", level: 3 }), _dec(_class = class Schedule {run(params, body) {return _asyncToGenerator(function* () {const
+  "设置定时显示文字内容, '!schedule 内容' 来调用\n内容不写为查看当前配置\n'!schedule clear' 为清除当前配置\n提供参数 year month date day hour minute second, 用${xxx}来插入", level: 2 }), _dec(_class = class Schedule {run(params, body) {return _asyncToGenerator(function* () {const
       groupId = body.group_id;
       const currentSchedule = yield _scheduleService.default.getScheduleByGroupId(groupId);
       if (currentSchedule) {const _ScheduleService$getR =

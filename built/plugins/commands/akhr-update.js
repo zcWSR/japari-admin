@@ -10,7 +10,7 @@ var _logger = _interopRequireDefault(require("../../utils/logger"));var _dec, _c
 
 
 
-AkhrUpdate = (_dec = (0, _plugin.Command)({ name: '更新明日方舟公招干员数据', command: 'akhrUpdate', type: 'all', info: '更新明日方舟公招干员数据, 参数为数据源地址', level: 3 }), _dec(_class = class AkhrUpdate {
+AkhrUpdate = (_dec = (0, _plugin.Command)({ name: '更新明日方舟公招干员数据', command: 'akhrUpdate', type: 'private', info: '更新明日方舟公招干员数据, 参数为数据源地址', level: 3 }), _dec(_class = class AkhrUpdate {
   sendMsg(body, type, msg) {
     if (type === 'group') {
       _qqService.default.sendGroupMessage(body.group_id, msg);
@@ -19,12 +19,10 @@ AkhrUpdate = (_dec = (0, _plugin.Command)({ name: '更新明日方舟公招干�
     }
   }
 
-  run(params, body, type) {var _this = this;return _asyncToGenerator(function* () {
+  run() {return _asyncToGenerator(function* () {
       try {
-        yield _akhrService.default.updateAkhrList(params);
-        _this.sendMsg(body, type, '公招数据已更新');
+        yield _akhrService.default.updateAndFormate();
       } catch (e) {
-        _this.sendMsg(body, type, `公招数据更新出错, ${e.customErrorMsg || '未知错误'}`);
         _logger.default.error('update akhr origin list error');
         throw e;
       }})();

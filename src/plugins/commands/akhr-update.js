@@ -6,7 +6,7 @@ import logger from '../../utils/logger';
 @Command({
   name: '更新明日方舟公招干员数据',
   command: 'akhrUpdate',
-  type: 'all',
+  type: 'private',
   info: '更新明日方舟公招干员数据, 参数为数据源地址',
   level: 3
 })
@@ -19,12 +19,10 @@ class AkhrUpdate {
     }
   }
 
-  async run(params, body, type) {
+  async run() {
     try {
-      await AkhrService.updateAkhrList(params);
-      this.sendMsg(body, type, '公招数据已更新');
+      await AkhrService.updateAndFormate();
     } catch (e) {
-      this.sendMsg(body, type, `公招数据更新出错, ${e.customErrorMsg || '未知错误'}`);
       logger.error('update akhr origin list error');
       throw e;
     }

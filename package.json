@@ -39,7 +39,7 @@
     "moment": "^2.24.0",
     "moment-timezone": "^0.5.27",
     "node-schedule": "^2.0.0",
-    "ojsama": "^1.2.5",
+    "ojsama": "^2.2.0",
     "sqlite3": "^5.0.2",
     "tesseract.js": "^2.1.1",
     "uuid": "^3.4.0"

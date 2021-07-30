@@ -314,7 +314,7 @@ class OSUService {constructor() {this.
       message += `Score: ${score}\n`;
       message += `Rank: ${rank}\n`;
       message += `Mod: ${(0, _osuUtils.numberToOsuModes)(enabledMods).join(' ')}\n`;
-      message += acc ? `Acc: ${(acc * 100).toFixed(2)}%\n` : 'Acc: N/A';
+      message += acc ? `Acc: ${(acc * 100).toFixed(2)}%\n` : 'Acc: N/A\n';
       message += `Max Combo: ${maxcombo}/${map.max_combo()}\n`;
       message += `${count300}x300, ${count100}x100, ${count50}x50, ${countmiss}xmiss\n`;
       if (info.playInfo.pp) {

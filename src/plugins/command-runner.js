@@ -122,16 +122,6 @@ class CommandRunner {
     }
     return 'break';
   }
-
-  // @withTransaction
-  // async createTable(trx) {
-  //   if (!(await trx.schema.hasTable('group_command_list'))) {
-  //     await trx.schema.createTable('group_command_list', (table) => {
-  //       table.bigInteger('group_id').primary();
-  //       table.string('command_list');
-  //     });
-  //   }
-  // }
 }
 
 export default CommandRunner;

@@ -1,0 +1,50 @@
+name: Build And Deploy
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:
+
+jobs:
+  build_and_run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v2
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v2.4.0
+        with:
+          node-version: 12.x
+          cache: npm
+      - name: Install
+        run: npm install
+      - name: Build
+        run: npm run build
+      - name: Move lock file
+        run: cp package.json package-lock.json built
+      - name: Sync files to server
+        uses: easingthemes/ssh-deploy@v2.2.11
+        env: 
+          SSH_PRIVATE_KEY: ${{ secrets.SERVER_SSH_KEY }}
+          ARGS: "-avzr --delete"
+          SOURCE: "built/"
+          REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
+          REMOTE_USER: ${{ secrets.REMOTE_USER }}
+          TARGET: ${{ secrets.REMOTE_TARGET }}/built
+      - name: Connect and run
+        uses: JimCronqvist/action-ssh@master
+        with: 
+          hosts: ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }}
+          privateKey: ${{ secrets.SERVER_SSH_KEY }}
+          command: |
+            cd ~/japari-admin
+            mv -f built/package.json built/package-lock.json ./
+            npm install --production --unsafe-perm
+            pm2 restart japari-admin
+            echo 'initializing, wait 10s ...'
+            sleep 10
+            echo 'health checking ...'
+            curl -S -m 10 -o /dev/null http://localhost:9999/
+            echo 'done!'

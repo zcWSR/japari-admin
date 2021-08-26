@@ -13,8 +13,7 @@
   "license": "MIT",
   "husky": {
     "hooks": {
-      "commit-msg": "commitlint -e $HUSKY_GIT_PARAMS",
-      "pre-push": "./build-before-push.sh"
+      "commit-msg": "commitlint -e $HUSKY_GIT_PARAMS"
     }
   },
   "dependencies": {

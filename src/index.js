@@ -48,7 +48,6 @@ async function start() {
     });
     isDev() && logger.info('******** now in debug mode ********');
     await RedisService.connect();
-    await DBService.checkTables();
     await PluginService.loadPlugins(DBService.DBInstance);
     initServer(getPort());
     QQService.sendReadyMessage();

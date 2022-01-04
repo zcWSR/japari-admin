@@ -18,7 +18,7 @@ class NewNotice {
     const { notice_type: noticeType, group_id: groupId, user_id: userId } = body;
     if (noticeType !== 'group_increase') return 'break';
     logger.info(`群 ${groupId} 有新成员 ${userId} 加入, 正在查询昵称...`);
-    const memberName = await QQService.getGroupUserName(groupId, userId);
+    const memberName = await QQService.getGroupUserName(groupId, userId, true);
     if (!memberName) return 'break';
     const template = await this.getTemplate(groupId);
     let msg;

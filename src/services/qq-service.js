@@ -70,11 +70,12 @@ class QQService {
     }
   }
 
-  async getGroupUserName(groupId, userId) {
+  async getGroupUserName(groupId, userId, noCache = false) {
     try {
       const meta = await axios.post(`${Config.QQ_SERVER}/get_group_member_info`, {
         group_id: groupId,
-        user_id: userId
+        user_id: userId,
+        no_cache: noCache
       });
       const memberInfo = meta.data.data;
       if (!memberInfo) return null;

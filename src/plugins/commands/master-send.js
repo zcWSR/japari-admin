@@ -10,7 +10,7 @@ import QQService from '../../services/qq-service';
 })
 class MasterSend {
   async run(params, body) {
-    const match = params.match(/(group|private)(\d+)\s(.*)$/);
+    const match = params.match(/(group|private)(\d+)[\s|\n](.*)$/);
     if (!match) {
       QQService.sendPrivateMessage(body.user_id, '非法参数');
       return;

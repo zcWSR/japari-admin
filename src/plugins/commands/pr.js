@@ -17,7 +17,7 @@ class Roll {
   run(params, body) {
     let content = 'prpr';
     if (params) {
-      content = `舔舔${params}`;
+      content = Math.random() > 0.5 ? `舔舔${params}` : `[CQ:poke,qq=${body.user_id}]`;
     }
     if (this.noPr()) {
       content = '不舔了, 舔不动了';

@@ -37,15 +37,6 @@ export const Plugin = (config) => {
   };
 };
 
-export const Block = (target, name, descriptor) => {
-  const fn = descriptor.value;
-  // eslint-disable-next-line space-before-function-paren
-  descriptor.value = async function value(...args) {
-    return (await fn.call(this, ...args)) || true;
-  };
-  return descriptor;
-};
-
 export const Command = (config) => {
   const defaultConfig = {
     name: '', // 指令中文简称

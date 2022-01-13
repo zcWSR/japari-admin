@@ -8,9 +8,8 @@ class FirebaseService {
       credential: admin.credential.cert(Config.FIREBASE_KEY),
       storageBucket: this.bucketUrl
     });
-    this.db = this.app.firestore();
     this.bucket = this.app.storage().bucket();
-    this.groupCollection = this.db.collection('qqGroup');
+    this.db = this.app.firestore();
   }
 }
 

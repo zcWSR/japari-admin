@@ -3,7 +3,7 @@ import { isDev } from '../utils/env';
 import Config from '../config';
 
 class DBService {
-  constructor() {
+  init() {
     /**
      * 目前在线的表有：
      * osu_map osu 铺面缓存 （TODO: 迁移到 firebase）

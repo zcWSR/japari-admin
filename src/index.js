@@ -47,8 +47,9 @@ async function start() {
       colors: ['yellow', 'green']
     });
     isDev() && logger.info('******** now in debug mode ********');
+    DBService.init();
     await RedisService.connect();
-    await PluginService.loadPlugins(DBService.DBInstance);
+    await PluginService.loadPlugins();
     initServer(getPort());
     QQService.sendReadyMessage();
   } catch (e) {

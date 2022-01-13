@@ -1,11 +1,12 @@
 import path from 'path';
+import logger from '../utils/logger';
 import FileService from './file-service';
 import RedisService from './redis-service';
-// import DBService from './db-service';
-import logger from '../utils/logger';
+import DBService from './db-service';
 
 class PluginService {
   plugins = {
+    loader: [],
     group: [],
     private: [],
     notice: []
@@ -33,26 +34,39 @@ class PluginService {
     if (plugin.type === 'notice') {
       logger.debug("category is 'notice', load into notice plugin list");
       this.plugins.notice.push(plugin);
-      this.plugins.notice.some(this.sortByWeight);
+      this.plugins.notice.sort(this.sortByWeight);
+    }
+    if (!plugin.type || plugin.type === 'loader') {
+      logger.debug("category is 'loader', load into loader plugin list");
+      this.plugins.loader.push(plugin);
+      this.plugins.loader.sort(this.sortByWeight);
     }
   }
 
-  // 废弃, 改为惰性加载
-  // async loadGroupPluginConfig() {
-  //   const configArray = (await DBService.getAllGroupPluginConfig()) || [];
-  //   this.groupConfigs = configArray.reduce(
-  //     (groupMap, { groupId, pluginList: pluginNameString }) => {
-  //       const nameList = pluginNameString.split(' ');
-  //       console.log(nameList);
-  //       groupMap[groupId] = nameList.reduce((configMap, name) => {
-  //         configMap[name] = true;
-  //         return configMap;
-  //       }, {});
-  //       return groupMap;
-  //     },
-  //     {}
-  //   );
-  // }
+  async initSerial(plugins) {
+    // eslint-disable-next-line no-restricted-syntax
+    for (const plugin of plugins) {
+      plugin.setDBInstance(DBService.DBInstance);
+      if (plugin.createTable) {
+        logger.debug('create required database');
+        await plugin.createTable();
+      }
+      if (plugin.init) {
+        logger.debug('init plugin');
+        await plugin.init();
+      }
+      logger.info(`load plugin '${plugin.name}' complete`);
+    }
+  }
+
+  // 按类型 & 权重优先级顺序初始化插件
+  async initAllPlugin() {
+    // loader 类插件最先初始化
+    await this.initSerial(this.plugins.loader);
+    await this.initSerial(this.plugins.group);
+    await this.initSerial(this.plugins.private);
+    await this.initSerial(this.plugins.notice);
+  }
 
   async loadPrivatePluginConfig() {
     // 暂时搞成加载全部, 后期改成可配置
@@ -63,7 +77,7 @@ class PluginService {
     });
   }
 
-  async loadPlugins(db) {
+  async loadPlugins() {
     logger.info('======== start load plugin ========');
     // eslint-disable-next-line no-restricted-syntax
     for (const file of FileService.getDirFiles(path.resolve(__dirname, '../plugins'))) {
@@ -77,21 +91,9 @@ class PluginService {
       const Plugin = required.default;
       const plugin = new Plugin();
       if (!plugin.name) throw new Error('plugin require a name');
-      // if (result[plugin.name]) {
-      //   logger.warn(`detect same name plugin '${plugin.name}', overwrite it`);
-      // }
-      plugin.setDBInstance(db);
-      if (plugin.createTable) {
-        logger.debug('create required database');
-        await plugin.createTable();
-      }
-      if (plugin.init) {
-        logger.debug('init plugin');
-        await plugin.init();
-      }
       this.classifyPlugin(plugin);
-      logger.info(`load plugin '${plugin.name}' complete`);
     }
+    await this.initAllPlugin();
     this.defaultGroupConfig = this.plugins.group.reduce((prev, curr) => {
       if (curr.default) {
         prev.push(curr.name);
@@ -105,7 +107,7 @@ class PluginService {
 
   /**
    * 获取对应postType的所有插件列表
-   * @param { string } postType 上报事件类型
+   * @param {string} postType 上报事件类型
    * @return {[Plugin]} 插件列表
    */
   getPlugins(postType) {

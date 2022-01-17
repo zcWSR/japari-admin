@@ -11,6 +11,12 @@ class FirebaseService {
     this.bucket = this.app.storage().bucket();
     this.db = this.app.firestore();
   }
+
+  getSchedulesRef() {
+    if (this.schedulesRef) return this.schedulesRef;
+    this.schedulesRef = this.db.collection('schedules');
+    return this.schedulesRef;
+  }
 }
 
 export default new FirebaseService();

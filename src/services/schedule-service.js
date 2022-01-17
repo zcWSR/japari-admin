@@ -1,6 +1,7 @@
 import moment from 'moment-timezone';
 import schedule, { scheduleJob } from 'node-schedule';
 import logger from '../utils/logger';
+import FirebaseService from './firebase-service';
 import QQService from './qq-service';
 
 const DAY_NAME_MAP = {
@@ -15,23 +16,18 @@ const DAY_NAME_MAP = {
 };
 
 class ScheduleService {
-  db = null;
-  setDBInstance(instance) {
-    this.db = instance;
+  async getAllSchedule() {
+    const ref = FirebaseService.getSchedulesRef();
+    const data = await ref.get();
+    return data.docs;
   }
 
-  getAllSchedule() {
-    return this.db('schedule').select('*');
+  getScheduleName(groupId) {
+    return `s-${groupId}`;
   }
 
-  async getScheduleNameByGroupId(groupId) {
-    const meta = await this.db('schedule').first('name').where('group_id', groupId);
-    if (!meta) return null;
-    return meta.name;
-  }
-
-  getScheduleByGroupId(groupId) {
-    return this.db('schedule').first().where('group_id', groupId);
+  getScheduleRefByGroupId(groupId) {
+    return FirebaseService.getSchedulesRef().doc(`${groupId}`);
   }
 
   getRuleFromString(ruleString) {
@@ -75,10 +71,6 @@ class ScheduleService {
     };
   }
 
-  // function addZero(number, wantLength) {
-  //   return `0000000000${number}`.slice(-wantLength);
-  // }
-
   formatText(text) {
     const now = moment(new Date()).tz('Asia/Shanghai');
     return text
@@ -98,24 +90,24 @@ class ScheduleService {
     QQService.sendGroupMessage(groupId, formattedText);
   }
 
-  runSchedule(groupId, name, ruleString, text) {
+  runSchedule(groupId, ruleString, text) {
     const { hours, days, rule } = this.getRuleFromString(ruleString);
-    logger.info(`rule '${rule}'`);
+    const name = this.getScheduleName(groupId);
     scheduleJob(
       name,
       { rule, tz: 'Asia/Shanghai' },
       this.sendText.bind(this, groupId, text)
     );
+    logger.info(`run schedule '${name}', rule '${rule}'`);
     return { hours, days };
   }
 
   async runAllSchedule() {
     try {
-      const all = await this.getAllSchedule();
-      // eslint-disable-next-line object-curly-newline
-      all.forEach(({ group_id: groupId, name, rule: ruleString, text }) => {
-        this.runSchedule(groupId, name, ruleString, text);
-        logger.info(`run schedule '${name}'`);
+      const docs = await this.getAllSchedule();
+      docs.forEach((doc) => {
+        const { rule, text } = doc.data();
+        this.runSchedule(doc.id, rule, text);
       });
     } catch (e) {
       logger.error(e);
@@ -124,32 +116,25 @@ class ScheduleService {
     }
   }
 
-  cancelSchedule(name) {
-    const job = schedule.scheduledJobs[name];
+  cancelSchedule(id) {
+    const job = schedule.scheduledJobs[this.getScheduleName(id)];
     if (job) {
       job.cancel();
     }
   }
 
   async setSchedule(groupId, rule, text) {
-    const name = await this.getScheduleNameByGroupId(groupId);
-    if (name) {
-      this.cancelSchedule(name);
-    }
-    const newName = `s-${groupId}`;
-    const { hours, days } = this.runSchedule(groupId, newName, rule, text);
-    if (name) {
-      await this.db('schedule')
-        .update({
-          name: newName,
-          rule: `${hours.join(',')} ${days.join(',')}`,
-          text
-        })
-        .where('group_id', groupId);
+    this.cancelSchedule(groupId);
+    const docRef = this.getScheduleRefByGroupId(groupId);
+    const doc = await docRef.get();
+    const { hours, days } = this.runSchedule(groupId, rule, text);
+    if (doc.exists) {
+      await docRef.update({
+        rule: `${hours.join(',')} ${days.join(',')}`,
+        text
+      });
     } else {
-      await this.db('schedule').insert({
-        group_id: groupId,
-        name: newName,
+      await docRef.set({
         rule: `${hours.join(',')} ${days.join(',')}`,
         text
       });
@@ -158,12 +143,8 @@ class ScheduleService {
   }
 
   async removeSchedule(groupId, name) {
-    // const schedule = await getScheduleByGroupId(groupId);
-    // if (!schedule) {
-    //   return -1;
-    // }
     this.cancelSchedule(name);
-    await this.db('schedule').where('group_id', groupId).del();
+    await this.getScheduleRefByGroupId(groupId).delete();
     return 0;
   }
 

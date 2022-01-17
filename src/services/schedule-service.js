@@ -30,6 +30,11 @@ class ScheduleService {
     return FirebaseService.getSchedulesRef().doc(`${groupId}`);
   }
 
+  async getScheduleByGroupId(groupId) {
+    const doc = await this.getScheduleRefByGroupId(groupId).get();
+    return doc.data();
+  }
+
   getRuleFromString(ruleString) {
     // eslint-disable-next-line prefer-const
     let [hourString, dayString = 'everyday'] = ruleString.split(' ');

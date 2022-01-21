@@ -34,7 +34,7 @@
     "koa-router": "^7.4.0",
     "lodash": "^4.17.15",
     "lodash.combinations": "^18.9.19",
-    "log4js": "^4.0.2",
+    "log4js": "^6.4.0",
     "moment": "^2.24.0",
     "moment-timezone": "^0.5.27",
     "node-schedule": "^2.0.0",

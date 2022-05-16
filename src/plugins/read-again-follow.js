@@ -7,6 +7,8 @@ import logger from '../utils/logger';
 import { sleep } from '../utils/process';
 
 const DEFAULT_GROUP_INFO = { message: '', count: 1 };
+const IMG_REG = /\[CQ:image,file=([^,]+),url=([^\]]+)\]/;
+
 @Plugin({
   name: 'read-again-follow',
   weight: 98,
@@ -16,9 +18,13 @@ const DEFAULT_GROUP_INFO = { message: '', count: 1 };
   mute: true
 })
 class ReadAgainFollow {
+  // 判断和前一条是否相似ƒ
   isSimilar(a, b) {
     try {
-      // 判断和前一条是否相似
+      // 图片跳过相似度检查
+      if (b.match(IMG_REG)) {
+        return a === b;
+      }
       return ReadAgainService.similar(a, b);
     } catch (e) {
       logger.error('get similar message error:');

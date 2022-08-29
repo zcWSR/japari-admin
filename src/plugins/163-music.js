@@ -9,8 +9,6 @@ const commandPrefixList = ['点歌', '来一首', '我想听'];
 
 const MAX_COUNT_PRE_MINUTE = 2;
 
-const MUSIC_ID_CACHE_KEY = '163-music-keyword-cache';
-
 const CHS_NUMBER_LIST = ['一', '第二', '第三', '第四', '第五', '第六', '第七', '第八', '第九'];
 
 const SUFFIX_TEXT_TEMPLATE_MAP = {
@@ -32,8 +30,12 @@ const SHIFT_METHOD_MAP = {
   mute: true
 })
 class NetEastMusic {
-  getRedisKey(id) {
-    return `163-music-${id}`;
+  getTimeoutRedisKey(id) {
+    return `163-music-timeout-${id}`;
+  }
+
+  getIdCacheRedisKey(keyword) {
+    return `163-music-keyword-${keyword}`;
   }
 
   isCommand(content) {
@@ -55,7 +57,7 @@ class NetEastMusic {
         prefix,
         suffix,
         shiftCount: +shiftCount,
-        keyword
+        keyword: keyword.trim()
       };
     }
     return false;
@@ -64,24 +66,24 @@ class NetEastMusic {
   async canSearch({ user_id: userId, group_id: groupId }, type) {
     try {
       const id = type === 'group' ? groupId : userId;
-      const key = this.getRedisKey(id);
-      let [firstTime, count] = ((await RedisService.get(key)) || ',').split(',');
+      const timeoutKey = this.getTimeoutRedisKey(id);
+      let [firstTime, count] = ((await RedisService.get(timeoutKey)) || ',').split(',');
       const nowDateTime = Date.now();
       firstTime = +firstTime || nowDateTime;
       count = +count || 0;
 
       // 超过一分钟, 用当前时间重设, 次数重置为1, 并继续
       if (nowDateTime - firstTime > 1000 * 60) {
-        await RedisService.set(key, `${nowDateTime},1`);
+        await RedisService.set(timeoutKey, `${nowDateTime},1`);
         return true;
       }
       // 如不足最大限制次数, 则记录第一次调用时间和当前次数, 并继续
       if (count < MAX_COUNT_PRE_MINUTE) {
-        await RedisService.set(key, `${firstTime},${count + 1}`);
+        await RedisService.set(timeoutKey, `${firstTime},${count + 1}`);
         return true;
       }
       // 如超过最大调用次数并在一分钟内, 则判定为过量, 阻止
-      await RedisService.set(key, `${firstTime},${count + 1}`);
+      await RedisService.set(timeoutKey, `${firstTime},${count + 1}`);
       return false;
     } catch (e) {
       // 异常统一阻止
@@ -94,7 +96,7 @@ class NetEastMusic {
   async checkKeywordCache(keyword) {
     try {
       logger.info(`checking music keyword cache: ${keyword}`);
-      const result = await RedisService.redis.hget(MUSIC_ID_CACHE_KEY, keyword);
+      const result = await RedisService.get(this.getIdCacheRedisKey(keyword));
       if (result) {
         logger.info(`get keyword cache, id: ${result}`);
       } else {
@@ -108,9 +110,11 @@ class NetEastMusic {
     }
   }
 
-  setKeywordCache(keyword, id) {
+  async setKeywordCache(keyword, id) {
     logger.info(`set music keyword cache: ${keyword}, id: ${id}`);
-    return RedisService.redis.hset(MUSIC_ID_CACHE_KEY, keyword, id);
+    const cacheKey = this.getIdCacheRedisKey(keyword);
+    await RedisService.set(cacheKey, id);
+    await RedisService.redis.expire(cacheKey, 60 * 60 * 24);
   }
 
   getSearchUrl() {
@@ -129,7 +133,6 @@ class NetEastMusic {
         method: 'get',
         params: {
           keywords: keyword,
-          limit: 10, // 留点儿量, 方便支持偏移指令
           type: 1
         }
       });
@@ -232,6 +235,10 @@ class NetEastMusic {
     const c = this.isCommand(message);
     if (!c) return; // 不是指令, 直接跳过流程
     logger.info(`163-music triggered, params: ${JSON.stringify(c)}`);
+    if (!c.keyword) {
+      this.sendMessage('非法参数', body, type);
+      return 'break';
+    }
     if (c.shiftCount > 9) {
       this.sendMessage('超出最大偏移量, 最多偏移九位', body, type);
       return 'break';

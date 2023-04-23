@@ -31,12 +31,4 @@ const test = async () => {
   console.log(msg);
 };
 
-
-// const test = () => {
-//   const canvas = createCanvas(0, 0);
-//   const ctx = canvas.getContext('2d');
-//   const result = ctx.measureText('赵聪是个好学生');
-//   console.log(result);
-// };
-
 export default test;

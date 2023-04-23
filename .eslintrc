@@ -1,7 +1,7 @@
 {
   "plugins": ["import"],
   "extends": "airbnb-base",
-  "parser": "babel-eslint",
+  "parser": "@babel/eslint-parser",
   "rules": {
     "no-param-reassign": 0,
     "comma-dangle": ["error", "never"],

@@ -1,4 +1,4 @@
-import { createCanvas } from 'canvas';
+import { createCanvas } from '@napi-rs/canvas';
 import TopText from './top-text';
 import BottomText from './bottom-text';
 

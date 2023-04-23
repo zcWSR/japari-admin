@@ -58,5 +58,5 @@ async function start() {
   }
 }
 
-process.on('error', error => logger.error(error));
+process.on('error', (error) => logger.error(error));
 start();

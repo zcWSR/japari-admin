@@ -1,9 +1,10 @@
-import { registerFont, createCanvas } from 'canvas';
+import { GlobalFonts, createCanvas } from '@napi-rs/canvas';
 
 export default class Measurer {
   static instanceMap = {};
   static registerFont(fontPath, name) {
-    registerFont(fontPath, { family: name });
+    console.log(fontPath, name)
+    GlobalFonts.registerFromPath(fontPath, name);
   }
 
   /**
@@ -19,7 +20,8 @@ export default class Measurer {
   }
 
   constructor(fontFamily) {
-    const canvas = createCanvas(0, 0);
+    // 不可为 0 0，会报错
+    const canvas = createCanvas(1, 1);
     this.ctx = canvas.getContext('2d');
     this.fontFamily = fontFamily;
     this.cache = {};

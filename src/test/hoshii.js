@@ -1,9 +1,5 @@
-// import test from './akhr';
-
-// test();
-
-import Loader from '../plugins/font-loader';
 import '../config';
+import Loader from '../plugins/font-loader';
 import FirebaseService from '../services/firebase-service';
 import HoShiiService from '../services/hoshii-service';
 
@@ -14,4 +10,4 @@ async function test() {
   console.log(url);
 }
 
-test();
+export default test;

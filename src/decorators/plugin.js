@@ -18,7 +18,7 @@ export const Plugin = (config) => {
   } else if (typeof config === 'object') {
     config = { ...defaultConfig, ...config };
   }
-  return target => class extends target {
+  return (target) => class extends target {
     constructor() {
       super();
       Object.keys(config).forEach((configName) => {
@@ -59,7 +59,7 @@ export const Command = (config) => {
   if (config.type === 'private' && config.level < 3) {
     config.level = 1;
   }
-  return target => class extends target {
+  return (target) => class extends target {
     constructor() {
       super();
       Object.keys(config).forEach((configName) => {

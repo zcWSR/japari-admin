@@ -32,7 +32,7 @@ class GenshinCharaArtifacts {
       return;
     }
     const position = parseInt(indexString, 10) || 0;
-    if (position >= 8) {
+    if (position < 0 || position > 8) {
       this.sendMsg(body, type, '非法参数，范围限定 1-8 号位');
       return;
     }

@@ -1,5 +1,5 @@
 import { Command } from '../../decorators/plugin';
-import GenshinService from '../../services/genshin-service';
+import GenshinService, { GenshinError } from '../../services/genshin-service';
 import QQService from '../../services/qq-service';
 
 @Command({
@@ -36,12 +36,17 @@ class GenshinCharaArtifacts {
       this.sendMsg(body, type, '非法参数，范围限定 1-8 号位');
       return;
     }
-    const url = await GenshinService.drawCharaArtifactsAndGetRemoteUrl(uid, position);
-    if (!url) {
-      this.sendMsg(body, type, '获取了 0 角色数据，请尝试更新展示板');
-      return;
+    try {
+      const url = await GenshinService.drawCharaArtifactsAndGetRemoteUrl(uid, position);
+      this.sendImg(body, type, url);
+    } catch (error) {
+      if (error instanceof GenshinError) {
+        this.sendMsg(body, type, error.message);
+      } else {
+        this.sendMsg(body, type, '出现了不可预料的错误');
+        throw error;
+      }
     }
-    this.sendImg(body, type, url);
   }
 }
 

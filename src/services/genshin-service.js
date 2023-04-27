@@ -13,6 +13,13 @@ const EQUIP_TYPE_MAP = {
   EQUIP_DRESS: 'circlet'
 };
 
+export class GenshinError extends Error {
+  constructor(msg) {
+    super(msg);
+    this.name = 'GenshinError';
+  }
+}
+
 class GenshinService {
   buildReliquaryInfo(item) {
     let info;
@@ -107,19 +114,46 @@ class GenshinService {
   }
 
   async getCharaData(uid) {
-    const meta = await axios.get(`https://enka.network/api/uid/${uid}`);
+    let meta;
+    try {
+      logger.info(`fetch genshin player(${uid}) character data...`);
+      meta = await axios.get(`https://enka.network/api/uid/${uid}`);
+    } catch (error) {
+      if (error?.response) {
+        const code = error.response.status;
+        logger.info(`fetch genshin player(${uid}) character error, code ${code}`);
+        switch (code) {
+          case 400:
+            throw new GenshinError('UID 格式错误');
+          case 404:
+            throw new GenshinError('玩家不存在（MHY 服务器说的）');
+          case 424:
+            throw new GenshinError('系统维护中，再等等吧');
+          case 429:
+            throw new GenshinError('请求频率过高，请稍后再试吧');
+          case 500:
+          case 503:
+          default:
+            throw new GenshinError('出错了，但不知道为什么');
+        }
+      }
+      logger.info(`fetch genshin player(${uid}) character error, unexpected error`);
+      throw new GenshinError('获取数据失败，请重试');
+    }
     const { playerInfo, avatarInfoList } = meta.data;
+    if (!avatarInfoList?.length) {
+      throw new GenshinError('未获取到角色数据，请尝试更新展示板');
+    }
     return avatarInfoList.map((avatarInfo) => this.buildCharacterData(uid, playerInfo, avatarInfo));
   }
 
   async drawCharaArtifactsImage(uid, position) {
     let dataList = await this.getCharaData(uid);
-    if (!dataList.length) return null;
     // 如果传了 position 只选出对应 position 的，本质还是渲染拼图只不过这里只拼一个
     if (position) {
       dataList = [dataList[position - 1]];
     }
-    logger.info(`query genshin character total number: ${dataList.length}`);
+    logger.info(`player(${uid}) character total number: ${dataList.length}`);
     const cardCanvasList = await Promise.all(dataList.map((data) => generateCard(data)));
     const [rowCount, colCount] = this.calcRowCol(cardCanvasList.length);
     const width = colCount * defaultCardConfig.width;

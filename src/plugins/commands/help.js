@@ -27,17 +27,20 @@ class Help {
     const instance = this.getCommandInstance(commandName, body, commandMap);
     if (instance) {
       const { name, command, info } = instance;
-      return `指令名: ${name}\ncommand: ${command}\n描述: ${info || '无描述'}`;
+      const cmd = Array.isArray(command) ? instance.command.join('|') : command;
+      return `指令名: ${name}\ncommand: ${cmd}\n描述: ${info || '无描述'}`;
     }
     return `指令'${commandName}'不存在或被隐藏`;
   }
 
   showAll(body, commandMap) {
     let content = "可用指令: (使用'!help 指令名'可查看详细用法)";
-    Object.keys(commandMap).forEach((name) => {
-      const instance = this.getCommandInstance(name, body, commandMap);
+    const commands = Object.keys(commandMap).map((name) => this.getCommandInstance(name, body, commandMap));
+    const commendSet = new Set(commands);
+    commendSet.forEach((instance) => {
       if (instance) {
-        content += `\n!${instance.command}  ${instance.name || ''}`;
+        const cmd = Array.isArray(instance.command) ? instance.command.join('|') : instance.command;
+        content += `\n!${cmd}  ${instance.name || ''}`;
       }
     });
     return content;

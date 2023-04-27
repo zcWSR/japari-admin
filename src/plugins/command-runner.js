@@ -86,14 +86,14 @@ class CommandRunner {
    * @param {string} content 完整内容
    */
   isCommand(content) {
-    let match = content.match(/^[!|\uFF01]([\0-\uFFFF]{2,})\s([\0-\uFFFF]*)$/);
+    let match = content.match(/^[!|\uFF01]([\u4e00-\u9fa5_a-zA-Z0-9_]{2,})\s([\0-\uFFFF]*)$/);
     if (match) {
       const [, name, params] = match;
       // 需要 html decode，发现标点符号会被转译
       return { name, params: decode(params.trim()) };
     }
     // 对无参数指令做分别处理, 防止出现!recent1 类似这样不加空格也能匹配成功的问题
-    match = content.match(/^[!|\uff01]([\0-\uFFFF]{2,})$/);
+    match = content.match(/^[!|\uff01]([\u4e00-\u9fa5_a-zA-Z0-9_]{2,})$/);
     if (!match) return null;
     return {
       name: match[1],

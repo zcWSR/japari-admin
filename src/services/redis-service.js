@@ -4,7 +4,7 @@ import logger from '../utils/logger';
 
 const GROUP_PLUGIN_CONFIG_KEY = 'group-plugin-config';
 
-const getGroupPluginConfigKey = key => `${GROUP_PLUGIN_CONFIG_KEY}-${key}`;
+const getGroupPluginConfigKey = (key) => `${GROUP_PLUGIN_CONFIG_KEY}-${key}`;
 
 class RedisService {
   connect() {

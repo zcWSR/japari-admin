@@ -3,7 +3,6 @@ import { GlobalFonts, createCanvas } from '@napi-rs/canvas';
 export default class Measurer {
   static instanceMap = {};
   static registerFont(fontPath, name) {
-    console.log(fontPath, name)
     GlobalFonts.registerFromPath(fontPath, name);
   }
 

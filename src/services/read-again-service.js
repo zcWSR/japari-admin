@@ -14,7 +14,6 @@ const MAX_MSG_SIZE = 100;
 const FULL_WIDTH = '　１２３４５６７８９０!＠＃＄％＾＆＊（）－＝＿＋［］｛｝;＇:＂,．／＜＞?＼｜｀～ｑｗｅｒｔｙｕｉｏｐａｓｄｆｇｈｊｋｌｚｘｃｖｂｎｍＱＷＥＲＴＹＵＩＯＰＡＳＤＦＧＨＪＫＬＺＸＣＶＢＮＭ';
 const HALF_WIDTH = ' 1234567890！@#$%^&*()-=_+[]{}；\'："，./<>？\\|`~qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM';
 
-
 const FULL_WIDTH_MAP = Array.from(FULL_WIDTH).reduce((result, char, index) => {
   result[char] = HALF_WIDTH[index];
   return result;
@@ -38,7 +37,7 @@ class ReadAgainService {
   trimPinyin(s) {
     s = this.filter(s);
     return Array.from(s.toLowerCase())
-      .map(c => pinyinTable[c] || c)
+      .map((c) => pinyinTable[c] || c)
       .join('');
   }
 

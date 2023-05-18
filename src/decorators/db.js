@@ -3,7 +3,7 @@ import logger from '../utils/logger';
 /**
  * @param {string} tableName
  */
-export const createWithLog = tableName => (target, name, descriptor) => {
+export const createWithLog = (tableName) => (target, name, descriptor) => {
   const origin = descriptor.value;
   // eslint-disable-next-line
   descriptor.value = async function() {
@@ -32,7 +32,7 @@ export const withTransaction = (target, name, descriptor) => {
   // eslint-disable-next-line
   descriptor.value = function(...args) {
     // try {
-    return this.DBInstance.transaction(trx => origin.call(this, trx, ...args));
+    return this.DBInstance.transaction((trx) => origin.call(this, trx, ...args));
     // } catch (e) {
     //   logger.error(e);
     //   return null;

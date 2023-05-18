@@ -12,8 +12,8 @@ const MAX_COUNT_PRE_MINUTE = 2;
 const CHS_NUMBER_LIST = ['一', '第二', '第三', '第四', '第五', '第六', '第七', '第八', '第九'];
 
 const SUFFIX_TEXT_TEMPLATE_MAP = {
-  prev: count => `前${CHS_NUMBER_LIST[count - 1]}首`,
-  next: count => `后${CHS_NUMBER_LIST[count - 1]}首`
+  prev: (count) => `前${CHS_NUMBER_LIST[count - 1]}首`,
+  next: (count) => `后${CHS_NUMBER_LIST[count - 1]}首`
 };
 
 const SHIFT_METHOD_MAP = {
@@ -159,7 +159,7 @@ class NetEastMusic {
       return id;
     }
     // redis 返回的结果是数字
-    const currIdx = songs.findIndex(song => song.id === id);
+    const currIdx = songs.findIndex((song) => song.id === id);
     // 返回结果里找不到了, 默认取第一首
     if (currIdx === -1) {
       logger.info('can not find music in search result, use index 0 as default');

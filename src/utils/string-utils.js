@@ -1,7 +1,7 @@
 export function toSmallCamel(string) {
   return string
     .replace(/_([a-zA-z])/g, ($, $1) => $1.toUpperCase())
-    .replace(/^\w/i, $ => $.toLowerCase());
+    .replace(/^\w/i, ($) => $.toLowerCase());
 }
 
 export function toDash(string) {

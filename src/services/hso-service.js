@@ -36,7 +36,7 @@ class HsoService {
   }
 
   async addHsoListToRedis(hsoList, plusMode) {
-    const formatList = hsoList.map(hso => JSON.stringify({
+    const formatList = hsoList.map((hso) => JSON.stringify({
       id: hso.id,
       source: hso.source,
       preview: hso.preview_url,

@@ -4,15 +4,19 @@
   "description": "",
   "main": "www.js",
   "scripts": {
+    "prepare": "husky install",
     "start": "gulp build && node ./built/index.js",
     "start:dev": "gulp build && NODE_ENV=dev node ./built/index.js -p=2333",
     "build": "gulp build",
-    "test": "gulp build && NODE_ENV=dev node ./built/test/index.js"
+    "test": "gulp build && NODE_ENV=dev node ./built/test/index.js",
+    "lint": "eslint ./src",
+    "lint:fix": "eslint --fix ./src"
   },
   "author": "zcWSR",
   "license": "MIT",
   "husky": {
     "hooks": {
+      "pre-commit": "npm run lint",
       "commit-msg": "commitlint -e $HUSKY_GIT_PARAMS"
     }
   },

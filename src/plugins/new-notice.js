@@ -3,7 +3,7 @@ import { Plugin } from '../decorators/plugin';
 import QQService from '../services/qq-service';
 import logger from '../utils/logger';
 
-const defaultMsg = name => `欢迎 ${name} 加入本群! 请使用"!help"查看可用指令~`;
+const defaultMsg = (name) => `欢迎 ${name} 加入本群! 请使用"!help"查看可用指令~`;
 
 @Plugin({
   name: 'new-notice',

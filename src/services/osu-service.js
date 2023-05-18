@@ -50,12 +50,10 @@ export default class OSUService {
       try {
         meta = await axios({
           url,
-          params: Object.assign(
-            {
-              k: Config.OSU_APP_KEY
-            },
-            params
-          ),
+          params: {
+            k: Config.OSU_APP_KEY,
+            ...params
+          },
           // eslint-disable-next-line no-mixed-operators
           timeout: 3 ** (retryTimes + 1) * 1000,
           ...config

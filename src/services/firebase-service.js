@@ -17,6 +17,23 @@ class FirebaseService {
     this.schedulesRef = this.db.collection('schedules');
     return this.schedulesRef;
   }
+
+  async uploadImage(filePath, imageBuffer, metadata = {}) {
+    const file = this.bucket.file(filePath);
+    const [exist] = await file.exists();
+    if (!exist) {
+      await file.save(imageBuffer, {
+        validation: 'md5',
+        metadata: {
+          contentType: 'image/png',
+          cacheControl: 'public,max-age=31536000',
+          ...metadata
+        }
+      });
+      await file.makePublic();
+    }
+    return file.publicUrl();
+  }
 }
 
 export default new FirebaseService();

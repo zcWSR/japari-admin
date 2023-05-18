@@ -1,4 +1,3 @@
-import { v4 as uuid } from 'uuid';
 import axios from 'axios';
 import { defaultCardConfig, generateCard } from 'taffy-pvp-card-sw';
 import { createCanvas } from '@napi-rs/canvas';
@@ -176,21 +175,7 @@ class GenshinService {
   async drawCharaArtifactsAndGetRemoteUrl(uid, position) {
     const imageBuffer = await this.drawCharaArtifactsImage(uid, position);
     const filePath = `genshin/${uid}/${Date.now()}.png`;
-    const file = FirebaseService.bucket.file(filePath);
-    const fileDownloadToken = uuid();
-    await file.save(imageBuffer, {
-      validation: 'md5',
-      metadata: {
-        contentType: 'image/png',
-        cacheControl: 'max-age=31536000',
-        metadata: {
-          firebaseStorageDownloadTokens: fileDownloadToken
-        }
-      }
-    });
-    return `https://firebasestorage.googleapis.com/v0/b/${
-      FirebaseService.bucketUrl
-    }/o/${encodeURIComponent(filePath)}?alt=media&token=${fileDownloadToken}`;
+    return FirebaseService.uploadImage(filePath, imageBuffer);
   }
 }
 

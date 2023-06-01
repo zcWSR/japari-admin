@@ -64,6 +64,9 @@ class NetEastMusic {
   }
 
   async canSearch({ user_id: userId, group_id: groupId }, type) {
+    if (Config.ADMINS.includes(userId)) {
+      return true;
+    }
     try {
       const id = type === 'group' ? groupId : userId;
       const timeoutKey = this.getTimeoutRedisKey(id);

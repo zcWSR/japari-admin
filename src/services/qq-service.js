@@ -155,7 +155,7 @@ class QQService {
    * @return {string} 事件类型
    */
   convertMessageType(event) {
-    if (event.post_type === 'message') {
+    if (event.post_type === 'message' || event.post_type === 'message_sent') {
       return event.message_type;
     }
     return event.post_type;

@@ -1,5 +1,6 @@
 import admin from 'firebase-admin';
 import Config from '../config';
+import logger from '../utils/logger';
 
 class FirebaseService {
   init() {
@@ -22,6 +23,7 @@ class FirebaseService {
     const file = this.bucket.file(filePath);
     const [exist] = await file.exists();
     if (!exist) {
+      logger.info(`uploading image to firebase: ${filePath}`);
       await file.save(imageBuffer, {
         validation: 'md5',
         metadata: {
@@ -30,6 +32,14 @@ class FirebaseService {
           ...metadata
         }
       });
+      await file.makePublic();
+    } else {
+      logger.info(`image already exists: ${filePath}`);
+    }
+    const [isPublic] = await file.isPublic();
+    // 处理已存在但是不是 public 的情况
+    if (exist && !isPublic) {
+      logger.info(`making image public: ${filePath}`);
       await file.makePublic();
     }
     return file.publicUrl();

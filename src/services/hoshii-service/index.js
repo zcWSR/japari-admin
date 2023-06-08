@@ -2,11 +2,13 @@
 // import path from 'path';
 import Drawer from './image-drawer';
 import FirebaseService from '../firebase-service';
+import logger from '../../utils/logger';
 
 class HoShiiService {
   drawImage(topText, bottomText) {
     const drawer = new Drawer(topText, bottomText);
     const draw = drawer.draw();
+    logger.info('drawing image');
     return draw.toBuffer('image/png');
     // const stream = draw.createPNGStream();
     // const filePath = path.resolve(__dirname, '../../../res/outPut.png');

@@ -39,6 +39,7 @@ class AkhrUpdate {
     }
     logger.info(`getting img from message: ${topText} ${bottomText}`);
     const dataUrl = await HoShiiService.drawAndGetRemoteUrl(topText, bottomText, `${topText}-${bottomText}`);
+    logger.info(`sending img, dataUrl: ${dataUrl}`);
     this.sendImg(body, type, dataUrl);
   }
 }

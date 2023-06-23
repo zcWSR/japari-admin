@@ -21,6 +21,7 @@ class FirebaseService {
 
   async uploadImage(filePath, imageBuffer, metadata = {}) {
     const file = this.bucket.file(filePath);
+    logger.info(`checking image exists: ${filePath}`);
     const [exist] = await file.exists();
     if (!exist) {
       logger.info(`uploading image to firebase: ${filePath}`);

@@ -8,3 +8,4 @@ firebase*.json
 res/
 .vs/
 built/
+.taffy-pvp-card-sw-cache

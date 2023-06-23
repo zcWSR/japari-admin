@@ -1,16 +1,12 @@
 import axios from 'axios';
-import { defaultCardConfig, generateCard } from 'taffy-pvp-card-sw';
+import { globalConfig, cardConfig, parseCharacterData, generateCard } from 'taffy-pvp-card-sw';
 import { createCanvas } from '@napi-rs/canvas';
 import FirebaseService from './firebase-service';
 import logger from '../utils/logger';
+import path from 'path'
 
-const EQUIP_TYPE_MAP = {
-  EQUIP_BRACER: 'flower',
-  EQUIP_NECKLACE: 'feather',
-  EQUIP_SHOES: 'sands',
-  EQUIP_RING: 'goblet',
-  EQUIP_DRESS: 'circlet'
-};
+globalConfig.logger = logger;
+globalConfig.cacheDir = path.resolve(__dirname, '../../.taffy-pvp-card-sw-cache')
 
 export class GenshinError extends Error {
   constructor(msg) {
@@ -20,92 +16,9 @@ export class GenshinError extends Error {
 }
 
 class GenshinService {
-  buildReliquaryInfo(item) {
-    let info;
-    if (item) {
-      const { reliquarySubstats } = item.flat;
-      const subProps = Array.isArray(reliquarySubstats)
-        ? reliquarySubstats.map((subStats) => ({
-          id: subStats.appendPropId,
-          value: subStats.statValue
-        }))
-        : [];
-      info = {
-        id: item.itemId,
-        level: item.reliquary.level,
-        mainProp: {
-          id: item.flat.reliquaryMainstat.mainPropId,
-          value: item.flat.reliquaryMainstat.statValue
-        },
-        subProps,
-        type: EQUIP_TYPE_MAP[item.flat.equipType]
-      };
-    }
-    return info;
-  }
-
-  buildWeaponInfo(item) {
-    let info;
-    if (item) {
-      info = {
-        id: item.itemId,
-        level: item.weapon.level,
-        promoteLevel: item.weapon.promoteLevel,
-        mainProp: {
-          id: item.flat.weaponStats[0].appendPropId,
-          value: item.flat.weaponStats[0].statValue
-        },
-        subProp:
-          item.flat.weaponStats.length > 1
-            ? {
-              id: item.flat.weaponStats[1].appendPropId,
-              value: item.flat.weaponStats[1].statValue
-            }
-            : null
-      };
-    }
-    return info;
-  }
-
-  buildCharacterData(uid, playerInfo, avatarInfo) {
-    const equipMap = {};
-    avatarInfo.equipList.forEach((item) => {
-      if (item.flat.itemType === 'ITEM_RELIQUARY') {
-        equipMap[EQUIP_TYPE_MAP[item.flat.equipType]] = item;
-      } else if (item.flat.itemType === 'ITEM_WEAPON') {
-        equipMap.weapon = item;
-      }
-    });
-    const {
-      flower, feather, sands, goblet, circlet, weapon
-    } = equipMap;
-
-    return {
-      owner: {
-        uid,
-        name: playerInfo.nickname
-      },
-      id: avatarInfo.avatarId,
-      level: parseInt(avatarInfo.propMap['4001'].val, 10),
-      talent: Array.isArray(avatarInfo.talentIdList)
-        ? avatarInfo.talentIdList.length
-        : 0,
-      skills: Object.keys(avatarInfo.skillLevelMap).map(
-        (key) => avatarInfo.skillLevelMap[key]
-      ),
-      fightPropMap: avatarInfo.fightPropMap,
-      reliquaries: {
-        flower: this.buildReliquaryInfo(flower),
-        feather: this.buildReliquaryInfo(feather),
-        sands: this.buildReliquaryInfo(sands),
-        goblet: this.buildReliquaryInfo(goblet),
-        circlet: this.buildReliquaryInfo(circlet)
-      },
-      weapon: this.buildWeaponInfo(weapon)
-    };
-  }
-
-  // @return [rowCount, colCount]
+  /** 
+   * @return [rowCount, colCount]
+   */
   calcRowCol(length) {
     if (length <= 4) return [1, length];
     if (length <= 6) return [2, 3];
@@ -143,7 +56,7 @@ class GenshinService {
     if (!avatarInfoList?.length) {
       throw new GenshinError('未获取到角色数据，请尝试更新展示板');
     }
-    return avatarInfoList.map((avatarInfo) => this.buildCharacterData(uid, playerInfo, avatarInfo));
+    return avatarInfoList.map((avatarInfo) => parseCharacterData(uid, playerInfo, avatarInfo));
   }
 
   async drawCharaArtifactsImage(uid, position) {
@@ -155,9 +68,9 @@ class GenshinService {
     logger.info(`player(${uid}) character total number: ${dataList.length}`);
     const cardCanvasList = await Promise.all(dataList.map((data) => generateCard(data)));
     const [rowCount, colCount] = this.calcRowCol(cardCanvasList.length);
-    const width = colCount * defaultCardConfig.width;
-    const height = rowCount * defaultCardConfig.height;
-    logger.info(`generate card grid ${colCount} * ${rowCount}, size ${width} * ${height}`);
+    const width = colCount * cardConfig.width;
+    const height = rowCount * cardConfig.height;
+    logger.info(`generating card grid ${colCount} * ${rowCount}, size ${width} * ${height}`);
     const canvas = createCanvas(width, height);
     const ctx = canvas.getContext('2d');
     ctx.fillStyle = '#ffffff';
@@ -165,11 +78,13 @@ class GenshinService {
     cardCanvasList.forEach((cardCanvas, index) => {
       const col = index % colCount;
       const row = Math.floor(index / colCount);
-      const x = col * defaultCardConfig.width;
-      const y = row * defaultCardConfig.height;
+      const x = col * cardConfig.width;
+      const y = row * cardConfig.height;
       ctx.drawImage(cardCanvas, x, y);
     });
-    return canvas.toBuffer('image/png');
+    const result = canvas.toBuffer('image/png');
+    logger.info(`player(${uid}) character image generated`);
+    return result;
   }
 
   async drawCharaArtifactsAndGetRemoteUrl(uid, position) {

@@ -1,3 +1,3 @@
-import test from './hoshii';
+import test from './genshin';
 
 test();

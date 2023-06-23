@@ -5,7 +5,9 @@ import FirebaseService from './firebase-service';
 import logger from '../utils/logger';
 import path from 'path'
 
-globalConfig.logger = logger;
+globalConfig.logger.info = logger.info.bind(logger);
+globalConfig.logger.warn = logger.warn.bind(logger);
+globalConfig.logger.error = logger.error.bind(logger)
 globalConfig.cacheDir = path.resolve(__dirname, '../../.taffy-pvp-card-sw-cache')
 
 export class GenshinError extends Error {

@@ -2,6 +2,7 @@ import { Router, Route } from '../decorators/router';
 import botErrorReporter from '../middlewares/bot-error-reporter';
 import PluginService from '../services/plugin-service';
 import QQService from '../services/qq-service';
+import {updateCache} from 'taffy-pvp-card-sw'
 
 @Router()
 class JapariController {
@@ -23,6 +24,14 @@ class JapariController {
       if ((await plugin.go(fromBot, type)) === 'break') break;
     }
     return {};
+  }
+  @Router.post('/message', botErrorReporter)
+  async message({ request }) {
+    const {type} = request.body;
+    if (type === 'genshinUpdate') {
+      updateCache();
+    }
+    return 'ok';
   }
 }
 

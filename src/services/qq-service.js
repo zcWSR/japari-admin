@@ -166,10 +166,13 @@ class QQService {
       .tz('Asia/Shanghai')
       .format('YYYY年MM月DD日 HH:mm:ss')}`;
     logger.info(message);
-    await Config.ADMINS.map(async (admin, index) => {
+    await this.sendAdminsMessage(message);
+  }
+
+  async sendAdminsMessage(message) {
+    await Config.ADMINS.forEach(async (admin) => {
       await this.sendPrivateMessage(admin, message);
       await sleep();
-      return index;
     });
   }
 

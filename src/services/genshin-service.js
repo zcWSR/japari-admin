@@ -1,14 +1,18 @@
 import axios from 'axios';
-import { globalConfig, cardConfig, parseCharacterData, generateCard } from 'taffy-pvp-card-sw';
+import moment from 'moment-timezone';
+import {
+  globalConfig, cardConfig, parseCharacterData, generateCard, updateCache
+} from 'taffy-pvp-card-sw';
 import { createCanvas } from '@napi-rs/canvas';
+import path from 'path';
 import FirebaseService from './firebase-service';
 import logger from '../utils/logger';
-import path from 'path'
+import QQService from './qq-service';
 
 globalConfig.logger.info = logger.info.bind(logger);
 globalConfig.logger.warn = logger.warn.bind(logger);
-globalConfig.logger.error = logger.error.bind(logger)
-globalConfig.cacheDir = path.resolve(__dirname, '../../.taffy-pvp-card-sw-cache')
+globalConfig.logger.error = logger.error.bind(logger);
+globalConfig.cacheDir = path.resolve(__dirname, '../../.taffy-pvp-card-sw-cache');
 
 export class GenshinError extends Error {
   constructor(msg) {
@@ -18,7 +22,7 @@ export class GenshinError extends Error {
 }
 
 class GenshinService {
-  /** 
+  /**
    * @return [rowCount, colCount]
    */
   calcRowCol(length) {
@@ -93,6 +97,14 @@ class GenshinService {
     const imageBuffer = await this.drawCharaArtifactsImage(uid, position);
     const filePath = `genshin/${uid}/${Date.now()}.png`;
     return FirebaseService.uploadImage(filePath, imageBuffer);
+  }
+
+  async updateCache() {
+    await updateCache(true);
+    const message = `原神数据更新于: ${moment()
+      .tz('Asia/Shanghai')
+      .format('YYYY年MM月DD日 HH:mm:ss')}`;
+    QQService.sendAdminsMessage(message);
   }
 }
 

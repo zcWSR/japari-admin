@@ -1,4 +1,4 @@
-import { Command } from '../../decorators/plugin';
+import { Command, LEVEL } from '../../decorators/plugin';
 import PluginService from '../../services/plugin-service';
 import QQService from '../../services/qq-service';
 
@@ -9,7 +9,7 @@ import QQService from '../../services/qq-service';
   info:
     "用来配置插件开启状态, '!plugin' 来查看开启状态, '!plugin x x' 来切换开启/关闭状态, x为插件编号, 用空格分割",
   default: true,
-  level: 2
+  level: LEVEL.ADMIN
 })
 class PluginConfig {
   getAllPlugins() {
@@ -38,7 +38,7 @@ class PluginConfig {
     if (params.replace(/\d/g, '').trim()) {
       QQService.sendGroupMessage(groupId, '非法参数');
     }
-    const toggleIndexes = params.trim().split(' ');
+    const toggleIndexes = params.split(' ');
     const configMapClone = { ...configMap };
     let alertMsg = '';
     const modifiedPlugin = { name: '', isON: false };

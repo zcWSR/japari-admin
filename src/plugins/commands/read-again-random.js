@@ -1,4 +1,4 @@
-import { Command } from '../../decorators/plugin';
+import { Command, LEVEL } from '../../decorators/plugin';
 import QQService from '../../services/qq-service';
 import RedisService from '../../services/redis-service';
 
@@ -7,7 +7,7 @@ import RedisService from '../../services/redis-service';
   command: 'fd',
   type: 'group',
   info: "查看和设置随机复读概率, '!fd'查看当前概率, '!fd 0.x'设置概率",
-  level: 2
+  level: LEVEL.ADMIN
 })
 class ReadAgainFollow {
   getRedisKey(groupId) {
@@ -28,7 +28,6 @@ class ReadAgainFollow {
   }
 
   async run(params, body) {
-    params = params.trim();
     const { group_id: groupId, user_id: userId } = body;
     if (!params) {
       await this.getReadAgainRate(groupId);

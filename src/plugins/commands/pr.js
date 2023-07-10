@@ -6,8 +6,7 @@ import QQService from '../../services/qq-service';
   command: 'pr',
   type: 'group',
   info: '舔',
-  default: true,
-  level: 1
+  default: true
 })
 class Roll {
   noPr() {

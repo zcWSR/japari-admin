@@ -1,4 +1,4 @@
-import { Command } from '../../decorators/plugin';
+import { Command, LEVEL } from '../../decorators/plugin';
 import HsoService from '../../services/hso-service';
 import QQService from '../../services/qq-service';
 import logger from '../../utils/logger';
@@ -7,7 +7,7 @@ import logger from '../../utils/logger';
   name: 'hso',
   command: 'hso',
   type: 'all',
-  level: 2,
+  level: LEVEL.ADMIN,
   info: '好爽哦'
 })
 class NewNotice {

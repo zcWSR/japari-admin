@@ -15,6 +15,7 @@ const IMG_REG = /\[CQ:image,file=([^,]+),url=([^\]]+)\]/;
   type: 'group',
   shortInfo: '跟随复读',
   info: '当同一群聊连续出现相同消息三次时, 进行复读',
+  default: true,
   mute: true
 })
 class ReadAgainFollow {

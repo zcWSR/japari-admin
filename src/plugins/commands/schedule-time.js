@@ -1,4 +1,4 @@
-import { Command } from '../../decorators/plugin';
+import { Command, LEVEL } from '../../decorators/plugin';
 import QQService from '../../services/qq-service';
 import ScheduleService from '../../services/schedule-service';
 
@@ -9,9 +9,9 @@ const DEFAULT_TEXT = '${hour}点了!';
   name: '设置定时内容时间',
   command: 'scheduleTime',
   type: 'group',
+  level: LEVEL.ADMIN,
   info:
-    "设置定时任务时间, '!scheduleTime xxx yyy' 来调用\nxxx为每日几时执行, 为数字, 例如 '6,7,8' '23', 区间0-23, 用逗号分隔\nyyy为周几执行, 可以不填, 默认为每天\n可设为 '每天' 或 'everyday', '工作日' 或 'weekday', '周末' 或 'weekend', 或用数字表示, 区间0-7, 用逗号分隔",
-  level: 2
+    "设置定时任务时间, '!scheduleTime xxx yyy' 来调用\nxxx为每日几时执行, 为数字, 例如 '6,7,8' '23', 区间0-23, 用逗号分隔\nyyy为周几执行, 可以不填, 默认为每天\n可设为 '每天' 或 'everyday', '工作日' 或 'weekday', '周末' 或 'weekend', 或用数字表示, 区间0-7, 用逗号分隔"
 })
 class ScheduleTime {
   async run(params, body) {

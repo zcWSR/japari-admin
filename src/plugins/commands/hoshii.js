@@ -7,8 +7,7 @@ import logger from '../../utils/logger';
   name: '5000兆円表情包生成器',
   command: 'hoshii',
   type: 'all',
-  info: 'http://yurafuca.com/5000choyen/ 翻版',
-  level: 1
+  info: 'http://yurafuca.com/5000choyen/ 翻版'
 })
 class AkhrUpdate {
   sendMsg(body, type, msg) {
@@ -28,7 +27,7 @@ class AkhrUpdate {
   }
 
   async run(params, body, type) {
-    const [topText, bottomText] = params.trim().split(/\s+/);
+    const [topText, bottomText] = params.split(/\s+/);
     if (!bottomText) {
       this.sendMsg(body, type, '非法参数');
       return;

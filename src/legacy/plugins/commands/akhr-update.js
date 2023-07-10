@@ -1,4 +1,4 @@
-import { Command } from '../../decorators/plugin';
+import { Command, LEVEL } from '../../decorators/plugin';
 import QQService from '../../services/qq-service';
 import AkhrService from '../../services/akhr-service';
 import logger from '../../utils/logger';
@@ -8,7 +8,7 @@ import logger from '../../utils/logger';
   command: 'akhrUpdate',
   type: 'private',
   info: '更新明日方舟公招干员数据, 参数为数据源地址',
-  level: 3
+  level: LEVEL.SUPER_ADMIN
 })
 class AkhrUpdate {
   sendMsg(body, type, msg) {

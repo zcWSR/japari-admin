@@ -26,7 +26,7 @@ class GenshinCharaArtifacts {
   }
 
   async run(params, body, type) {
-    const [uid, indexString] = params.trim().replace('，', ',').split(',');
+    const [uid, indexString] = params.replace('，', ',').split(',');
     if (!uid) {
       this.sendMsg(body, type, '非法参数，请至少传入 uid');
       return;

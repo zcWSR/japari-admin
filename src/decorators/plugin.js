@@ -8,8 +8,8 @@ export const Plugin = (config) => {
     type: 'group', //  所属消息类别
     shortInfo: '', // 短描述
     info: '', // 插件描述
-    default: false, // 默认加载, 可被群配置覆盖,
-    hide: false, // 是否在
+    default: false, // 默认加载, 可被群配置覆盖
+    hide: false, // 是否在插件列表中隐藏
     mute: false // 不打印命中log
   };
 
@@ -35,6 +35,12 @@ export const Plugin = (config) => {
       this.DBInstance = instance;
     }
   };
+};
+
+export const LEVEL = {
+  NORMAL: 1,
+  ADMIN: 2,
+  SUPER_ADMIN: 3
 };
 
 export const Command = (config) => {

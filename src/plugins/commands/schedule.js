@@ -1,4 +1,4 @@
-import { Command } from '../../decorators/plugin';
+import { Command, LEVEL } from '../../decorators/plugin';
 import QQService from '../../services/qq-service';
 import ScheduleService from '../../services/schedule-service';
 
@@ -6,10 +6,10 @@ import ScheduleService from '../../services/schedule-service';
   name: '设置定时内容',
   command: 'schedule',
   type: 'group',
+  level: LEVEL.ADMIN,
   info:
     // eslint-disable-next-line no-template-curly-in-string
-    "设置定时显示文字内容, '!schedule 内容' 来调用\n内容不写为查看当前配置\n'!schedule clear' 为清除当前配置\n提供参数 year month date day hour minute second, 用${xxx}来插入",
-  level: 2
+    "设置定时显示文字内容, '!schedule 内容' 来调用\n内容不写为查看当前配置\n'!schedule clear' 为清除当前配置\n提供参数 year month date day hour minute second, 用${xxx}来插入"
 })
 class Schedule {
   async run(params, body) {

@@ -15,6 +15,7 @@ const DEFAULT_RATE = 0.05;
   type: 'group',
   shortInfo: '随机复读',
   info: '当同一群聊连续出现相同消息三次时, 进行复读',
+  default: true,
   mute: true
 })
 class ReadAgainRandom {

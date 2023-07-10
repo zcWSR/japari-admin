@@ -1,4 +1,4 @@
-import { Command } from '../../decorators/plugin';
+import { Command, LEVEL } from '../../decorators/plugin';
 import { withTransaction } from '../../decorators/db';
 import QQService from '../../services/qq-service';
 
@@ -12,7 +12,7 @@ const DEFAULT_TPL = '欢迎 ${name} 加入本群! 请使用"!help"查看可用�
   info:
   // eslint-disable-next-line no-template-curly-in-string
     "查看当前或设置当前群的入群提醒模板, '!newNotice'来查看, '!newNotice set xxx'来设置, 模板中可使用'${name}'来代替入群人昵称",
-  level: 2
+  level: LEVEL.ADMIN
 })
 class NewNotice {
   getValue(params) {
@@ -54,7 +54,6 @@ class NewNotice {
 
   async run(params, body) {
     const { group_id: groupId } = body;
-    params = params.trim();
     const template = await this.getTemplate(groupId);
     if (!params) {
       if (template) {

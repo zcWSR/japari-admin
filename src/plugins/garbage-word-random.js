@@ -23,6 +23,7 @@ const DEFAULT_RATE = 0.0114514 * Math.ceil(DEFAULT_GARBAGE_WORD_LIST.length / 3)
   type: 'group',
   shortInfo: '垃圾话',
   info: '随机回复垃圾话',
+  default: true,
   mute: true
 })
 class GarbageWordRandom {

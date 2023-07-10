@@ -1,11 +1,11 @@
-import { Command } from '../../decorators/plugin';
+import { Command, LEVEL } from '../../decorators/plugin';
 import QQService from '../../services/qq-service';
 
 @Command({
   name: 'masterSend',
   command: 'masterSend',
   type: 'private',
-  level: 3,
+  level: LEVEL.SUPER_ADMIN,
   info: '操作 bot 说话'
 })
 class MasterSend {

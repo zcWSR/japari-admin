@@ -5,8 +5,7 @@ import QQService from '../../services/qq-service';
   name: '帮助',
   command: 'help',
   type: 'all',
-  info: "用来查看所有指令或者某特定指令的使用方法的指令, '!help 指令名' 来调用",
-  level: 1
+  info: "用来查看所有指令或者某特定指令的使用方法的指令, '!help 指令名' 来调用"
 })
 class Help {
   getCommandInstance(commandName, body, commandMap) {

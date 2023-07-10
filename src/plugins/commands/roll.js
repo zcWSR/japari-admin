@@ -6,8 +6,7 @@ import QQService from '../../services/qq-service';
   command: 'roll',
   type: 'all',
   info: '随机roll一个整, \'!roll xxx\'来调用(不传递参数默认上限为100)',
-  default: true,
-  level: 1
+  default: true
 })
 class Roll {
   sendMessage(type, body, content) {

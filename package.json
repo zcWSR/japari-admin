@@ -49,7 +49,7 @@
     "node-schedule": "^2.1.1",
     "ojsama": "^2.2.0",
     "sqlite3": "^5.0.2",
-    "taffy-pvp-card-sw": "github:muedsa/taffy-pvp-card-sw#0.2.0",
+    "taffy-pvp-card-sw": "github:muedsa/taffy-pvp-card-sw#0.2.2",
     "uuid": "^9.0.0"
   },
   "devDependencies": {

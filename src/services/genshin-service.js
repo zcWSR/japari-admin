@@ -99,12 +99,14 @@ class GenshinService {
     return FirebaseService.uploadImage(filePath, imageBuffer);
   }
 
-  async updateCache() {
+  async updateCache(fileChanges) {
     await updateCache(true);
     const message = `原神数据更新于: ${moment()
       .tz('Asia/Shanghai')
       .format('YYYY年MM月DD日 HH:mm:ss')}`;
-    QQService.sendAdminsMessage(message);
+    QQService.sendAdminsMessage(
+      `${message}\n更新文件:\n${fileChanges.join('\n')}`
+    );
   }
 }
 

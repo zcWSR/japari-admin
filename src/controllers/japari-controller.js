@@ -1,4 +1,4 @@
-import { updateCache } from 'taffy-pvp-card-sw';
+import GenshinService from '../services/genshin-service';
 import { Router, Route } from '../decorators/router';
 import botErrorReporter from '../middlewares/bot-error-reporter';
 import PluginService from '../services/plugin-service';
@@ -28,9 +28,9 @@ class JapariController {
 
   @Route.post('/message', botErrorReporter)
   async message({ request }) {
-    const { type } = request.body;
+    const { type, data } = request.body;
     if (type === 'genshinUpdate') {
-      updateCache();
+      GenshinService.updateCache(data);
     }
     return 'ok';
   }

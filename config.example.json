@@ -7,5 +7,6 @@
   "qqServer": "http://localhost:5000",
   "netEastMusicServer": "http://localhost:5000",
   "admins": [123456789],
-  "qqBotId": 123456789
+  "qqBotId": 123456789,
+  "ip": "207.148.95.111"
 }

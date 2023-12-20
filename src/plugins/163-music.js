@@ -137,7 +137,8 @@ class NetEastMusic {
         method: 'get',
         params: {
           keywords: keyword,
-          type: 1
+          type: 1,
+          realIP: Config.IP
         }
       });
       const { result = {} } = meta.data;

@@ -11,6 +11,7 @@ class Config {
   ADMINS = null;
   BOT_QQ_ID = null;
   FIREBASE_KEY = null;
+  IP = null;
   constructor() {
     this.loadConfig();
   }
@@ -30,7 +31,8 @@ class Config {
       akhrUpdateServer,
       admins,
       botQQId,
-      ocrSpaceKey
+      ocrSpaceKey,
+      ip
     } = config;
     this.DB = {
       filePath: dbFilePath
@@ -46,6 +48,7 @@ class Config {
     this.ADMINS = admins;
     this.BOT_QQ_ID = botQQId;
     this.OCR_KEY = ocrSpaceKey;
+    this.IP = ip;
 
     const firebaseKeyJson = fs.readFileSync(
       path.resolve(__dirname, '../', firebaseKeyPath || './firebaseKey.json')

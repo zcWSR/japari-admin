@@ -1,5 +1,6 @@
 import axios from 'axios';
-import _ from 'lodash';
+import { keyBy, intersection, flatMap } from 'es-toolkit/compat';
+import { combinations } from '../../utils/array';
 import logger from '../../utils/logger';
 import Config from '../../config';
 import Drawer from './image-drawer';
@@ -12,7 +13,7 @@ const characterTableUrl =
 const gachaTableUrl =
   'https://raw.githubusercontent.com/Kengxxiao/ArknightsGameData/master/zh_CN/gamedata/excel/gacha_table.json';
 
-const ROBOT_TAG_OWNER_TABLE = _.keyBy(['char_285_medic2', 'char_286_cast3', 'char_376_therex']);
+const ROBOT_TAG_OWNER_TABLE = keyBy(['char_285_medic2', 'char_286_cast3', 'char_376_therex'], item => item);
 const POS_AND_PRO_TABLE = {
   WARRIOR: 1,
   SNIPER: 2,
@@ -49,16 +50,18 @@ class AkhrService {
 
   // 获取公招干员列表，借鉴自
   // https://github.com/Kengxxiao/ArknightsGameData/blob/master/zh_CN/gamedata/excel/character_table.json
-  getRecruitmentTable = recruitDetail => _.fromPairs(_.flatten(
+  getRecruitmentTable = recruitDetail => Object.fromEntries(
     recruitDetail
       .replace(/\\n/g, '\n')
       .split(/\s*-*\n★+\s*/)
       .splice(1)
       .map(line => line.split(/(?<!<)\/(?!>)/).map(name => name.trim()))
-  ).map(name => [
-    name.replace(/^<.+?>(.+?)<\/>$/g, '$1'),
-    name.startsWith('<@rc.eml>') ? 2 : 1
-  ]));
+      .flat()
+      .map(name => [
+        name.replace(/^<.+?>(.+?)<\/>$/g, '$1'),
+        name.startsWith('<@rc.eml>') ? 2 : 1
+      ])
+  );
 
   getTabIdNameMap(gachaTags) {
     return gachaTags.reduce((prev, curr) => {
@@ -135,10 +138,10 @@ class AkhrService {
     // 过滤OCR识别出的文字, 只留tag名
     words = words.filter(word => list.tagMap[word]);
     // 组合, 3-1个tag的所有组合方式
-    const combineTags = _.flatMap([3, 2, 1], count => _.combinations(words, count));
+    const combineTags = flatMap([3, 2, 1], count => combinations(words, count));
     const data = combineTags.reduce((result, tags) => {
       // 取不同tag的干员的交集
-      const staffNames = _.intersection(...tags.map(tag => list.tagMap[tag]));
+      const staffNames = intersection(...tags.map(tag => list.tagMap[tag]));
       // 干员等级总和, 后排序用
       let levelSum = 0;
       // 根据干员名反查干员信息, 并

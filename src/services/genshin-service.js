@@ -1,10 +1,10 @@
 import axios from 'axios';
-import moment from 'moment-timezone';
 import {
   globalConfig, cardConfig, parseCharacterData, generateCard, updateCache
 } from 'taffy-pvp-card-sw';
 import { createCanvas } from '@napi-rs/canvas';
 import path from 'path';
+import { formatShangHaiTime } from '../utils/date';
 import FirebaseService from './firebase-service';
 import logger from '../utils/logger';
 import QQService from './qq-service';
@@ -101,9 +101,7 @@ class GenshinService {
 
   async updateCache(fileChanges) {
     await updateCache(true);
-    const message = `原神数据更新于: ${moment()
-      .tz('Asia/Shanghai')
-      .format('YYYY年MM月DD日 HH:mm:ss')}`;
+    const message = `原神数据更新于: ${formatShangHaiTime()}`;
     QQService.sendAdminsMessage(
       `${message}\n更新文件:\n${fileChanges.join('\n')}`
     );

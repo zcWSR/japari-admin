@@ -1,6 +1,6 @@
 import axios from 'axios';
-import moment from 'moment-timezone';
 import logger from '../utils/logger';
+import { formatShangHaiTime } from '../utils/date';
 import Config from '../config';
 import { isDev } from '../utils/env';
 import { sleep } from '../utils/process';
@@ -157,9 +157,7 @@ class QQService {
   }
 
   async sendReadyMessage() {
-    const message = `服务(重)启动于: ${moment()
-      .tz('Asia/Shanghai')
-      .format('YYYY年MM月DD日 HH:mm:ss')}`;
+    const message = `服务(重)启动于: ${formatShangHaiTime()}`;
     logger.info(message);
     await this.sendAdminsMessage(message);
   }

@@ -12,12 +12,12 @@ class DBService {
      * new-notice 入群提醒模板 （TODO: 迁移到 firebase）
      */
     this.DBInstance = knex({
-      client: 'sqlite3',
+      client: 'better-sqlite3',
       connection: {
         filename: Config.DB.filePath
       },
-      debug: isDev(),
-      useNullAsDefault: true
+      useNullAsDefault: true,
+      debug: isDev()
     });
   }
 }

@@ -1,6 +1,6 @@
-import moment from 'moment-timezone';
 import schedule, { scheduleJob } from 'node-schedule';
 import logger from '../utils/logger';
+import { getShangHaiTimeParts } from '../utils/date';
 import FirebaseService from './firebase-service';
 import QQService from './qq-service';
 
@@ -77,16 +77,16 @@ class ScheduleService {
   }
 
   formatText(text) {
-    const now = moment(new Date()).tz('Asia/Shanghai');
+    const { hours, minutes, seconds, year, month, date, day } = getShangHaiTimeParts();
     return text
       .replace(/\\n/g, '\n')
-      .replace(/\$\{hour\}/g, now.hours())
-      .replace(/\$\{minute\}/g, now.minutes())
-      .replace(/\$\{second\}/g, now.seconds())
-      .replace(/\$\{year\}/g, now.year())
-      .replace(/\$\{month\}/g, now.month() + 1)
-      .replace(/\$\{date\}/g, now.date())
-      .replace(/\$\{day\}/g, DAY_NAME_MAP[now.day()]);
+      .replace(/\$\{hour\}/g, hours)
+      .replace(/\$\{minute\}/g, minutes)
+      .replace(/\$\{second\}/g, seconds)
+      .replace(/\$\{year\}/g, year)
+      .replace(/\$\{month\}/g, month)
+      .replace(/\$\{date\}/g, date)
+      .replace(/\$\{day\}/g, DAY_NAME_MAP[day]);
   }
 
   sendText(groupId, text) {

@@ -1,27 +1,34 @@
 import Path from 'path';
-import log4js from 'log4js';
+import pino from 'pino';
 import { isDev } from './env';
 
 const logPath = Path.resolve(__dirname, '../../../logs/japari-admin');
 
-log4js.configure({
-  appenders: {
-    console: { type: 'console' },
-    dateFile: {
-      type: 'dateFile',
-      pattern: `${isDev() ? 'dev.' : ''}yyyy-MM-dd.log`,
-      alwaysIncludePattern: true,
-      filename: logPath,
-      backup: 5
-    }
-  },
-  categories: {
-    dev: { appenders: ['console', 'dateFile'], level: 'debug' },
-    default: { appenders: ['dateFile'], level: 'info' }
-  }
+// Pino logger 配置
+const logger = pino({
+  level: isDev() ? 'debug' : 'info',
+  transport: isDev()
+    ? {
+        target: 'pino-pretty',
+        options: {
+          colorize: true,
+          translateTime: 'yyyy-MM-dd HH:mm:ss',
+          ignore: 'pid,hostname'
+        }
+      }
+    : {
+        targets: [
+          {
+            target: 'pino/file',
+            level: 'info',
+            options: {
+              destination: `${logPath}/${isDev() ? 'dev.' : ''}${new Date().toISOString().split('T')[0]}.log`,
+              mkdir: true
+            }
+          }
+        ]
+      }
 });
-
-const logger = log4js.getLogger(isDev() ? 'dev' : 'default');
 
 export function blockLog(
   content,
@@ -36,20 +43,20 @@ export function blockLog(
   const width = content.sort((a, b) => b - a)[0].length + paddingWidth * 2;
   const height = content.length + paddingHeight * 2;
   [...Array(height + 2)].forEach((line, index, instance) => {
+    let msg = '';
     if (index === 0 || index === instance.length - 1) {
-      logger[type](borderIcon.repeat(width + 2));
+      msg = borderIcon.repeat(width + 2);
     } else if (index <= paddingHeight || index > height - paddingHeight) {
-      logger[type](`${borderIcon}${' '.repeat(width)}${borderIcon}`);
+      msg = `${borderIcon}${' '.repeat(width)}${borderIcon}`;
     } else {
       const currentLine = content[index - 1 - paddingHeight];
       const paddingFloat = (width - currentLine.length) / 2;
       const padding = Math.ceil(paddingFloat);
-      logger[type](
-        `${borderIcon}${' '.repeat(
-          padding - paddingFloat > 0 ? padding - 1 : padding
-        )}${currentLine}${' '.repeat(padding)}${borderIcon}`
-      );
+      msg = `${borderIcon}${' '.repeat(
+        padding - paddingFloat > 0 ? padding - 1 : padding
+      )}${currentLine}${' '.repeat(padding)}${borderIcon}`;
     }
+    logger[type](msg);
   });
 }
 

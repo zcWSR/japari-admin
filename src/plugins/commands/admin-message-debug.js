@@ -1,6 +1,6 @@
 import { Command, LEVEL } from '../../decorators/plugin';
-import RedisService from '../../services/redis-service';
 import QQService from '../../services/qq-service';
+import RedisService from '../../services/redis-service';
 import logger from '../../utils/logger';
 
 @Command({

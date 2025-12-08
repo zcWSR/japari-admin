@@ -17,7 +17,7 @@ class CheckMessageDebug {
     // 其实应该用插件的开启关闭来做，但目前私聊插件是全量加载的，所以先搞个 redis 存一下
     if (QQService.isSuperAdmin(userId)) {
       const debug = await RedisService.get('messageDebug');
-      if (parseInt(debug, 10) === 1) {
+      if (Number.parseInt(debug, 10) === 1) {
         QQService.sendPrivateMessage(userId, JSON.stringify(body, null, 2));
       }
     }

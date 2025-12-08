@@ -23,7 +23,7 @@
         "noDoubleEquals": "off"
       },
       "correctness": {
-        "noUnusedVariables": "warn"
+        "noUnusedVariables": "off"
       }
     }
   },

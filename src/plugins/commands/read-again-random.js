@@ -21,10 +21,7 @@ class ReadAgainFollow {
 
   async setReadAgainRate(rate, groupId) {
     await RedisService.set(this.getRedisKey(groupId), rate);
-    QQService.sendGroupMessage(
-      groupId,
-      `设置当前随机复读概率为: ${(rate * 100).toFixed(2)}%`
-    );
+    QQService.sendGroupMessage(groupId, `设置当前随机复读概率为: ${(rate * 100).toFixed(2)}%`);
   }
 
   async run(params, body) {
@@ -33,7 +30,7 @@ class ReadAgainFollow {
       await this.getReadAgainRate(groupId);
       return;
     }
-    const rate = parseFloat(params);
+    const rate = Number.parseFloat(params);
     if (await QQService.checkRateWithMessage(rate, groupId, userId)) {
       this.setReadAgainRate(rate, groupId);
     }

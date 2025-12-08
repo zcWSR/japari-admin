@@ -1,5 +1,5 @@
-import { getHours, getMinutes, getSeconds, getYear, getMonth, getDate, getDay } from 'date-fns';
-import { utcToZonedTime, formatInTimeZone } from 'date-fns-tz';
+import { getDate, getDay, getHours, getMinutes, getMonth, getSeconds, getYear } from 'date-fns';
+import { formatInTimeZone, utcToZonedTime } from 'date-fns-tz';
 
 const TIMEZONE = 'Asia/Shanghai';
 
@@ -21,7 +21,7 @@ export function formatShangHaiTime(date = new Date(), formatStr = 'yyyy年MM月d
 export function getShangHaiTimeParts(date = new Date()) {
   // 将 UTC 时间转换为上海时区
   const zonedDate = utcToZonedTime(date, TIMEZONE);
-  
+
   return {
     hours: getHours(zonedDate),
     minutes: getMinutes(zonedDate),

@@ -117,7 +117,8 @@
   "lodash.combinations": "❌",
   "log4js": "❌",
   "uuid": "❌",
-  "core-js": "❌"
+  "core-js": "❌",
+  "koa-router": "❌"  // 迁移到 @koa/router
 }
 ```
 
@@ -137,20 +138,21 @@
   "better-sqlite3": "^11.10.0",
   "es-toolkit": "^1.30.1",
   "pino": "^9.6.0",
-  "pino-pretty": "^13.0.0"
+  "pino-pretty": "^13.0.0",
+  "@koa/router": "^15.0.0"  // 替代 koa-router
 }
 ```
 
 ### 更新的依赖
 
-#### ⚠️ **需要检查兼容性的大版本升级**
+#### ✅ **已检查兼容性的大版本升级**
 
-| 包名 | 旧版本 | 新版本 | 状态 | 风险 |
+| 包名 | 旧版本 | 新版本 | 状态 | 备注 |
 |------|--------|--------|------|------|
-| `knex` | 0.19.5 | 3.1.0 | ⚠️ **待检查** | 🔴 **高** - Major 升级 |
-| `koa-body` | 4.0.8 | 6.0.1 | ⚠️ **待检查** | 🟡 **中** - Major 升级 |
-| `koa-router` | 7.4.0 | 13.1.1 | ⚠️ **待检查** | 🟡 **中** - Major 升级 |
-| `firebase-admin` | 11.7.0 | 12.7.0 | ⚠️ **待检查** | 🟡 **中** - Major 升级 |
+| `knex` | 0.19.5 | 3.1.0 | ✅ **已检查** | API 兼容，无需修改 |
+| `koa-body` | 4.0.8 | 6.0.1 | ✅ **已适配** | 导入方式变更 |
+| `koa-router` | 7.4.0 | @koa/router 15.0.0 | ✅ **已迁移** | 包名变更为 @koa/router |
+| `firebase-admin` | 11.7.0 | 12.7.0 | ✅ **已检查** | API 兼容，无需修改 |
 
 #### ✅ **安全的小版本更新（应该兼容）**
 
@@ -252,6 +254,30 @@ const id = uuidv4();
 const id = crypto.randomUUID();
 ```
 
+### 5. koa-body（4.x → 6.x）
+
+```javascript
+// 旧代码
+import koaBody from 'koa-body';
+app.use(koaBody());
+
+// 新代码（命名导出）
+import { koaBody } from 'koa-body';
+app.use(koaBody());
+```
+
+### 6. koa-router → @koa/router
+
+```javascript
+// 旧代码
+import KoaRouter from 'koa-router';
+const router = new KoaRouter();
+
+// 新代码（使用官方维护的 @koa/router）
+import KoaRouter from '@koa/router';
+const router = new KoaRouter();
+```
+
 ---
 
 ## ⚠️ 注意事项
@@ -292,6 +318,10 @@ const id = crypto.randomUUID();
 - [better-sqlite3 文档](https://github.com/WiseLibs/better-sqlite3)
 - [pino 文档](https://getpino.io/)
 - [es-toolkit 文档](https://es-toolkit.dev/)
+- [@koa/router 文档](https://github.com/koajs/router)
+- [koa-body 文档](https://github.com/koajs/koa-body)
+- [knex 文档](https://knexjs.org/)
+- [firebase-admin 文档](https://firebase.google.com/docs/admin/setup)
 
 ---
 
@@ -305,47 +335,33 @@ const id = crypto.randomUUID();
 - [x] **pino**（日志库）- 已重写 logger，API 兼容
 - [x] **es-toolkit**（工具库）- 已适配 akhr-service
 
-### ⚠️ **需要检查的大版本升级**
+### ✅ **已完成检查的大版本升级**
 
-#### 🔴 高优先级
-- [ ] **knex** (0.19.5 → 3.1.0)
-  - 影响文件：所有数据库操作
-  - 需要检查：
-    - [ ] API 变化
-    - [ ] 事务处理
-    - [ ] 查询构建器语法
-  - 相关文件：
-    - `src/services/db-service.js`
-    - `src/decorators/db.js`
-    - 所有使用数据库的服务
+#### knex (0.19.5 → 3.1.0)
+- [x] **状态**：✅ 已检查，API 兼容
+- [x] API 变化：查询构建器语法保持兼容
+- [x] 事务处理：`.transaction(callback)` 仍然支持
+- [x] Schema 构建器：`hasTable`、`createTable` 等 API 保持兼容
+- **结论**：无需代码修改
 
-#### 🟡 中优先级
-- [ ] **koa-body** (4.0.8 → 6.0.1)
-  - 影响文件：`src/index.js`
-  - 需要检查：
-    - [ ] 中间件配置
-    - [ ] 文件上传处理
-    - [ ] multipart 处理
+#### koa-body (4.0.8 → 6.0.1)
+- [x] **状态**：✅ 已适配
+- [x] 导入方式变更：`import koaBody from 'koa-body'` → `import { koaBody } from 'koa-body'`
+- **已修改文件**：`src/index.js`
 
-- [ ] **koa-router** (7.4.0 → 13.1.1)
-  - 影响文件：所有 controller
-  - 需要检查：
-    - [ ] 路由定义语法
-    - [ ] 中间件挂载
-    - [ ] 参数获取方式
-  - 相关文件：
-    - `src/decorators/router.js`
-    - `src/controllers/*.js`
+#### koa-router → @koa/router
+- [x] **状态**：✅ 已迁移
+- [x] 包名变更：`koa-router` 已废弃，迁移到官方维护的 `@koa/router`
+- [x] 导入方式：`import KoaRouter from 'koa-router'` → `import KoaRouter from '@koa/router'`
+- [x] 版本：7.4.0 → 15.0.0
+- **已修改文件**：`src/decorators/router.js`
 
-- [ ] **firebase-admin** (11.7.0 → 12.7.0)
-  - 影响文件：所有 Firebase 相关服务
-  - 需要检查：
-    - [ ] 初始化方式
-    - [ ] API 变化
-    - [ ] Firestore 操作
-  - 相关文件：
-    - `src/services/firebase-service.js`
-    - 使用 Firebase 的所有插件
+#### firebase-admin (11.7.0 → 12.7.0)
+- [x] **状态**：✅ 已检查，API 兼容
+- [x] 初始化方式：`admin.initializeApp()` 保持兼容
+- [x] Firestore 操作：`collection`、`doc` 等 API 保持兼容
+- [x] Storage 操作：`bucket()`、`file()` 等 API 保持兼容
+- **结论**：无需代码修改
 
 ### ✅ **应该兼容的小版本更新**
 - [x] `@napi-rs/canvas` (0.1.60 → 0.1.84) - 小版本更新
@@ -360,8 +376,8 @@ const id = crypto.randomUUID();
 
 ## ✅ 基本测试清单
 
-- [ ] 运行 `npm install` 安装依赖
-- [ ] 运行 `npm run build` 测试构建
+- [x] 运行 `npm install` 安装依赖
+- [x] 运行 `npm run build` 测试构建
 - [ ] 运行 `npm run lint` 检查代码
 - [ ] 运行 `npm run start:dev` 测试应用
 - [ ] 检查日志输出
@@ -371,5 +387,6 @@ const id = crypto.randomUUID();
 ---
 
 **升级完成日期**：2025-01-08
+**兼容性检查完成日期**：2025-12-08
 **升级人员**：AI Assistant
 

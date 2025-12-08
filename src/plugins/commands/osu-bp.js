@@ -1,6 +1,6 @@
 import { Command } from '../../decorators/plugin';
-import QQService from '../../services/qq-service';
 import OSUService from '../../services/osu-service';
+import QQService from '../../services/qq-service';
 
 @Command({
   name: '查询osu! bp',
@@ -25,12 +25,12 @@ class OSUBp {
       QQService.sendGroupMessage(groupId, '非法参数, 请输入玩家昵称');
       return;
     }
-    const bpIndex = parseInt(params[1] || 1, 10);
+    const bpIndex = Number.parseInt(params[1] || 1, 10);
     if (bpIndex > 20 || bpIndex < 0) {
       QQService.sendGroupMessage(groupId, '非法参数, 仅支持bp查询范围#1-#20, 请重试');
       return;
     }
-    const mode = parseInt(params[2] || 0, 10);
+    const mode = Number.parseInt(params[2] || 0, 10);
     if (mode !== 0 && mode !== 2 && mode !== 1 && mode !== 3) {
       QQService.sendGroupMessage(groupId, '非法参数, 请不要写不存在的模式谢谢');
       return;

@@ -1,6 +1,6 @@
 import { Command } from '../../decorators/plugin';
-import QQService from '../../services/qq-service';
 import HoShiiService from '../../services/hoshii-service';
+import QQService from '../../services/qq-service';
 import logger from '../../utils/logger';
 
 @Command({
@@ -37,7 +37,11 @@ class AkhrUpdate {
       return;
     }
     logger.info(`getting img from message: ${topText} ${bottomText}`);
-    const dataUrl = await HoShiiService.drawAndGetRemoteUrl(topText, bottomText, `${topText}-${bottomText}`);
+    const dataUrl = await HoShiiService.drawAndGetRemoteUrl(
+      topText,
+      bottomText,
+      `${topText}-${bottomText}`
+    );
     logger.info(`sending img, dataUrl: ${dataUrl}`);
     this.sendImg(body, type, dataUrl);
   }

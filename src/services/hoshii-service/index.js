@@ -1,8 +1,8 @@
+import logger from '../../utils/logger';
+import FirebaseService from '../firebase-service';
 // import fs from 'fs';
 // import path from 'path';
 import Drawer from './image-drawer';
-import FirebaseService from '../firebase-service';
-import logger from '../../utils/logger';
 
 class HoShiiService {
   drawImage(topText, bottomText) {

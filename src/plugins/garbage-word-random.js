@@ -1,8 +1,8 @@
 import { Plugin } from '../decorators/plugin';
 import QQService from '../services/qq-service';
 import RedisService from '../services/redis-service';
-import { sleep } from '../utils/process';
 import logger from '../utils/logger';
+import { sleep } from '../utils/process';
 
 const DEFAULT_GARBAGE_WORD_LIST = [
   '确实',

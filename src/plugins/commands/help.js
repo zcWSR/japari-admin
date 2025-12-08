@@ -34,7 +34,9 @@ class Help {
 
   showAll(body, commandMap) {
     let content = "可用指令: (使用'!help 指令名'可查看详细用法)";
-    const commands = Object.keys(commandMap).map((name) => this.getCommandInstance(name, body, commandMap));
+    const commands = Object.keys(commandMap).map((name) =>
+      this.getCommandInstance(name, body, commandMap)
+    );
     const commendSet = new Set(commands);
     commendSet.forEach((instance) => {
       if (instance) {

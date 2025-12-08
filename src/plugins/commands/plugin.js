@@ -6,8 +6,7 @@ import QQService from '../../services/qq-service';
   name: '插件配置',
   command: 'plugin',
   type: 'group',
-  info:
-    "用来配置插件开启状态, '!plugin' 来查看开启状态, '!plugin x x' 来切换开启/关闭状态, x为插件编号, 用空格分割",
+  info: "用来配置插件开启状态, '!plugin' 来查看开启状态, '!plugin x x' 来切换开启/关闭状态, x为插件编号, 用空格分割",
   default: true,
   level: LEVEL.ADMIN
 })

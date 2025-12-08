@@ -7,9 +7,7 @@ import ScheduleService from '../../services/schedule-service';
   command: 'schedule',
   type: 'group',
   level: LEVEL.ADMIN,
-  info:
-    // eslint-disable-next-line no-template-curly-in-string
-    "设置定时显示文字内容, '!schedule 内容' 来调用\n内容不写为查看当前配置\n'!schedule clear' 为清除当前配置\n提供参数 year month date day hour minute second, 用${xxx}来插入"
+  info: "设置定时显示文字内容, '!schedule 内容' 来调用\n内容不写为查看当前配置\n'!schedule clear' 为清除当前配置\n提供参数 year month date day hour minute second, 用${xxx}来插入"
 })
 class Schedule {
   async run(params, body) {
@@ -23,10 +21,7 @@ class Schedule {
         result += `${ScheduleService.ruleToShownString(hours, days)}`;
         result += `\n执行内容: ${currentSchedule.text}`;
       } else if (params === 'clear') {
-        await ScheduleService.removeSchedule(
-          currentSchedule.group_id,
-          currentSchedule.name
-        );
+        await ScheduleService.removeSchedule(currentSchedule.group_id, currentSchedule.name);
         QQService.sendGroupMessage(groupId, '已清除定时内容');
         return;
       } else {

@@ -1,6 +1,6 @@
-import GenshinService from '../services/genshin-service';
-import { Router, Route } from '../decorators/router';
+import { Route, Router } from '../decorators/router';
 import botErrorReporter from '../middlewares/bot-error-reporter';
+import GenshinService from '../services/genshin-service';
 import PluginService from '../services/plugin-service';
 import QQService from '../services/qq-service';
 
@@ -18,7 +18,6 @@ class JapariController {
     const plugins = PluginService.getPlugins(type);
     const config = await PluginService.getConfig(type, fromBot);
     if (!config) return {};
-    // eslint-disable-next-line no-restricted-syntax
     for (const plugin of plugins) {
       if (!config[plugin.name]) continue;
       if ((await plugin.go(fromBot, type)) === 'break') break;

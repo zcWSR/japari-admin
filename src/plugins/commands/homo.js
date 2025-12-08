@@ -19,7 +19,7 @@ class Homo {
   }
 
   async run(params, body, type) {
-    const homoNumber = parseInt(params, 10);
+    const homoNumber = Number.parseInt(params, 10);
     if (Number.isNaN(homoNumber)) {
       this.sendMsg(body, type, '数字，请');
       return;

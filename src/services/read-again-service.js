@@ -11,8 +11,10 @@ const MAX_DIST = 5; // 编辑距离合并强度 根据编辑距离判断不完�
 const MIN_MSG_SIZE = 10;
 const MAX_MSG_SIZE = 100;
 
-const FULL_WIDTH = '　１２３４５６７８９０!＠＃＄％＾＆＊（）－＝＿＋［］｛｝;＇:＂,．／＜＞?＼｜｀～ｑｗｅｒｔｙｕｉｏｐａｓｄｆｇｈｊｋｌｚｘｃｖｂｎｍＱＷＥＲＴＹＵＩＯＰＡＳＤＦＧＨＪＫＬＺＸＣＶＢＮＭ';
-const HALF_WIDTH = ' 1234567890！@#$%^&*()-=_+[]{}；\'："，./<>？\\|`~qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM';
+const FULL_WIDTH =
+  '　１２３４５６７８９０!＠＃＄％＾＆＊（）－＝＿＋［］｛｝;＇:＂,．／＜＞?＼｜｀～ｑｗｅｒｔｙｕｉｏｐａｓｄｆｇｈｊｋｌｚｘｃｖｂｎｍＱＷＥＲＴＹＵＩＯＰＡＳＤＦＧＨＪＫＬＺＸＣＶＢＮＭ';
+const HALF_WIDTH =
+  ' 1234567890！@#$%^&*()-=_+[]{}；\'："，./<>？\\|`~qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM';
 
 const FULL_WIDTH_MAP = Array.from(FULL_WIDTH).reduce((result, char, index) => {
   result[char] = HALF_WIDTH[index];
@@ -28,9 +30,8 @@ class ReadAgainService {
     let text = '';
     for (let i = 0; i < inp.length; i++) {
       const char = inp.charAt(i);
-      text += (FULL_WIDTH_MAP[char] || char);
+      text += FULL_WIDTH_MAP[char] || char;
     }
-    // eslint-disable-next-line no-irregular-whitespace
     return text.replace(/[ 　]+/g, ' ');
   }
 

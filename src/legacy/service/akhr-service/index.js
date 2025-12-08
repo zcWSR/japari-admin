@@ -1,19 +1,22 @@
 import axios from 'axios';
-import { keyBy, intersection, flatMap } from 'es-toolkit/compat';
-import { combinations } from '../../utils/array';
-import logger from '../../utils/logger';
+import { flatMap, intersection, keyBy } from 'es-toolkit/compat';
 import Config from '../../config';
-import Drawer from './image-drawer';
+import { combinations } from '../../utils/array';
 import { isDev } from '../../utils/env';
-import QQService from '../qq-service';
+import logger from '../../utils/logger';
 import { sleep } from '../../utils/process';
+import QQService from '../qq-service';
+import Drawer from './image-drawer';
 
 const characterTableUrl =
   'https://raw.githubusercontent.com/Kengxxiao/ArknightsGameData/master/zh_CN/gamedata/excel/character_table.json';
 const gachaTableUrl =
   'https://raw.githubusercontent.com/Kengxxiao/ArknightsGameData/master/zh_CN/gamedata/excel/gacha_table.json';
 
-const ROBOT_TAG_OWNER_TABLE = keyBy(['char_285_medic2', 'char_286_cast3', 'char_376_therex'], item => item);
+const ROBOT_TAG_OWNER_TABLE = keyBy(
+  ['char_285_medic2', 'char_286_cast3', 'char_376_therex'],
+  (item) => item
+);
 const POS_AND_PRO_TABLE = {
   WARRIOR: 1,
   SNIPER: 2,
@@ -50,18 +53,18 @@ class AkhrService {
 
   // 获取公招干员列表，借鉴自
   // https://github.com/Kengxxiao/ArknightsGameData/blob/master/zh_CN/gamedata/excel/character_table.json
-  getRecruitmentTable = recruitDetail => Object.fromEntries(
-    recruitDetail
-      .replace(/\\n/g, '\n')
-      .split(/\s*-*\n★+\s*/)
-      .splice(1)
-      .map(line => line.split(/(?<!<)\/(?!>)/).map(name => name.trim()))
-      .flat()
-      .map(name => [
-        name.replace(/^<.+?>(.+?)<\/>$/g, '$1'),
-        name.startsWith('<@rc.eml>') ? 2 : 1
-      ])
-  );
+  getRecruitmentTable = (recruitDetail) =>
+    Object.fromEntries(
+      recruitDetail
+        .replace(/\\n/g, '\n')
+        .split(/\s*-*\n★+\s*/)
+        .splice(1)
+        .flatMap((line) => line.split(/(?<!<)\/(?!>)/).map((name) => name.trim()))
+        .map((name) => [
+          name.replace(/^<.+?>(.+?)<\/>$/g, '$1'),
+          name.startsWith('<@rc.eml>') ? 2 : 1
+        ])
+    );
 
   getTabIdNameMap(gachaTags) {
     return gachaTags.reduce((prev, curr) => {
@@ -136,12 +139,12 @@ class AkhrService {
   combine(words, list) {
     list = list || this.characterList;
     // 过滤OCR识别出的文字, 只留tag名
-    words = words.filter(word => list.tagMap[word]);
+    words = words.filter((word) => list.tagMap[word]);
     // 组合, 3-1个tag的所有组合方式
-    const combineTags = flatMap([3, 2, 1], count => combinations(words, count));
+    const combineTags = flatMap([3, 2, 1], (count) => combinations(words, count));
     const data = combineTags.reduce((result, tags) => {
       // 取不同tag的干员的交集
-      const staffNames = intersection(...tags.map(tag => list.tagMap[tag]));
+      const staffNames = intersection(...tags.map((tag) => list.tagMap[tag]));
       // 干员等级总和, 后排序用
       let levelSum = 0;
       // 根据干员名反查干员信息, 并
@@ -149,9 +152,9 @@ class AkhrService {
         const staff = list.staffMap[name];
         // 过滤
         if (
-          staff
-          && !staff.hidden // 不在公招池里的
-          && !(staff.level === 6 && tags.indexOf('高级资深干员') === -1) // 6星,但是没有高级资深干员tag
+          staff &&
+          !staff.hidden && // 不在公招池里的
+          !(staff.level === 6 && tags.indexOf('高级资深干员') === -1) // 6星,但是没有高级资深干员tag
         ) {
           levelSum += staff.level;
           staffList.push(staff);
@@ -211,22 +214,18 @@ class AkhrService {
   }
 
   async parseImageOutPut(result, withStaffImage) {
-    try {
-      const drawer = new Drawer(result, 1200, 20, withStaffImage);
-      const draw = await drawer.draw();
-      // const stream = draw.createPNGStream();
-      // const filePath = path.resolve(__dirname, '../../../res/', `outPut${Date.now()}.png`);
-      // const out = fs.createWriteStream(filePath);
-      // stream.pipe(out);
-      // out.on('finish', () => {
-      //   console.log('write file to:');
-      //   console.log(filePath);
-      //   done('done');
-      // });
-      return draw.toBuffer('image/png').toString('base64');
-    } catch (e) {
-      throw e;
-    }
+    const drawer = new Drawer(result, 1200, 20, withStaffImage);
+    const draw = await drawer.draw();
+    // const stream = draw.createPNGStream();
+    // const filePath = path.resolve(__dirname, '../../../res/', `outPut${Date.now()}.png`);
+    // const out = fs.createWriteStream(filePath);
+    // stream.pipe(out);
+    // out.on('finish', () => {
+    //   console.log('write file to:');
+    //   console.log(filePath);
+    //   done('done');
+    // });
+    return draw.toBuffer('image/png').toString('base64');
   }
 }
 

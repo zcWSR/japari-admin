@@ -47,18 +47,12 @@ class ReadAgainFollow {
 
   async getGarbageWordRate(groupId) {
     const rate = await RedisService.get(this.getRateRedisKey(groupId));
-    QQService.sendGroupMessage(
-      groupId,
-      `当前随机垃圾话概率: ${(rate * 100).toFixed(2)}%`
-    );
+    QQService.sendGroupMessage(groupId, `当前随机垃圾话概率: ${(rate * 100).toFixed(2)}%`);
   }
 
   async setGarbageWordRate(rate, groupId) {
     await RedisService.set(this.getRateRedisKey(groupId), rate);
-    QQService.sendGroupMessage(
-      groupId,
-      `设置当前垃圾话复读概率为: ${(rate * 100).toFixed(2)}%`
-    );
+    QQService.sendGroupMessage(groupId, `设置当前垃圾话复读概率为: ${(rate * 100).toFixed(2)}%`);
   }
 
   async run(params, body) {
@@ -81,7 +75,7 @@ class ReadAgainFollow {
       return;
     }
 
-    const rate = parseFloat(params);
+    const rate = Number.parseFloat(params);
     if (await QQService.checkRateWithMessage(rate, groupId, userId)) {
       this.setGarbageWordRate(rate, groupId);
     }

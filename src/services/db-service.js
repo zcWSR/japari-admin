@@ -1,6 +1,6 @@
 import knex from 'knex';
-import { isDev } from '../utils/env';
 import Config from '../config';
+import { isDev } from '../utils/env';
 
 class DBService {
   init() {

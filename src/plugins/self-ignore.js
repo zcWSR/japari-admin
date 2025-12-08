@@ -1,5 +1,5 @@
-import { Plugin } from '../decorators/plugin';
 import Config from '../config';
+import { Plugin } from '../decorators/plugin';
 
 @Plugin({
   name: 'self-ignore',

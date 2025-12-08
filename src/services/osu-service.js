@@ -2,11 +2,11 @@ import { deflateSync, unzipSync } from 'zlib';
 import axios from 'axios';
 
 import * as OSU from 'ojsama';
-import QQService from './qq-service';
 import Config from '../config';
 import logger from '../utils/logger';
 import { numberToOsuModes } from '../utils/osu-utils';
 import { objKeyToSmallCamel } from '../utils/string-utils';
+import QQService from './qq-service';
 
 const GET_USER_URL = 'https://osu.ppy.sh/api/get_user';
 const GET_BP_URL = 'https://osu.ppy.sh/api/get_user_best';
@@ -54,7 +54,6 @@ export default class OSUService {
             k: Config.OSU_APP_KEY,
             ...params
           },
-          // eslint-disable-next-line no-mixed-operators
           timeout: 3 ** (retryTimes + 1) * 1000,
           ...config
         });
@@ -74,9 +73,7 @@ export default class OSUService {
   }
 
   async getBoundInfo(groupId, userId) {
-    const meta = await dbInstance('osu_bind')
-      .where({ group_id: groupId, user_id: userId })
-      .first();
+    const meta = await dbInstance('osu_bind').where({ group_id: groupId, user_id: userId }).first();
     if (meta) {
       return objKeyToSmallCamel(meta, '_');
     }
@@ -90,9 +87,7 @@ export default class OSUService {
       mode
     });
     if (!users || !users.length) {
-      const message = `获取玩家'${osuName}'的信息失败, ${
-        !users ? '请求出错' : '用户不存在'
-      }`;
+      const message = `获取玩家'${osuName}'的信息失败, ${!users ? '请求出错' : '用户不存在'}`;
       logger.warn(message);
       return message;
     }
@@ -232,14 +227,11 @@ export default class OSUService {
       logger.warn(`获取${beatMapId}${message}, 无法计算pp`);
       return `获取${message}, 请重试`;
     }
-    // eslint-disable-next-line
     const parser = new OSU.parser();
     parser.feed(mapString);
     const { map } = parser;
-    // eslint-disable-next-line new-cap
     let pp = null;
     try {
-      // eslint-disable-next-line new-cap
       const stars = new OSU.diff().calc({
         map,
         mods: +enabledMods
@@ -305,9 +297,9 @@ export default class OSUService {
     }
     message += `[${map.version}] mapped by ${map.creator}\n`;
     message += `Url: https://osu.ppy.sh/beatmapsets/${beatmapsetId}\n\n`;
-    message += `AR${parseFloat(map.ar.toFixed(2))} OD${parseFloat(
+    message += `AR${Number.parseFloat(map.ar.toFixed(2))} OD${Number.parseFloat(
       map.od.toFixed(2)
-    )} CS${parseFloat(map.cs.toFixed(2))} HP${parseFloat(map.hp.toFixed(2))}\n`;
+    )} CS${Number.parseFloat(map.cs.toFixed(2))} HP${Number.parseFloat(map.hp.toFixed(2))}\n`;
     message += `${map.ncircles} circles, ${map.nsliders} sliders, ${map.nspinners} spinners\n\n`;
     message += `Score: ${score}\n`;
     message += `Rank: ${rank}\n`;
@@ -316,7 +308,7 @@ export default class OSUService {
     message += `Max Combo: ${maxcombo}/${map.max_combo()}\n`;
     message += `${count300}x300, ${count100}x100, ${count50}x50, ${countmiss}xmiss\n`;
     if (info.playInfo.pp) {
-      message += `${parseFloat(info.playInfo.pp).toFixed(2)} pp (官方)\n`;
+      message += `${Number.parseFloat(info.playInfo.pp).toFixed(2)} pp (官方)\n`;
     }
     if (pp) {
       message += `${pp} pp (离线计算)`;

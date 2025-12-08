@@ -1,5 +1,5 @@
-import { Plugin } from '../decorators/plugin';
 import { withTransaction } from '../decorators/db';
+import { Plugin } from '../decorators/plugin';
 import ScheduleService from '../services/schedule-service';
 
 @Plugin({

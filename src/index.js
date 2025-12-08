@@ -1,18 +1,18 @@
 import { resolve } from 'path';
-import Koa from 'koa';
-import koaBody from 'koa-body';
 import cFonts from 'cfonts';
+import Koa from 'koa';
+import { koaBody } from 'koa-body';
 
 import './config';
-import { getProcessArgv } from './utils/process';
 import errorCatcher from './middlewares/error-catcher';
-import logger from './utils/logger';
-import { isDev } from './utils/env';
-import RedisService from './services/redis-service';
 import DBService from './services/db-service';
-import PluginService from './services/plugin-service';
 import FileService from './services/file-service';
+import PluginService from './services/plugin-service';
 import QQService from './services/qq-service';
+import RedisService from './services/redis-service';
+import { isDev } from './utils/env';
+import logger from './utils/logger';
+import { getProcessArgv } from './utils/process';
 
 function initServer(port) {
   const app = new Koa();

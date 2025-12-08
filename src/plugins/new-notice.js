@@ -33,7 +33,6 @@ class NewNotice {
   }
 
   convertMsg(msg, memberName) {
-    // eslint-disable-next-line no-template-curly-in-string
     return msg.replace('${name}', memberName);
   }
 
@@ -49,11 +48,8 @@ class NewNotice {
 
   @withTransaction
   async getTemplate(trx, groupId) {
-    const result = await trx('new-notice')
-      .first()
-      .select('template')
-      .where('group_id', groupId);
-    return (result || {}).template;
+    const result = await trx('new-notice').first().select('template').where('group_id', groupId);
+    return result?.template;
   }
 }
 

@@ -1,8 +1,8 @@
 import path from 'path';
 import logger from '../utils/logger';
+import DBService from './db-service';
 import FileService from './file-service';
 import RedisService from './redis-service';
-import DBService from './db-service';
 
 class PluginService {
   plugins = {
@@ -44,7 +44,6 @@ class PluginService {
   }
 
   async initSerial(plugins) {
-    // eslint-disable-next-line no-restricted-syntax
     for (const plugin of plugins) {
       plugin.setDBInstance(DBService.DBInstance);
       if (plugin.createTable) {
@@ -79,9 +78,7 @@ class PluginService {
 
   async loadPlugins() {
     logger.info('======== start load plugin ========');
-    // eslint-disable-next-line no-restricted-syntax
     for (const file of FileService.getDirFiles(path.resolve(__dirname, '../plugins'))) {
-      // eslint-disable-next-line import/no-dynamic-require, global-require
       const required = require(file.path);
       if (!required || !required.default) {
         logger.warn('wrong plugin constructor!!!!!, skip');

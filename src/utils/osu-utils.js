@@ -46,11 +46,11 @@ const modeMap = {
 export function toBin(intNum) {
   let answer = '';
   if (/\d+/.test(intNum)) {
-    while (intNum != 0) { // eslint-disable-line
+    while (intNum != 0) {
       answer = Math.abs(intNum % 2) + answer;
-      intNum = parseInt(intNum / 2, 10);
+      intNum = Number.parseInt(intNum / 2, 10);
     }
-    if (answer.length == 0) answer = '0'; // eslint-disable-line
+    if (answer.length == 0) answer = '0';
     return answer;
   }
   return '0';
@@ -58,9 +58,7 @@ export function toBin(intNum) {
 
 export function numberToOsuModes(num) {
   const modes = [];
-  const bins = toBin(num)
-    .split('')
-    .reverse();
+  const bins = toBin(num).split('').reverse();
   bins.forEach((bin, index) => {
     const mode = modeMap[index];
     if (bin === '1' && mode) {

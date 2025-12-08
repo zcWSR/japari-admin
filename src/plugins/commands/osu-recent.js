@@ -1,6 +1,6 @@
 import { Command } from '../../decorators/plugin';
-import QQService from '../../services/qq-service';
 import OSUService from '../../services/osu-service';
+import QQService from '../../services/qq-service';
 
 @Command({
   name: '查询osu!最近游玩记录',
@@ -13,7 +13,7 @@ class OSURecent {
   async run(params, body) {
     const { group_id: groupId, user_id: userId } = body;
     params = (params || '1').trim();
-    const index = parseInt(params, 10);
+    const index = Number.parseInt(params, 10);
     if (!index) {
       QQService.sendGroupMessage(groupId, `非法参数'${params}', 使用'!help recent'查看使用方法'`);
       return;
@@ -24,7 +24,7 @@ class OSURecent {
     }
     const bindUserInfo = await OSUService.getInstance().getBoundInfo(groupId, userId);
     if (!bindUserInfo) {
-      QQService.sendGroupMessage(groupId, '您未绑定osu!账号, 使用\'!bind\'进行账号绑定');
+      QQService.sendGroupMessage(groupId, "您未绑定osu!账号, 使用'!bind'进行账号绑定");
       return;
     }
     const info = await OSUService.getInstance().getRecent(bindUserInfo, index);

@@ -25,8 +25,7 @@ class FileService {
   getRoutersFromDir(path, app) {
     logger.info(`load routes from dir '${path}'`);
     return this.getDirFiles(path).reduce((result, { path: filePath, name: fileName }) => {
-      // eslint-disable-next-line
-      const Controller = (require(filePath) || {}).default;
+      const Controller = require(filePath)?.default;
       if (!Controller) {
         logger.warn(`file '${filePath}' export nothing, skip`);
         return result;

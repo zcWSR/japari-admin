@@ -436,13 +436,16 @@ const symbols = {}; // 'a': '\ue000'
 let symbolIdx = 0xe000; // U+E000 ~ U+F8FF: Private Use Area
 
 export default Object.keys(PINYIN_DICT_RAW).reduce((result, phoneticRaw) => {
-  const phonetics = phoneticRaw.split('-').map((phonetic) => {
-    if (!symbols[phonetic]) {
-      const currSymbol = String.fromCharCode(symbolIdx++);
-      symbols[phonetic] = currSymbol;
-    }
-    return symbols[phonetic];
-  }).join('');
+  const phonetics = phoneticRaw
+    .split('-')
+    .map((phonetic) => {
+      if (!symbols[phonetic]) {
+        const currSymbol = String.fromCharCode(symbolIdx++);
+        symbols[phonetic] = currSymbol;
+      }
+      return symbols[phonetic];
+    })
+    .join('');
   const chars = PINYIN_DICT_RAW[phoneticRaw];
   for (let i = 0; i < chars.length - 1; i++) {
     result[chars[i]] = phonetics;

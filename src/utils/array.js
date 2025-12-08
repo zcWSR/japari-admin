@@ -3,7 +3,7 @@
  * @param {Array} arr - 源数组
  * @param {number} size - 组合大小
  * @returns {Array} 所有组合的数组
- * 
+ *
  * @example
  * combinations(['a', 'b', 'c'], 2)
  * // => [['a', 'b'], ['a', 'c'], ['b', 'c']]
@@ -33,4 +33,3 @@ export function combinations(arr, size) {
 export default {
   combinations
 };
-

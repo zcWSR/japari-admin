@@ -2,9 +2,9 @@ import { Plugin } from '../decorators/plugin';
 // import { withTransaction } from '../decorators/db';
 import QQService from '../services/qq-service';
 import RedisService from '../services/redis-service';
-import { sleep } from '../utils/process';
 import logger from '../utils/logger';
 import { formatForLog } from '../utils/message';
+import { sleep } from '../utils/process';
 
 // 默认随机复读频率 5%
 const DEFAULT_RATE = 0.05;

@@ -5,7 +5,7 @@ import QQService from '../../services/qq-service';
   name: '随机数',
   command: 'roll',
   type: 'all',
-  info: '随机roll一个整, \'!roll xxx\'来调用(不传递参数默认上限为100)',
+  info: "随机roll一个整, '!roll xxx'来调用(不传递参数默认上限为100)",
   default: true
 })
 class Roll {

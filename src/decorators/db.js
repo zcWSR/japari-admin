@@ -5,8 +5,7 @@ import logger from '../utils/logger';
  */
 export const createWithLog = (tableName) => (target, name, descriptor) => {
   const origin = descriptor.value;
-  // eslint-disable-next-line
-  descriptor.value = async function() {
+  descriptor.value = async function () {
     try {
       if (!this.DBInstance) {
         throw new Error("no db instance, may be your plugin class has not extends class 'Plugin'");
@@ -29,8 +28,7 @@ export const createWithLog = (tableName) => (target, name, descriptor) => {
 
 export const withTransaction = (target, name, descriptor) => {
   const origin = descriptor.value;
-  // eslint-disable-next-line
-  descriptor.value = function(...args) {
+  descriptor.value = function (...args) {
     // try {
     return this.DBInstance.transaction((trx) => origin.call(this, trx, ...args));
     // } catch (e) {

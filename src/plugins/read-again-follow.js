@@ -1,8 +1,8 @@
 // import { withTransaction } from '../decorators/db';
 import { Plugin } from '../decorators/plugin';
 import QQService from '../services/qq-service';
-import RedisService from '../services/redis-service';
 import ReadAgainService from '../services/read-again-service';
+import RedisService from '../services/redis-service';
 import logger from '../utils/logger';
 import { sleep } from '../utils/process';
 import { formatForLog, isSegmentEqual } from '../utils/message';

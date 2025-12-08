@@ -1,6 +1,6 @@
 import axios from 'axios';
-import RedisService from './redis-service';
 import logger from '../utils/logger';
+import RedisService from './redis-service';
 
 const HSO_SET_KEY = 'hso-cache';
 const HSO_PLUS_SET_KEY = 'hso-plus-cache';
@@ -36,13 +36,15 @@ class HsoService {
   }
 
   async addHsoListToRedis(hsoList, plusMode) {
-    const formatList = hsoList.map((hso) => JSON.stringify({
-      id: hso.id,
-      source: hso.source,
-      preview: hso.preview_url,
-      sample: hso.sample_url,
-      plus: plusMode
-    }));
+    const formatList = hsoList.map((hso) =>
+      JSON.stringify({
+        id: hso.id,
+        source: hso.source,
+        preview: hso.preview_url,
+        sample: hso.sample_url,
+        plus: plusMode
+      })
+    );
     await RedisService.redis.sadd(plusMode ? HSO_PLUS_SET_KEY : HSO_SET_KEY, ...formatList);
   }
 

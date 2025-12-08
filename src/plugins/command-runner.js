@@ -1,11 +1,11 @@
 import path from 'path';
 import { decode } from 'html-entities';
-import logger, { blockLog } from '../utils/logger';
-import FileService from '../services/file-service';
 // import { withTransaction } from '../decorators/db';
 import { Plugin } from '../decorators/plugin';
+import FileService from '../services/file-service';
 import QQService from '../services/qq-service';
 import { extractFirstText } from '../utils/message';
+import logger, { blockLog } from '../utils/logger';
 
 const COMMAND_404 = "您所调用的指令不存在尝试使用, '!help'来查看所有可用指令";
 
@@ -55,9 +55,7 @@ class CommandRunner {
   async init() {
     blockLog(['CommandRunner', 'v1.0'], 'info', '@', 0, 10);
     logger.info('======== start load command  ========');
-    // eslint-disable-next-line no-restricted-syntax
     for (const file of FileService.getDirFiles(path.resolve(__dirname, 'commands'))) {
-      // eslint-disable-next-line import/no-dynamic-require, global-require
       const required = require(file.path);
       if (!required || !required.default) {
         logger.warn('wrong command constructor!!!!!, skip');

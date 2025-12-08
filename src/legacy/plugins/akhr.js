@@ -31,7 +31,7 @@ class Akhr {
       return null;
     }
     const imgSeg = message.find((seg) => seg.type === 'image');
-    if (imgSeg && imgSeg.data) {
+    if (imgSeg?.data) {
       const result = {
         file: imgSeg.data.file,
         url: imgSeg.data.url
@@ -105,7 +105,7 @@ class Akhr {
       if (await this.isInWaitingStack(groupId, userId)) {
         logger.info('hint waiting stack');
         const imgUrl = this.getImgsFromMsg(message);
-        if (imgUrl && imgUrl.url) {
+        if (imgUrl?.url) {
           await this.combineAndSend(imgUrl.url, groupId);
           await this.clearStack(groupId);
         }
@@ -114,7 +114,7 @@ class Akhr {
       // 判断是否为指令 + 图片模式
       if (this.isCommandWithImg(message)) {
         const imgUrl = this.getImgsFromMsg(message);
-        if (imgUrl && imgUrl.url) {
+        if (imgUrl?.url) {
           logger.info('message "with img" mod');
           await this.combineAndSend(imgUrl.url, groupId);
         }

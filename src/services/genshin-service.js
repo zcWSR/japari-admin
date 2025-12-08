@@ -1,12 +1,16 @@
+import path from 'path';
+import { createCanvas } from '@napi-rs/canvas';
 import axios from 'axios';
 import {
-  globalConfig, cardConfig, parseCharacterData, generateCard, updateCache
+  cardConfig,
+  generateCard,
+  globalConfig,
+  parseCharacterData,
+  updateCache
 } from 'taffy-pvp-card-sw';
-import { createCanvas } from '@napi-rs/canvas';
-import path from 'path';
 import { formatShangHaiTime } from '../utils/date';
-import FirebaseService from './firebase-service';
 import logger from '../utils/logger';
+import FirebaseService from './firebase-service';
 import QQService from './qq-service';
 
 globalConfig.logger.info = logger.info.bind(logger);
@@ -49,8 +53,8 @@ class GenshinService {
             throw new GenshinError('系统维护中，再等等吧');
           case 429:
             throw new GenshinError('请求频率过高，请稍后再试吧');
-          case 500:
-          case 503:
+          // case 500:
+          // case 503:
           default:
             throw new GenshinError('出错了，但不知道为什么');
         }
@@ -102,9 +106,7 @@ class GenshinService {
   async updateCache(fileChanges) {
     await updateCache(true);
     const message = `原神数据更新于: ${formatShangHaiTime()}`;
-    QQService.sendAdminsMessage(
-      `${message}\n更新文件:\n${fileChanges.join('\n')}`
-    );
+    QQService.sendAdminsMessage(`${message}\n更新文件:\n${fileChanges.join('\n')}`);
   }
 }
 

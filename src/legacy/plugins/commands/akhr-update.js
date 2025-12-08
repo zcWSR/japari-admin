@@ -1,6 +1,6 @@
 import { Command, LEVEL } from '../../decorators/plugin';
-import QQService from '../../services/qq-service';
 import AkhrService from '../../services/akhr-service';
+import QQService from '../../services/qq-service';
 import logger from '../../utils/logger';
 
 @Command({

@@ -1,5 +1,5 @@
-import logger from '../utils/logger';
 import QQService from '../services/qq-service';
+import logger from '../utils/logger';
 
 export const Plugin = (config) => {
   const defaultConfig = {
@@ -18,23 +18,24 @@ export const Plugin = (config) => {
   } else if (typeof config === 'object') {
     config = { ...defaultConfig, ...config };
   }
-  return (target) => class extends target {
-    constructor() {
-      super();
-      Object.keys(config).forEach((configName) => {
-        this[configName] = config[configName];
-      });
-    }
+  return (target) =>
+    class extends target {
+      constructor() {
+        super();
+        Object.keys(config).forEach((configName) => {
+          this[configName] = config[configName];
+        });
+      }
 
-    go(body, plugins) {
-      this.mute || logger.info(`plugin ${this.name} triggered`);
-      return target.prototype.go.call(this, body, plugins);
-    }
+      go(body, plugins) {
+        this.mute || logger.info(`plugin ${this.name} triggered`);
+        return target.prototype.go.call(this, body, plugins);
+      }
 
-    setDBInstance(instance) {
-      this.DBInstance = instance;
-    }
-  };
+      setDBInstance(instance) {
+        this.DBInstance = instance;
+      }
+    };
 };
 
 export const LEVEL = {
@@ -65,44 +66,45 @@ export const Command = (config) => {
   if (config.type === 'private' && config.level < 3) {
     config.level = 1;
   }
-  return (target) => class extends target {
-    constructor() {
-      super();
-      Object.keys(config).forEach((configName) => {
-        this[configName] = config[configName];
-      });
-    }
-
-    sendNoPermissionMsg({ group_id: groupId, user_id: userId }, type) {
-      if (type === 'group') {
-        QQService.sendGroupMessage(groupId, this.permissionDeniedNotice);
-        return;
+  return (target) =>
+    class extends target {
+      constructor() {
+        super();
+        Object.keys(config).forEach((configName) => {
+          this[configName] = config[configName];
+        });
       }
-      if (type === 'private') {
-        QQService.sendPrivateMessage(userId, this.permissionDeniedNotice);
-      }
-    }
 
-    async trigger(params, body, type, commandMap) {
-      this.mute || logger.info(`command '!${this.command}' triggered, params: ${params}`);
-      if (this.level === 3) {
-        if (!QQService.isSuperAdmin(body.user_id)) {
-          this.sendNoPermissionMsg(body, type);
+      sendNoPermissionMsg({ group_id: groupId, user_id: userId }, type) {
+        if (type === 'group') {
+          QQService.sendGroupMessage(groupId, this.permissionDeniedNotice);
           return;
         }
-      } else if (this.level === 2) {
-        // 只有群聊模式才会出现level=2
-        const userRole = await QQService.getGroupUserRole(body.group_id, body.user_id);
-        if (!(userRole === 'owner' || userRole === 'admin')) {
-          QQService.sendGroupMessage(body.group_id, this.permissionDeniedNotice);
-          return;
+        if (type === 'private') {
+          QQService.sendPrivateMessage(userId, this.permissionDeniedNotice);
         }
       }
-      return target.prototype.run.call(this, params, body, type, commandMap);
-    }
 
-    setDBInstance(instance) {
-      this.DBInstance = instance;
-    }
-  };
+      async trigger(params, body, type, commandMap) {
+        this.mute || logger.info(`command '!${this.command}' triggered, params: ${params}`);
+        if (this.level === 3) {
+          if (!QQService.isSuperAdmin(body.user_id)) {
+            this.sendNoPermissionMsg(body, type);
+            return;
+          }
+        } else if (this.level === 2) {
+          // 只有群聊模式才会出现level=2
+          const userRole = await QQService.getGroupUserRole(body.group_id, body.user_id);
+          if (!(userRole === 'owner' || userRole === 'admin')) {
+            QQService.sendGroupMessage(body.group_id, this.permissionDeniedNotice);
+            return;
+          }
+        }
+        return target.prototype.run.call(this, params, body, type, commandMap);
+      }
+
+      setDBInstance(instance) {
+        this.DBInstance = instance;
+      }
+    };
 };

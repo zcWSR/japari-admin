@@ -1,6 +1,6 @@
 import { createCanvas } from '@napi-rs/canvas';
-import TopText from './top-text';
 import BottomText from './bottom-text';
+import TopText from './top-text';
 
 export default class Drawer {
   constructor(topText, bottomText) {
@@ -19,10 +19,7 @@ export default class Drawer {
     this.bottomText.x = this.topText.x + this.bottomLeftShift;
     this.bottomText.y = this.topText.y + spacing + this.topText.height;
     this.width =
-      Math.max(
-        this.topText.x + this.topText.width,
-        this.bottomText.x + this.bottomText.width
-      ) + pr;
+      Math.max(this.topText.x + this.topText.width, this.bottomText.x + this.bottomText.width) + pr;
     this.height = this.bottomText.y + this.bottomText.height + pb;
     this.topText.fixYPosition();
     this.bottomText.fixYPosition();

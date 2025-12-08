@@ -1,6 +1,6 @@
 import schedule, { scheduleJob } from 'node-schedule';
-import logger from '../utils/logger';
 import { getShangHaiTimeParts } from '../utils/date';
+import logger from '../utils/logger';
 import FirebaseService from './firebase-service';
 import QQService from './qq-service';
 
@@ -36,10 +36,9 @@ class ScheduleService {
   }
 
   getRuleFromString(ruleString) {
-    // eslint-disable-next-line prefer-const
     let [hourString, dayString = 'everyday'] = ruleString.split(' ');
     let hours = hourString.split(',').reduce((result, hour) => {
-      hour = parseInt(hour, 10);
+      hour = Number.parseInt(hour, 10);
       if (hour >= 0 && hour <= 23 && result.indexOf(hour) === -1) {
         result.push(hour);
       }
@@ -59,7 +58,7 @@ class ScheduleService {
       dayString = '1,2,3,4,5,6,7';
     }
     let days = dayString.split(',').reduce((result, day) => {
-      day = parseInt(day, 10);
+      day = Number.parseInt(day, 10);
       if (day >= 0 && day <= 7 && result.indexOf(day) === -1) {
         result.push(day);
       }
@@ -98,11 +97,7 @@ class ScheduleService {
   runSchedule(groupId, ruleString, text) {
     const { hours, days, rule } = this.getRuleFromString(ruleString);
     const name = this.getScheduleName(groupId);
-    scheduleJob(
-      name,
-      { rule, tz: 'Asia/Shanghai' },
-      this.sendText.bind(this, groupId, text)
-    );
+    scheduleJob(name, { rule, tz: 'Asia/Shanghai' }, this.sendText.bind(this, groupId, text));
     logger.info(`run schedule '${name}', rule '${rule}'`);
     return { hours, days };
   }

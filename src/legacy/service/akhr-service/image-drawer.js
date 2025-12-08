@@ -1,7 +1,7 @@
 import path from 'path';
-import { createCanvas, Image } from 'canvas';
-import Measurer from '../../utils/text-measurer';
+import { Image, createCanvas } from 'canvas';
 import logger from '../../utils/logger';
+import Measurer from '../../utils/text-measurer';
 
 const BG_IMG_FOLDER = path.resolve(__dirname, '../../../res/img/akhr/bg');
 const CHARA_IMG_FOLDER = path.resolve(__dirname, '../../../res/img/akhr/chara');
@@ -117,7 +117,7 @@ export default class Drawer {
     boxHeight,
     boxColor,
     color,
-    borderRadius = 0,
+    borderRadius,
     doNotDraw
   ) {
     const { width, height } = this.measurer.text(text, fontSize);
@@ -174,7 +174,7 @@ export default class Drawer {
     imageErrorColor,
     color,
     imageBorderRadius,
-    borderRadius = 0,
+    borderRadius,
     doNotDraw
   ) {
     const { width, height } = this.measurer.text(text, fontSize);
@@ -237,16 +237,7 @@ export default class Drawer {
   }
 
   addTagTextBox(pointer, tag, boxHeight) {
-    return this.addPureTextBoxPath(
-      pointer,
-      tag,
-      28,
-      20,
-      boxHeight,
-      '#6c757d',
-      TEXT_COLOR.WHITE,
-      6
-    );
+    return this.addPureTextBoxPath(pointer, tag, 28, 20, boxHeight, '#6c757d', TEXT_COLOR.WHITE, 6);
   }
 
   getTagTextBox(pointer, tag, boxHeight) {
@@ -359,9 +350,7 @@ export default class Drawer {
     const paths = await staffs.reduce(async (result, staff) => {
       result = await result;
       const getPathFunc = this[this.withStaffImage ? 'getStaffImageTextBox' : 'getStaffTextBox'];
-      const {
-        boxWidth, resetXY, rectPath, textPath, imagePath
-      } = await getPathFunc.call(
+      const { boxWidth, resetXY, rectPath, textPath, imagePath } = await getPathFunc.call(
         this,
         startPointer,
         staff,
@@ -399,10 +388,7 @@ export default class Drawer {
     const staffsMaxWidth = this.width - tagsContainerMaxWidth;
     const tagsStartPointer = { x: rowPadding, y: this.height + rowPadding };
     const staffsStartPointer = { x: tagsContainerMaxWidth, y: this.height + rowPadding };
-    const { height: tagsHeight, paths: tagPaths } = this.getCombineTagsPath(
-      tagsStartPointer,
-      tags
-    );
+    const { height: tagsHeight, paths: tagPaths } = this.getCombineTagsPath(tagsStartPointer, tags);
     const { height: staffsHeight, paths: staffPaths } = await this.getStaffsPath(
       staffsStartPointer,
       staffsMaxWidth,
@@ -423,7 +409,6 @@ export default class Drawer {
   async addContentPath() {
     this.height += 20; // marginTop
     const { combined } = this.hrList;
-    // eslint-disable-next-line guard-for-in, no-restricted-syntax
     for (const index in combined) {
       await this.addRowPath(combined[index], index);
     }
@@ -449,9 +434,7 @@ export default class Drawer {
     this.ctx.closePath();
   }
 
-  drawRect({
-    color, x, y, width, height, borderRadius
-  }) {
+  drawRect({ color, x, y, width, height, borderRadius }) {
     this.ctx.fillStyle = color;
     if (!borderRadius) {
       this.ctx.fillRect(x, y, width, height);
@@ -461,9 +444,7 @@ export default class Drawer {
     this.ctx.fill();
   }
 
-  drawImage({
-    x, y, width, height, image, bgColor = 'white', borderRadius
-  }) {
+  drawImage({ x, y, width, height, image, bgColor = 'white', borderRadius }) {
     if (!image && bgColor) {
       this.drawRect({
         color: bgColor,

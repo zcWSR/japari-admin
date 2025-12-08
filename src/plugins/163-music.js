@@ -196,14 +196,17 @@ class NetEastMusic {
       }
       if (id && suffix && suffix !== 'clear') {
         logger.info(`searching music which ${suffix} ${shiftCount} current id`);
-        this.sendMessage(`正在查询当前关键词搜索结果的${SUFFIX_TEXT_TEMPLATE_MAP[suffix](shiftCount)}...`, body, type);
+        this.sendMessage(
+          `正在查询当前关键词搜索结果的${SUFFIX_TEXT_TEMPLATE_MAP[suffix](shiftCount)}...`,
+          body,
+          type
+        );
       }
       if (!id || suffix) {
         const songs = await this.fetchMusic(keyword);
         if (!id) {
           // 从缓存里没取到, 直接取接口返回的第一首
           const [song] = songs;
-          // eslint-disable-next-line
           id = song.id;
           await this.setKeywordCache(keyword, id);
         } else {
@@ -212,7 +215,6 @@ class NetEastMusic {
           if (shiftedId !== id) {
             await this.setKeywordCache(keyword, shiftedId);
           }
-          // eslint-disable-next-line
           id = shiftedId;
         }
       }

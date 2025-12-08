@@ -1,6 +1,6 @@
 import { Command } from '../../decorators/plugin';
-import QQService from '../../services/qq-service';
 import OSUService from '../../services/osu-service';
+import QQService from '../../services/qq-service';
 
 @Command({
   name: '解绑osu!账号',

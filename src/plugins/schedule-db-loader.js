@@ -1,4 +1,3 @@
-import { withTransaction } from '../decorators/db';
 import { Plugin } from '../decorators/plugin';
 import ScheduleService from '../services/schedule-service';
 
@@ -11,17 +10,6 @@ import ScheduleService from '../services/schedule-service';
 class ScheduleDBLoader {
   init() {
     return ScheduleService.runAllSchedule();
-  }
-
-  @withTransaction
-  async createTable(trx) {
-    if (await trx.schema.hasTable('schedule')) return;
-    return trx.schema.createTable('schedule', (table) => {
-      table.integer('group_id').primary();
-      table.string('name');
-      table.string('rule');
-      table.string('text');
-    });
   }
 }
 

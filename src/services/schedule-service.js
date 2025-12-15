@@ -1,7 +1,7 @@
 import schedule, { scheduleJob } from 'node-schedule';
 import { getShangHaiTimeParts } from '../utils/date';
 import logger from '../utils/logger';
-import FirebaseService from './firebase-service';
+import D1Service from './d1-service';
 import QQService from './qq-service';
 
 const DAY_NAME_MAP = {
@@ -16,23 +16,40 @@ const DAY_NAME_MAP = {
 };
 
 class ScheduleService {
+  // ==========================================
+  // D1 数据操作
+  // ==========================================
+
+  async getAllSchedules() {
+    return D1Service.all('SELECT * FROM schedules');
+  }
+
+  async getScheduleByGroupId(groupId) {
+    return D1Service.first('SELECT * FROM schedules WHERE group_id = ?', [String(groupId)]);
+  }
+
+  async saveSchedule(groupId, rule, text) {
+    return D1Service.query(
+      `INSERT INTO schedules (group_id, rule, text, updated_at) VALUES (?, ?, ?, strftime('%s', 'now'))
+       ON CONFLICT(group_id) DO UPDATE SET rule = excluded.rule, text = excluded.text, updated_at = excluded.updated_at`,
+      [String(groupId), rule, text]
+    );
+  }
+
+  async deleteSchedule(groupId) {
+    return D1Service.query('DELETE FROM schedules WHERE group_id = ?', [String(groupId)]);
+  }
+
+  // ==========================================
+  // 业务逻辑
+  // ==========================================
+
   async getAllSchedule() {
-    const ref = FirebaseService.getSchedulesRef();
-    const data = await ref.get();
-    return data.docs;
+    return this.getAllSchedules();
   }
 
   getScheduleName(groupId) {
     return `s-${groupId}`;
-  }
-
-  getScheduleRefByGroupId(groupId) {
-    return FirebaseService.getSchedulesRef().doc(`${groupId}`);
-  }
-
-  async getScheduleByGroupId(groupId) {
-    const doc = await this.getScheduleRefByGroupId(groupId).get();
-    return doc.data();
   }
 
   getRuleFromString(ruleString) {
@@ -106,8 +123,7 @@ class ScheduleService {
     try {
       const docs = await this.getAllSchedule();
       docs.forEach((doc) => {
-        const { rule, text } = doc.data();
-        this.runSchedule(doc.id, rule, text);
+        this.runSchedule(doc.group_id, doc.rule, doc.text);
       });
     } catch (e) {
       logger.error(e);
@@ -125,26 +141,15 @@ class ScheduleService {
 
   async setSchedule(groupId, rule, text) {
     this.cancelSchedule(groupId);
-    const docRef = this.getScheduleRefByGroupId(groupId);
-    const doc = await docRef.get();
     const { hours, days } = this.runSchedule(groupId, rule, text);
-    if (doc.exists) {
-      await docRef.update({
-        rule: `${hours.join(',')} ${days.join(',')}`,
-        text
-      });
-    } else {
-      await docRef.set({
-        rule: `${hours.join(',')} ${days.join(',')}`,
-        text
-      });
-    }
+    const ruleString = `${hours.join(',')} ${days.join(',')}`;
+    await this.saveSchedule(groupId, ruleString, text);
     return { hours, days };
   }
 
-  async removeSchedule(groupId, name) {
-    this.cancelSchedule(name);
-    await this.getScheduleRefByGroupId(groupId).delete();
+  async removeSchedule(groupId) {
+    this.cancelSchedule(groupId);
+    await this.deleteSchedule(groupId);
     return 0;
   }
 

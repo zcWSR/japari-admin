@@ -1,5 +1,5 @@
-import { withTransaction } from '../../decorators/db';
 import { Command, LEVEL } from '../../decorators/plugin';
+import D1Service from '../../services/d1-service';
 import QQService from '../../services/qq-service';
 
 const DEFAULT_TPL = '欢迎 ${name} 加入本群! 请使用"!help"查看可用指令~';
@@ -12,6 +12,29 @@ const DEFAULT_TPL = '欢迎 ${name} 加入本群! 请使用"!help"查看可用�
   level: LEVEL.ADMIN
 })
 class NewNotice {
+  // ==========================================
+  // D1 数据操作
+  // ==========================================
+
+  async getTemplate(groupId) {
+    const row = await D1Service.first('SELECT template FROM new_notice WHERE group_id = ?', [
+      groupId
+    ]);
+    return row?.template;
+  }
+
+  async setTemplate(groupId, template) {
+    return D1Service.query(
+      `INSERT INTO new_notice (group_id, template, updated_at) VALUES (?, ?, strftime('%s', 'now'))
+       ON CONFLICT(group_id) DO UPDATE SET template = excluded.template, updated_at = excluded.updated_at`,
+      [groupId, template]
+    );
+  }
+
+  // ==========================================
+  // 业务逻辑
+  // ==========================================
+
   getValue(params) {
     const match = params.match(/^(\w+)\s(.*)/);
     if (!match) {
@@ -24,22 +47,6 @@ class NewNotice {
       key: match[1],
       value: match[2]
     };
-  }
-
-  @withTransaction
-  async getTemplate(trx, groupId) {
-    const result = await trx('new-notice').first().select('template').where('group_id', groupId);
-    return result?.template;
-  }
-
-  @withTransaction
-  async setTemplate(trx, groupId, template) {
-    const exist = !!(await trx('new-notice').where({ group_id: groupId }).first());
-    if (exist) {
-      await trx('new-notice').update({ template }).where('group_id', groupId);
-    } else {
-      await trx('new-notice').insert({ template, group_id: groupId });
-    }
   }
 
   async run(params, body) {

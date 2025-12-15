@@ -3,6 +3,7 @@ import axios from 'axios';
 
 import * as OSU from 'ojsama';
 import Config from '../config';
+import D1Service from './d1-service';
 import logger from '../utils/logger';
 import { numberToOsuModes } from '../utils/osu-utils';
 import { objKeyToSmallCamel } from '../utils/string-utils';
@@ -12,8 +13,6 @@ const GET_USER_URL = 'https://osu.ppy.sh/api/get_user';
 const GET_BP_URL = 'https://osu.ppy.sh/api/get_user_best';
 const GET_MAP_URL = 'https://osu.ppy.sh/api/get_beatmaps';
 const GET_RECENT_URL = 'https://osu.ppy.sh/api/get_user_recent';
-// const GET_SCORE_URL = 'https://osu.ppy.sh/api/get_scores';
-// const GET_MATCH_URL = 'https://osu.ppy.sh/api/get_match';
 const GET_OSU_FILE_UTL = 'https://osu.ppy.sh/osu';
 
 const modeMap = {
@@ -23,14 +22,10 @@ const modeMap = {
   3: 'osu!mania'
 };
 
-let dbInstance = null;
 let serviceInstance = null;
 
 export default class OSUService {
   instance = null;
-  static setDBInstance(instance) {
-    dbInstance = instance;
-  }
 
   /**
    * 获取实例
@@ -42,6 +37,48 @@ export default class OSUService {
     }
     return serviceInstance;
   }
+
+  // ==========================================
+  // D1 数据操作
+  // ==========================================
+
+  async getOsuBind(groupId, userId) {
+    return D1Service.first('SELECT * FROM osu_bind WHERE group_id = ? AND user_id = ?', [
+      groupId,
+      userId
+    ]);
+  }
+
+  async setOsuBind(groupId, userId, osuId, osuName, mode) {
+    return D1Service.query(
+      `INSERT INTO osu_bind (group_id, user_id, osu_id, osu_name, mode) VALUES (?, ?, ?, ?, ?)
+       ON CONFLICT(user_id, group_id) DO UPDATE SET osu_id = excluded.osu_id, osu_name = excluded.osu_name, mode = excluded.mode`,
+      [groupId, userId, osuId, osuName, mode]
+    );
+  }
+
+  async deleteOsuBind(groupId, userId) {
+    return D1Service.query('DELETE FROM osu_bind WHERE group_id = ? AND user_id = ?', [
+      groupId,
+      userId
+    ]);
+  }
+
+  async getOsuMap(mapId) {
+    const row = await D1Service.first('SELECT map FROM osu_map WHERE id = ?', [mapId]);
+    return row?.map;
+  }
+
+  async setOsuMap(mapId, mapData) {
+    return D1Service.query('INSERT OR REPLACE INTO osu_map (id, map) VALUES (?, ?)', [
+      mapId,
+      mapData
+    ]);
+  }
+
+  // ==========================================
+  // 业务逻辑
+  // ==========================================
 
   async fetch(url, params, config) {
     let retryTimes = 0;
@@ -73,7 +110,7 @@ export default class OSUService {
   }
 
   async getBoundInfo(groupId, userId) {
-    const meta = await dbInstance('osu_bind').where({ group_id: groupId, user_id: userId }).first();
+    const meta = await this.getOsuBind(groupId, userId);
     if (meta) {
       return objKeyToSmallCamel(meta, '_');
     }
@@ -95,31 +132,15 @@ export default class OSUService {
   }
 
   async bindOSUId(groupId, userId, osuName, mode = 0) {
-    const isBind = await this.getBoundInfo(groupId, userId);
     const user = await this.getUserByName(osuName, mode);
     if (typeof user === 'string') {
       return user;
     }
-    let message;
-    if (isBind) {
-      await dbInstance('osu_bind')
-        .update({
-          osu_id: user.user_id,
-          osu_name: osuName,
-          mode
-        })
-        .where({ user_id: userId, group_id: groupId });
-      message = `更新账号绑定为'${osuName}', 模式: ${modeMap[mode]}`;
-    } else {
-      await dbInstance('osu_bind').insert({
-        user_id: userId,
-        group_id: groupId,
-        osu_id: user.user_id,
-        osu_name: osuName,
-        mode
-      });
-      message = `账号'${osuName}'绑定成功, 模式: ${modeMap[mode]}`;
-    }
+    const isBind = await this.getBoundInfo(groupId, userId);
+    await this.setOsuBind(groupId, userId, user.user_id, osuName, mode);
+    const message = isBind
+      ? `更新账号绑定为'${osuName}', 模式: ${modeMap[mode]}`
+      : `账号'${osuName}'绑定成功, 模式: ${modeMap[mode]}`;
     logger.info(`qq${userId}${message}`);
     return message;
   }
@@ -131,12 +152,11 @@ export default class OSUService {
       logger.warn(`qq${userId}${message}`);
       return message;
     }
-    await dbInstance('osu_bind').where({ group_id: groupId, user_id: userId }).del();
+    await this.deleteOsuBind(groupId, userId);
     return '解绑成功';
   }
 
   async getBP(userInfo, index) {
-    // console.log(JSON.stringify(userInfo, null, 2));
     index = index || 1;
     const playInfos = await this.fetch(GET_BP_URL, {
       u: userInfo.osuId,
@@ -193,9 +213,9 @@ export default class OSUService {
   }
 
   async getMap(mapId) {
-    const meta = await dbInstance('osu_map').where('id', mapId).first();
-    if (meta) {
-      return unzipSync(Buffer.from(meta.map, 'base64')).toString();
+    const mapData = await this.getOsuMap(mapId);
+    if (mapData) {
+      return unzipSync(Buffer.from(mapData, 'base64')).toString();
     }
     const map = await this.fetch(`${GET_OSU_FILE_UTL}/${mapId}`, null, {
       responseType: 'text'
@@ -204,7 +224,7 @@ export default class OSUService {
       return null;
     }
     const mapZip = deflateSync(map).toString('base64');
-    await dbInstance('osu_map').insert({ id: mapId, map: mapZip });
+    await this.setOsuMap(mapId, mapZip);
     return map;
   }
 
@@ -219,7 +239,6 @@ export default class OSUService {
         count100,
         count300
       }
-      // mapInfo
     } = info;
     const mapString = await this.getMap(beatMapId);
     if (!mapString) {
@@ -282,7 +301,6 @@ export default class OSUService {
         count100,
         count300,
         countmiss,
-        // date,
         score,
         rank,
         enabled_mods: enabledMods

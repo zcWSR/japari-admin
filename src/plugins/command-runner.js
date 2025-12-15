@@ -1,6 +1,5 @@
 import path from 'path';
 import { decode } from 'html-entities';
-// import { withTransaction } from '../decorators/db';
 import { Plugin } from '../decorators/plugin';
 import FileService from '../services/file-service';
 import QQService from '../services/qq-service';
@@ -65,11 +64,6 @@ class CommandRunner {
       const Command = required.default;
       const command = new Command();
       if (!command.name) throw Error('command require a name');
-      command.setDBInstance(this.DBInstance);
-      if (command.createTable) {
-        logger.debug('create command require database');
-        await command.createTable();
-      }
       if (command.init) {
         logger.debug('init command');
         await command.init();

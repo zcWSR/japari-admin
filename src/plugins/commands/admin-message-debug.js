@@ -1,6 +1,6 @@
 import { Command, LEVEL } from '../../decorators/plugin';
 import QQService from '../../services/qq-service';
-import RedisService from '../../services/redis-service';
+import { setMessageDebug, getMessageDebug } from '../checkMessageDebug';
 import logger from '../../utils/logger';
 
 @Command({
@@ -13,7 +13,7 @@ import logger from '../../utils/logger';
 class MessageDebug {
   async run(params) {
     const isOn = params === 'true';
-    RedisService.set('messageDebug', isOn ? 1 : 0);
+    setMessageDebug(isOn);
     logger.log(`messageDebug: ${isOn}`);
     QQService.sendAdminsMessage(`消息调试: ${isOn ? '开启' : '关闭'}`);
   }

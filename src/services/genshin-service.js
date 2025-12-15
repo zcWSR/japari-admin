@@ -10,8 +10,8 @@ import {
 } from 'taffy-pvp-card-sw';
 import { formatShangHaiTime } from '../utils/date';
 import logger from '../utils/logger';
-import FirebaseService from './firebase-service';
 import QQService from './qq-service';
+import R2Service from './r2-service';
 
 globalConfig.logger.info = logger.info.bind(logger);
 globalConfig.logger.warn = logger.warn.bind(logger);
@@ -26,9 +26,6 @@ export class GenshinError extends Error {
 }
 
 class GenshinService {
-  /**
-   * @return [rowCount, colCount]
-   */
   calcRowCol(length) {
     if (length <= 4) return [1, length];
     if (length <= 6) return [2, 3];
@@ -53,8 +50,6 @@ class GenshinService {
             throw new GenshinError('系统维护中，再等等吧');
           case 429:
             throw new GenshinError('请求频率过高，请稍后再试吧');
-          // case 500:
-          // case 503:
           default:
             throw new GenshinError('出错了，但不知道为什么');
         }
@@ -100,7 +95,7 @@ class GenshinService {
   async drawCharaArtifactsAndGetRemoteUrl(uid, position) {
     const imageBuffer = await this.drawCharaArtifactsImage(uid, position);
     const filePath = `genshin/${uid}/${Date.now()}.png`;
-    return FirebaseService.uploadImage(filePath, imageBuffer);
+    return R2Service.uploadImage(filePath, imageBuffer);
   }
 
   async updateCache(fileChanges) {

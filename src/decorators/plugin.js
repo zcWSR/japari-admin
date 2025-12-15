@@ -31,10 +31,6 @@ export const Plugin = (config) => {
         this.mute || logger.info(`plugin ${this.name} triggered`);
         return target.prototype.go.call(this, body, plugins);
       }
-
-      setDBInstance(instance) {
-        this.DBInstance = instance;
-      }
     };
 };
 
@@ -101,10 +97,6 @@ export const Command = (config) => {
           }
         }
         return target.prototype.run.call(this, params, body, type, commandMap);
-      }
-
-      setDBInstance(instance) {
-        this.DBInstance = instance;
       }
     };
 };

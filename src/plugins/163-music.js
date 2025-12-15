@@ -1,8 +1,8 @@
 import axios from 'axios';
 import Config from '../config';
 import { Plugin } from '../decorators/plugin';
+import KVService from '../services/kv-service';
 import QQService from '../services/qq-service';
-import RedisService from '../services/redis-service';
 import logger from '../utils/logger';
 import { extractFirstText } from '../utils/message';
 
@@ -32,19 +32,42 @@ const SHIFT_METHOD_MAP = {
   mute: true
 })
 class NetEastMusic {
-  getTimeoutRedisKey(id) {
+  // ==========================================
+  // KV 数据操作
+  // ==========================================
+
+  getTimeoutKey(id) {
     return `163-music-timeout-${id}`;
   }
 
-  getIdCacheRedisKey(keyword) {
+  getKeywordCacheKey(keyword) {
     return `163-music-keyword-${keyword}`;
   }
 
+  async getTimeout(id) {
+    return KVService.get(this.getTimeoutKey(id));
+  }
+
+  async setTimeout(id, value) {
+    return KVService.set(this.getTimeoutKey(id), value);
+  }
+
+  async getKeywordCache(keyword) {
+    return KVService.get(this.getKeywordCacheKey(keyword));
+  }
+
+  async setKeywordCache(keyword, id) {
+    // 24 小时过期
+    return KVService.set(this.getKeywordCacheKey(keyword), String(id), 86400);
+  }
+
+  // ==========================================
+  // 业务逻辑
+  // ==========================================
+
   isCommand(message) {
-    // 从消息段数组提取第一个 text 段的内容
     const content = extractFirstText(message);
     if (!content) return false;
-
     let match = null;
     let prefix = null;
     commandPrefixList.some((p) => {
@@ -57,7 +80,7 @@ class NetEastMusic {
       return false;
     });
     if (match) {
-      // shiftCount只会在suffix有值时才会生效, 所以正常点歌时可以随便给默认值
+      // shiftCount 只会在 suffix 有值时才会生效，所以正常点歌时可以随便给默认值
       const [, suffix, shiftCount = 1, keyword] = match;
       return {
         prefix,
@@ -75,24 +98,23 @@ class NetEastMusic {
     }
     try {
       const id = type === 'group' ? groupId : userId;
-      const timeoutKey = this.getTimeoutRedisKey(id);
-      let [firstTime, count] = ((await RedisService.get(timeoutKey)) || ',').split(',');
+      let [firstTime, count] = ((await this.getTimeout(id)) || ',').split(',');
       const nowDateTime = Date.now();
       firstTime = +firstTime || nowDateTime;
       count = +count || 0;
 
-      // 超过一分钟, 用当前时间重设, 次数重置为1, 并继续
+      // 超过一分钟，用当前时间重设，次数重置为 1，并继续
       if (nowDateTime - firstTime > 1000 * 60) {
-        await RedisService.set(timeoutKey, `${nowDateTime},1`);
+        await this.setTimeout(id, `${nowDateTime},1`);
         return true;
       }
-      // 如不足最大限制次数, 则记录第一次调用时间和当前次数, 并继续
+      // 如不足最大限制次数，则记录第一次调用时间和当前次数，并继续
       if (count < MAX_COUNT_PRE_MINUTE) {
-        await RedisService.set(timeoutKey, `${firstTime},${count + 1}`);
+        await this.setTimeout(id, `${firstTime},${count + 1}`);
         return true;
       }
-      // 如超过最大调用次数并在一分钟内, 则判定为过量, 阻止
-      await RedisService.set(timeoutKey, `${firstTime},${count + 1}`);
+      // 如超过最大调用次数并在一分钟内，则判定为过量，阻止
+      await this.setTimeout(id, `${firstTime},${count + 1}`);
       return false;
     } catch (e) {
       // 异常统一阻止
@@ -101,11 +123,11 @@ class NetEastMusic {
     }
   }
 
-  // 返回number类型的id
+  // 返回 number 类型的 id
   async checkKeywordCache(keyword) {
     try {
       logger.info(`checking music keyword cache: ${keyword}`);
-      const result = await RedisService.get(this.getIdCacheRedisKey(keyword));
+      const result = await this.getKeywordCache(keyword);
       if (result) {
         logger.info(`get keyword cache, id: ${result}`);
       } else {
@@ -119,11 +141,9 @@ class NetEastMusic {
     }
   }
 
-  async setKeywordCache(keyword, id) {
+  async saveKeywordCache(keyword, id) {
     logger.info(`set music keyword cache: ${keyword}, id: ${id}`);
-    const cacheKey = this.getIdCacheRedisKey(keyword);
-    await RedisService.set(cacheKey, id);
-    await RedisService.redis.expire(cacheKey, 60 * 60 * 24);
+    await this.setKeywordCache(keyword, id);
   }
 
   getSearchUrl() {
@@ -164,13 +184,13 @@ class NetEastMusic {
   }
 
   getShiftedSongId(songs, id, suffix, shiftCount) {
-    // 没有pre或next指令尾缀, 则直接返回查到的id
+    // 没有 prev 或 next 指令尾缀，则直接返回查到的 id
     if (!suffix) {
       return id;
     }
-    // redis 返回的结果是数字
+    // kv 返回的结果是数字
     const currIdx = songs.findIndex((song) => song.id === id);
-    // 返回结果里找不到了, 默认取第一首
+    // 返回结果里找不到了，默认取第一首
     if (currIdx === -1) {
       logger.info('can not find music in search result, use index 0 as default');
       return songs[0].id;
@@ -205,15 +225,15 @@ class NetEastMusic {
       if (!id || suffix) {
         const songs = await this.fetchMusic(keyword);
         if (!id) {
-          // 从缓存里没取到, 直接取接口返回的第一首
+          // 从缓存里没取到，直接取接口返回的第一首
           const [song] = songs;
           id = song.id;
-          await this.setKeywordCache(keyword, id);
+          await this.saveKeywordCache(keyword, id);
         } else {
           // 取到了走上一首下一首逻辑
           const shiftedId = this.getShiftedSongId(songs, id, suffix, shiftCount);
           if (shiftedId !== id) {
-            await this.setKeywordCache(keyword, shiftedId);
+            await this.saveKeywordCache(keyword, shiftedId);
           }
           id = shiftedId;
         }
@@ -245,7 +265,7 @@ class NetEastMusic {
   async go(body, type) {
     const { message } = body;
     const c = this.isCommand(message);
-    if (!c) return; // 不是指令, 直接跳过流程
+    if (!c) return; // 不是指令，直接跳过流程
     logger.info(`163-music triggered, params: ${JSON.stringify(c)}`);
     if (!c.keyword) {
       this.sendMessage('非法参数', body, type);
@@ -276,4 +296,5 @@ class NetEastMusic {
     return 'break';
   }
 }
+
 export default NetEastMusic;

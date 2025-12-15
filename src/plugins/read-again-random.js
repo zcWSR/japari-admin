@@ -1,14 +1,12 @@
 import { Plugin } from '../decorators/plugin';
-// import { withTransaction } from '../decorators/db';
+import KVService from '../services/kv-service';
 import QQService from '../services/qq-service';
-import RedisService from '../services/redis-service';
 import logger from '../utils/logger';
 import { formatForLog } from '../utils/message';
 import { sleep } from '../utils/process';
 
 // 默认随机复读频率 5%
 const DEFAULT_RATE = 0.05;
-// const READ_AGAIN_RANDOM_TABLE = 'read-again-random';
 
 @Plugin({
   name: 'read-again-random',
@@ -20,6 +18,26 @@ const DEFAULT_RATE = 0.05;
   mute: true
 })
 class ReadAgainRandom {
+  // ==========================================
+  // KV 数据操作
+  // ==========================================
+
+  getRateKey(groupId) {
+    return `read-again-random-${groupId}`;
+  }
+
+  async getRate(groupId) {
+    return KVService.get(this.getRateKey(groupId));
+  }
+
+  async setRate(groupId, rate) {
+    return KVService.set(this.getRateKey(groupId), String(rate));
+  }
+
+  // ==========================================
+  // 业务逻辑
+  // ==========================================
+
   async go(body) {
     const { message, group_id: groupId } = body;
     const randomRate = Math.random();
@@ -35,27 +53,13 @@ class ReadAgainRandom {
   }
 
   async getGroupRandomRate(groupId) {
-    let randomRate = await RedisService.get(`${this.name}-${groupId}`);
+    let randomRate = await this.getRate(groupId);
     if (!randomRate) {
       randomRate = DEFAULT_RATE;
-      this.setGroupRandomRate(groupId, DEFAULT_RATE);
+      this.setRate(groupId, DEFAULT_RATE);
     }
     return +randomRate;
   }
-
-  setGroupRandomRate(groupId, rate) {
-    return RedisService.set(`${this.name}-${groupId}`, rate);
-  }
-
-  // @withTransaction
-  // async createTable(trx) {
-  //   if (!(await trx.scheme.hasTable(READ_AGAIN_RANDOM_TABLE))) {
-  //     await trx.scheme.createTable(READ_AGAIN_RANDOM_TABLE, (table) => {
-  //       table.bigInteger('group_id').primary();
-  //       table.double('random_rate');
-  //     });
-  //   }
-  // }
 }
 
 export default ReadAgainRandom;

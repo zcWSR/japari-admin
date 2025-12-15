@@ -1,6 +1,6 @@
 import { Command, LEVEL } from '../../decorators/plugin';
+import KVService from '../../services/kv-service';
 import QQService from '../../services/qq-service';
-import RedisService from '../../services/redis-service';
 
 @Command({
   name: '设置随机垃圾话及概率',
@@ -9,35 +9,62 @@ import RedisService from '../../services/redis-service';
   info: "查看和设置随机垃圾话概率, '!lj'查看当前概率, '!lj 0.x'设置概率",
   level: LEVEL.ADMIN
 })
-class ReadAgainFollow {
-  getRateRedisKey(groupId) {
+class GarbageWordCommand {
+  // ==========================================
+  // KV 数据操作
+  // ==========================================
+
+  getRateKey(groupId) {
     return `garbage-word-random-${groupId}`;
   }
 
-  getListRedisKey(groupId) {
+  getWordListKey(groupId) {
     return `garbage-word-random-word-list-${groupId}`;
   }
 
+  async getRate(groupId) {
+    return KVService.get(this.getRateKey(groupId));
+  }
+
+  async setRate(groupId, rate) {
+    return KVService.set(this.getRateKey(groupId), String(rate));
+  }
+
+  async getWordList(groupId) {
+    return (await KVService.getJSON(this.getWordListKey(groupId))) || [];
+  }
+
+  async setWordList(groupId, list) {
+    return KVService.setJSON(this.getWordListKey(groupId), list);
+  }
+
+  // ==========================================
+  // 业务逻辑
+  // ==========================================
+
   async addGarbageWord(groupId, word) {
-    const redisKey = this.getListRedisKey(groupId);
-    await RedisService.redis.lrem(redisKey, 0, word);
-    await RedisService.redis.rpush(redisKey, word);
+    const list = await this.getWordList(groupId);
+    const index = list.indexOf(word);
+    if (index !== -1) list.splice(index, 1);
+    list.push(word);
+    await this.setWordList(groupId, list);
     QQService.sendGroupMessage(groupId, `已添加: ${word}`);
   }
 
   async removeGarbageWord(groupId, inputIndex) {
-    const redisKey = this.getListRedisKey(groupId);
-    const word = await RedisService.redis.lindex(redisKey, +inputIndex - 1);
-    if (!word) {
+    const list = await this.getWordList(groupId);
+    const index = +inputIndex - 1;
+    if (index < 0 || index >= list.length) {
       QQService.sendGroupMessage(groupId, 'index 不存在');
       return;
     }
-    await RedisService.redis.lrem(redisKey, 0, word);
-    QQService.sendGroupMessage(groupId, `已移除: ${word}`);
+    const [removed] = list.splice(index, 1);
+    await this.setWordList(groupId, list);
+    QQService.sendGroupMessage(groupId, `已移除: ${removed}`);
   }
 
-  async getGarbageWordList(groupId) {
-    const list = await RedisService.redis.lrange(this.getListRedisKey(groupId), 0, -1);
+  async showGarbageWordList(groupId) {
+    const list = await this.getWordList(groupId);
     const listString = list.reduce((result, curr, index) => {
       result += `\n${index + 1}. ${curr}`;
       return result;
@@ -45,20 +72,20 @@ class ReadAgainFollow {
     QQService.sendGroupMessage(groupId, `当前垃圾话列表:${listString}`);
   }
 
-  async getGarbageWordRate(groupId) {
-    const rate = await RedisService.get(this.getRateRedisKey(groupId));
+  async showRate(groupId) {
+    const rate = await this.getRate(groupId);
     QQService.sendGroupMessage(groupId, `当前随机垃圾话概率: ${(rate * 100).toFixed(2)}%`);
   }
 
-  async setGarbageWordRate(rate, groupId) {
-    await RedisService.set(this.getRateRedisKey(groupId), rate);
+  async updateRate(rate, groupId) {
+    await this.setRate(groupId, rate);
     QQService.sendGroupMessage(groupId, `设置当前垃圾话复读概率为: ${(rate * 100).toFixed(2)}%`);
   }
 
   async run(params, body) {
     const { group_id: groupId, user_id: userId } = body;
     if (!params) {
-      await this.getGarbageWordRate(groupId);
+      await this.showRate(groupId);
       return;
     }
     const match = params.match(/(add\s|remove\s|list)(.*)?/s);
@@ -70,16 +97,16 @@ class ReadAgainFollow {
       } else if (operation === 'remove') {
         await this.removeGarbageWord(groupId, word.trim());
       } else if (operation === 'list') {
-        await this.getGarbageWordList(groupId);
+        await this.showGarbageWordList(groupId);
       }
       return;
     }
 
     const rate = Number.parseFloat(params);
     if (await QQService.checkRateWithMessage(rate, groupId, userId)) {
-      this.setGarbageWordRate(rate, groupId);
+      this.updateRate(rate, groupId);
     }
   }
 }
 
-export default ReadAgainFollow;
+export default GarbageWordCommand;

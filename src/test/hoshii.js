@@ -1,10 +1,10 @@
 import '../config';
 import Loader from '../plugins/font-loader';
-import FirebaseService from '../services/firebase-service';
+import R2Service from '../services/r2-service';
 import HoShiiService from '../services/hoshii-service';
 
 async function test() {
-  await FirebaseService.init();
+  R2Service.init();
   new Loader().init();
   const url = await HoShiiService.drawAndGetRemoteUrl('这是一条', '测试语句', 'test1');
   console.log(url);

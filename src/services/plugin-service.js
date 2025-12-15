@@ -1,8 +1,9 @@
 import path from 'path';
 import logger from '../utils/logger';
-import DBService from './db-service';
 import FileService from './file-service';
-import RedisService from './redis-service';
+import KVService from './kv-service';
+
+const GROUP_PLUGIN_CONFIG_KEY = 'group-plugin-config';
 
 class PluginService {
   plugins = {
@@ -15,6 +16,26 @@ class PluginService {
   groupConfigs = {};
   defaultGroupConfig = [];
   privateConfigs = [];
+
+  // ==========================================
+  // KV 数据操作
+  // ==========================================
+
+  getConfigKey(groupId) {
+    return `${GROUP_PLUGIN_CONFIG_KEY}-${groupId}`;
+  }
+
+  async getGroupPluginConfig(groupId) {
+    return (await KVService.getJSON(this.getConfigKey(groupId))) || [];
+  }
+
+  async saveGroupPluginConfig(groupId, pluginList) {
+    return KVService.setJSON(this.getConfigKey(groupId), pluginList);
+  }
+
+  // ==========================================
+  // 插件管理逻辑
+  // ==========================================
 
   sortByWeight(pluginA, pluginB) {
     return pluginB.weight - pluginA.weight;
@@ -45,11 +66,6 @@ class PluginService {
 
   async initSerial(plugins) {
     for (const plugin of plugins) {
-      plugin.setDBInstance(DBService.DBInstance);
-      if (plugin.createTable) {
-        logger.debug('create required database');
-        await plugin.createTable();
-      }
       if (plugin.init) {
         logger.debug('init plugin');
         await plugin.init();
@@ -122,8 +138,8 @@ class PluginService {
     }
     let config = null;
     try {
-      logger.info(`did not find local group(${groupId}) config cache, getting from redis...`);
-      config = await RedisService.getGroupPluginConfig(groupId);
+      logger.info(`did not find local group(${groupId}) config cache, getting from KV...`);
+      config = await this.getGroupPluginConfig(groupId);
       if (!Array.isArray(config) || !config.length) {
         logger.info('config not found, use default');
         config = this.defaultGroupConfig;
@@ -131,7 +147,7 @@ class PluginService {
         logger.info(`got config, ${JSON.stringify(config)}`);
       }
     } catch (e) {
-      logger.error('get from redis error');
+      logger.error('get from KV error');
       logger.error(e);
       config = this.defaultGroupConfig;
     }
@@ -140,7 +156,7 @@ class PluginService {
       prev[curr] = true;
       return prev;
     }, {});
-    await RedisService.updateGroupPluginConfig(groupId, config);
+    await this.saveGroupPluginConfig(groupId, config);
     return this.groupConfigs[groupId];
   }
 
@@ -152,7 +168,7 @@ class PluginService {
   async setGroupConfig(groupId, groupConfigMap) {
     this.groupConfigs[groupId] = groupConfigMap;
     const groupConfigList = Object.keys(groupConfigMap);
-    await RedisService.updateGroupPluginConfig(groupId, groupConfigList);
+    await this.saveGroupPluginConfig(groupId, groupConfigList);
   }
 
   /**

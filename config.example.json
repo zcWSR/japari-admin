@@ -1,12 +1,20 @@
 {
-  "dbFilePath": "db.sqlite3",
-  "redisPort": 8848,
-  "redisPw": "123456",
-  "osuAppKey": "qwertyuiop",
-  "orcSpaceKey": "1231241",
+  "osuAppKey": "",
   "qqServer": "http://localhost:5000",
-  "netEastMusicServer": "http://localhost:5000",
-  "admins": [123456789],
-  "qqBotId": 123456789,
-  "ip": "207.148.95.111"
+  "netEastMusicServer": "http://localhost:1630",
+  "akhrUpdateServer": "https://www.bigfun.cn/static/aktools/1598325389/data/akhr.json",
+  "admins": [],
+  "qqBotId": 0,
+
+  "cfAccountId": "",
+  "cfApiToken": "",
+
+  "r2AccessKeyId": "",
+  "r2SecretAccessKey": "",
+  "r2BucketName": "",
+  "r2PublicDomain": "",
+
+  "d1DatabaseId": "",
+
+  "kvNamespaceId": ""
 }

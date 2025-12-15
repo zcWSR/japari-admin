@@ -1,5 +1,5 @@
-import { withTransaction } from '../decorators/db';
 import { Plugin } from '../decorators/plugin';
+import D1Service from '../services/d1-service';
 import QQService from '../services/qq-service';
 import logger from '../utils/logger';
 
@@ -14,6 +14,29 @@ const defaultMsg = (name) => `欢迎 ${name} 加入本群! 请使用"!help"查�
   info: '入群提醒'
 })
 class NewNotice {
+  // ==========================================
+  // D1 数据操作
+  // ==========================================
+
+  async getTemplate(groupId) {
+    const row = await D1Service.first('SELECT template FROM new_notice WHERE group_id = ?', [
+      groupId
+    ]);
+    return row?.template;
+  }
+
+  async setTemplate(groupId, template) {
+    return D1Service.query(
+      `INSERT INTO new_notice (group_id, template, updated_at) VALUES (?, ?, strftime('%s', 'now'))
+       ON CONFLICT(group_id) DO UPDATE SET template = excluded.template, updated_at = excluded.updated_at`,
+      [groupId, template]
+    );
+  }
+
+  // ==========================================
+  // 业务逻辑
+  // ==========================================
+
   async go(body) {
     const { notice_type: noticeType, group_id: groupId, user_id: userId } = body;
     if (noticeType !== 'group_increase') return 'break';
@@ -34,22 +57,6 @@ class NewNotice {
 
   convertMsg(msg, memberName) {
     return msg.replace('${name}', memberName);
-  }
-
-  @withTransaction
-  async createTable(trx) {
-    if (!(await trx.schema.hasTable('new-notice'))) {
-      await trx.schema.createTable('new-notice', (table) => {
-        table.bigInteger('group_id').primary();
-        table.string('template');
-      });
-    }
-  }
-
-  @withTransaction
-  async getTemplate(trx, groupId) {
-    const result = await trx('new-notice').first().select('template').where('group_id', groupId);
-    return result?.template;
   }
 }
 

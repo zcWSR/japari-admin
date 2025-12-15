@@ -5,11 +5,12 @@ import { koaBody } from 'koa-body';
 
 import './config';
 import errorCatcher from './middlewares/error-catcher';
-import DBService from './services/db-service';
+import D1Service from './services/d1-service';
 import FileService from './services/file-service';
+import KVService from './services/kv-service';
 import PluginService from './services/plugin-service';
 import QQService from './services/qq-service';
-import RedisService from './services/redis-service';
+import R2Service from './services/r2-service';
 import { isDev } from './utils/env';
 import logger from './utils/logger';
 import { getProcessArgv } from './utils/process';
@@ -47,8 +48,10 @@ async function start() {
       colors: ['yellow', 'green']
     });
     isDev() && logger.info('******** now in debug mode ********');
-    DBService.init();
-    await RedisService.connect();
+    // 初始化 Cloudflare 服务
+    D1Service.init();
+    KVService.init();
+    R2Service.init();
     await PluginService.loadPlugins();
     initServer(getPort());
     QQService.sendReadyMessage();

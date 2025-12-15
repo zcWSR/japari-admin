@@ -1,8 +1,7 @@
-// import { withTransaction } from '../decorators/db';
 import { Plugin } from '../decorators/plugin';
+import KVService from '../services/kv-service';
 import QQService from '../services/qq-service';
 import ReadAgainService from '../services/read-again-service';
-import RedisService from '../services/redis-service';
 import logger from '../utils/logger';
 import { sleep } from '../utils/process';
 import { formatForLog, isSegmentEqual } from '../utils/message';
@@ -19,14 +18,27 @@ const DEFAULT_GROUP_INFO = { message: null, count: 1 };
   mute: true
 })
 class ReadAgainFollow {
-  /**
-   * 判断两个消息段数组是否相似
-   * - 非文字段（image/at/face 等）：全等比较
-   * - 文字段：相似度比较
-   * @param {Array|string} a 消息 A
-   * @param {Array|string} b 消息 B
-   * @returns {boolean} 是否相似
-   */
+  // ==========================================
+  // KV 数据操作
+  // ==========================================
+
+  getStateKey(groupId) {
+    return `read-again-follow-${groupId}`;
+  }
+
+  async getState(groupId) {
+    return KVService.getJSON(this.getStateKey(groupId));
+  }
+
+  async setState(groupId, state) {
+    return KVService.setJSON(this.getStateKey(groupId), state);
+  }
+
+  // ==========================================
+  // 业务逻辑
+  // ==========================================
+
+  // 判断和前一条是否相似
   isSimilar(a, b) {
     try {
       // 兼容旧数据：如果存储的是字符串或 null
@@ -64,11 +76,10 @@ class ReadAgainFollow {
 
   async go(body) {
     const { group_id: groupId, message } = body;
-    const redisKey = `${this.name}-${groupId}`;
-    let groupInfo = JSON.parse(await RedisService.get(redisKey)) || DEFAULT_GROUP_INFO;
+    let groupInfo = (await this.getState(groupId)) || DEFAULT_GROUP_INFO;
     if (!this.isSimilar(groupInfo.message, message)) {
       groupInfo = { message, count: 1 };
-      await RedisService.set(redisKey, JSON.stringify(groupInfo));
+      await this.setState(groupId, groupInfo);
       return;
     }
     groupInfo.count += 1;
@@ -76,20 +87,11 @@ class ReadAgainFollow {
       logger.info(`group ${groupId} read follow: '${formatForLog(message)}'`);
       await sleep();
       QQService.sendGroupMessage(groupId, message);
-      await RedisService.set(redisKey, JSON.stringify(groupInfo));
+      await this.setState(groupId, groupInfo);
       return 'break';
     }
-    await RedisService.set(redisKey, JSON.stringify(groupInfo));
+    await this.setState(groupId, groupInfo);
   }
-
-  // @withTransaction
-  // async createTable(trx) {
-  //   if (!(await trx.scheme.hasTable('read-again-follow'))) {
-  //     await trx.scheme.createTable('read-again-follow', (table) => {
-  //       table.bigInteger('group_id').primary();
-  //     });
-  //   }
-  // }
 }
 
 export default ReadAgainFollow;

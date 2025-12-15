@@ -2,15 +2,15 @@ import { Plugin } from '../decorators/plugin';
 import ScheduleService from '../services/schedule-service';
 
 @Plugin({
-  name: 'schedule-db-loader',
+  name: 'schedule-loader',
   weight: 1,
-  type: null, // 类型为空, 不添加到插件队列内
+  type: null,
   mute: true
 })
-class ScheduleDBLoader {
+class ScheduleLoader {
   init() {
     return ScheduleService.runAllSchedule();
   }
 }
 
-export default ScheduleDBLoader;
+export default ScheduleLoader;

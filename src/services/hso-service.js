@@ -1,11 +1,49 @@
 import axios from 'axios';
 import logger from '../utils/logger';
-import RedisService from './redis-service';
+import KVService from './kv-service';
 
-const HSO_SET_KEY = 'hso-cache';
-const HSO_PLUS_SET_KEY = 'hso-plus-cache';
+const HSO_CACHE_KEY = 'hso-cache';
+const HSO_PLUS_CACHE_KEY = 'hso-plus-cache';
 
 class HsoService {
+  // ==========================================
+  // KV 数据操作
+  // ==========================================
+
+  getCacheKey(plusMode) {
+    return plusMode ? HSO_PLUS_CACHE_KEY : HSO_CACHE_KEY;
+  }
+
+  async getCache(plusMode) {
+    return (await KVService.getJSON(this.getCacheKey(plusMode))) || [];
+  }
+
+  async setCache(plusMode, list) {
+    return KVService.setJSON(this.getCacheKey(plusMode), list);
+  }
+
+  async popFromCache(plusMode) {
+    const list = await this.getCache(plusMode);
+    if (!list.length) return null;
+    const item = list.pop();
+    await this.setCache(plusMode, list);
+    return item;
+  }
+
+  async addToCache(plusMode, items) {
+    const existing = await this.getCache(plusMode);
+    existing.push(...items);
+    return this.setCache(plusMode, existing);
+  }
+
+  async clearCache(plusMode) {
+    return KVService.delete(this.getCacheKey(plusMode));
+  }
+
+  // ==========================================
+  // 业务逻辑
+  // ==========================================
+
   async fetchHsoList(plusMode) {
     try {
       const page = Math.ceil(Math.random() * 100);
@@ -31,29 +69,12 @@ class HsoService {
     }
   }
 
-  clearSet(plusMode) {
-    return RedisService.redis.del(plusMode ? HSO_PLUS_SET_KEY : HSO_SET_KEY);
-  }
-
-  async addHsoListToRedis(hsoList, plusMode) {
-    const formatList = hsoList.map((hso) =>
-      JSON.stringify({
-        id: hso.id,
-        source: hso.source,
-        preview: hso.preview_url,
-        sample: hso.sample_url,
-        plus: plusMode
-      })
-    );
-    await RedisService.redis.sadd(plusMode ? HSO_PLUS_SET_KEY : HSO_SET_KEY, ...formatList);
-  }
-
   async getOne(plusMode, newList) {
-    let hsoString;
+    let hso;
     if (!newList) {
-      hsoString = await RedisService.redis.spop(plusMode ? HSO_PLUS_SET_KEY : HSO_SET_KEY);
+      hso = await this.popFromCache(plusMode);
     }
-    if (!hsoString) {
+    if (!hso) {
       if (newList) {
         logger.info(`hso ${plusMode ? 'plus ' : ''}list refresh`);
       } else {
@@ -61,12 +82,18 @@ class HsoService {
       }
       const hsoList = await this.fetchHsoList(plusMode);
       if (newList) {
-        await this.clearSet(plusMode);
+        await this.clearCache(plusMode);
       }
-      await this.addHsoListToRedis(hsoList, plusMode);
+      const formatList = hsoList.map((item) => ({
+        id: item.id,
+        source: item.source,
+        preview: item.preview_url,
+        sample: item.sample_url,
+        plus: plusMode
+      }));
+      await this.addToCache(plusMode, formatList);
       return this.getOne(plusMode);
     }
-    const hso = JSON.parse(hsoString);
     logger.info(`random pop one hso${plusMode ? ' plus' : ''}, id: ${hso.id}`);
     return hso;
   }

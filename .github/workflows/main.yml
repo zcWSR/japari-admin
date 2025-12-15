@@ -16,7 +16,7 @@ jobs:
       - name: Setup Node.js environment
         uses: actions/setup-node@v2.4.0
         with:
-          node-version: 12.x
+          node-version: 18.x
           cache: npm
       - name: Install
         run: npm install

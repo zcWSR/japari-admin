@@ -4,6 +4,7 @@ import { Plugin } from '../decorators/plugin';
 import QQService from '../services/qq-service';
 import RedisService from '../services/redis-service';
 import logger from '../utils/logger';
+import { extractFirstText } from '../utils/message';
 
 const commandPrefixList = ['点歌', '来一首', '我想听'];
 
@@ -39,7 +40,11 @@ class NetEastMusic {
     return `163-music-keyword-${keyword}`;
   }
 
-  isCommand(content) {
+  isCommand(message) {
+    // 从消息段数组提取第一个 text 段的内容
+    const content = extractFirstText(message);
+    if (!content) return false;
+
     let match = null;
     let prefix = null;
     commandPrefixList.some((p) => {

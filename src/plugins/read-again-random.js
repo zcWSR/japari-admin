@@ -4,6 +4,7 @@ import QQService from '../services/qq-service';
 import RedisService from '../services/redis-service';
 import { sleep } from '../utils/process';
 import logger from '../utils/logger';
+import { formatForLog } from '../utils/message';
 
 // 默认随机复读频率 5%
 const DEFAULT_RATE = 0.05;
@@ -24,8 +25,9 @@ class ReadAgainRandom {
     const randomRate = Math.random();
     const groupRate = await this.getGroupRandomRate(groupId);
     if (randomRate < groupRate) {
-      logger.info(`group ${groupId} random read again: '${message}'`);
+      logger.info(`group ${groupId} random read again: '${formatForLog(message)}'`);
       await sleep();
+      // 直接透传消息段数组
       QQService.sendGroupMessage(groupId, message);
       return 'block';
     }

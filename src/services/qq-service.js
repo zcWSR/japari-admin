@@ -4,30 +4,19 @@ import logger from '../utils/logger';
 import Config from '../config';
 import { isDev } from '../utils/env';
 import { sleep } from '../utils/process';
+import { formatForLog } from '../utils/message';
 
 class QQService {
   constructor() {
     if (isDev()) {
       this.sendGroupMessage = (groupId, msg) => {
         logger.debug(`===== send to group ${groupId}`);
-        if (msg.split) {
-          msg.split('\n').forEach((line) => {
-            logger.debug(line);
-          });
-        } else {
-          logger.debug(msg);
-        }
+        logger.debug(formatForLog(msg));
         logger.debug('===== done');
       };
       this.sendPrivateMessage = (userId, msg) => {
         logger.debug(`===== send to user ${userId}`);
-        if (msg.split) {
-          msg.split('\n').forEach((line) => {
-            logger.debug(line);
-          });
-        } else {
-          logger.debug(msg);
-        }
+        logger.debug(formatForLog(msg));
         logger.debug('===== done');
       };
     }
@@ -88,6 +77,9 @@ class QQService {
   }
 
   sendPrivateMessage(userId, message) {
+    if (typeof message === 'string') {
+      message = [{ type: 'text', data: { text: message } }];
+    }
     axios.post(`${Config.QQ_SERVER}/send_private_msg`, { user_id: userId, message });
   }
 
@@ -115,6 +107,9 @@ class QQService {
   }
 
   sendGroupMessage(groupId, message) {
+    if (typeof message === 'string') {
+      message = [{ type: 'text', data: { text: message } }];
+    }
     axios.post(`${Config.QQ_SERVER}/send_group_msg`, { group_id: groupId, message });
   }
 

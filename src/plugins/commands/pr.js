@@ -14,14 +14,22 @@ class Roll {
   }
 
   run(params, body) {
-    let content = 'prpr';
-    if (params) {
-      content = Math.random() > 0.5 ? `舔舔${params}` : `[CQ:poke,qq=${body.user_id}]`;
-    }
     if (this.noPr()) {
-      content = '不舔了, 舔不动了';
+      QQService.sendGroupMessage(body.group_id, '不舔了, 舔不动了');
+      return;
     }
-    QQService.sendGroupMessage(body.group_id, content);
+    if (params) {
+      if (Math.random() > 0.5) {
+        QQService.sendGroupMessage(body.group_id, `舔舔${params}`);
+      } else {
+        // 戳一戳消息段
+        QQService.sendGroupMessage(body.group_id, [
+          { type: 'poke', data: { qq: String(body.user_id) } }
+        ]);
+      }
+    } else {
+      QQService.sendGroupMessage(body.group_id, 'prpr');
+    }
   }
 }
 

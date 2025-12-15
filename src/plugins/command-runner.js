@@ -5,6 +5,7 @@ import FileService from '../services/file-service';
 // import { withTransaction } from '../decorators/db';
 import { Plugin } from '../decorators/plugin';
 import QQService from '../services/qq-service';
+import { extractFirstText } from '../utils/message';
 
 const COMMAND_404 = "您所调用的指令不存在尝试使用, '!help'来查看所有可用指令";
 
@@ -83,9 +84,13 @@ class CommandRunner {
 
   /**
    * 判断是否为指令调用内容, 返回指令和参数
-   * @param {string} content 完整内容
+   * @param {Array|string} message 消息段数组或字符串
    */
-  isCommand(content) {
+  isCommand(message) {
+    // 从消息段数组提取第一个 text 段的内容
+    const content = extractFirstText(message);
+    if (!content) return null;
+
     let match = content.match(/^[!|\uFF01]([\u4e00-\u9fa5_a-zA-Z0-9_]{2,})\s([\0-\uFFFF]*)$/);
     if (match) {
       const [, name, params] = match;

@@ -3,7 +3,7 @@
   <br>
   加帕里动物管理员
   <h4 align="center">
-    一个简单的基于coolq-http-api的: 会复读, 可响应指令, 灵活可扩展的 qqbot. 插件化开发
+    一个简单的基于 OneBot 的: 会复读, 可响应指令, 灵活可扩展的 qqbot. 插件化开发
   </h4>
   <!-- <h5 align="center">
     <a href="#license">开源条款</a>

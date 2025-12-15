@@ -1,13 +1,11 @@
-import { Plugin } from '../decorators/plugin';
-import QQService from '../services/qq-service';
-import RedisService from '../services/redis-service';
-import AkhrService from '../services/akhr-service';
-import logger from '../utils/logger';
+import { Plugin } from '../../decorators/plugin';
+import QQService from '../../services/qq-service';
+import RedisService from '../../services/redis-service';
+import AkhrService from '../service/akhr-service';
+import logger from '../../utils/logger';
+import { extractFirstText } from '../../utils/message';
 
 const COMMAND_REG = /^[!|！]akhr\s*$/;
-const COMMAND_WITH_IMG_REG = /^[!|！]akhr\s*\n*\[CQ:image/;
-
-const IMG_REG = /\[CQ:image,file=([^,]+),url=([^\]]+)\]/;
 
 const WAITING_STACK_KEY = 'akhr-waiting';
 
@@ -22,23 +20,49 @@ const WAITING_STACK_KEY = 'akhr-waiting';
   mute: true
 })
 class Akhr {
-  getImgsFromMsg(msg) {
-    logger.info(`getting img from message: ${msg}`);
-    const search = IMG_REG.exec(msg);
-    if (search) {
+  /**
+   * 从消息段数组中提取第一张图片信息
+   * @param {Array} message 消息段数组
+   * @returns {{ file: string, url: string } | null}
+   */
+  getImgsFromMsg(message) {
+    if (!Array.isArray(message)) {
+      logger.info('message is not array, skip');
+      return null;
+    }
+    const imgSeg = message.find((seg) => seg.type === 'image');
+    if (imgSeg && imgSeg.data) {
       const result = {
-        file: search[1],
-        url: search[2]
+        file: imgSeg.data.file,
+        url: imgSeg.data.url
       };
       logger.info(`got img: ${JSON.stringify(result)}`);
       return result;
     }
-    logger.info('get failed');
+    logger.info('no image found in message');
     return null;
   }
 
-  isCommand(content) {
-    return content.match(COMMAND_REG) || content.match(COMMAND_WITH_IMG_REG);
+  /**
+   * 判断是否为 akhr 指令
+   * @param {Array} message 消息段数组
+   * @returns {boolean}
+   */
+  isCommand(message) {
+    const text = extractFirstText(message);
+    return COMMAND_REG.test(text);
+  }
+
+  /**
+   * 判断消息中是否包含指令和图片
+   * @param {Array} message 消息段数组
+   * @returns {boolean}
+   */
+  isCommandWithImg(message) {
+    if (!Array.isArray(message)) return false;
+    const hasCommand = this.isCommand(message);
+    const hasImage = message.some((seg) => seg.type === 'image');
+    return hasCommand && hasImage;
   }
 
   async isInWaitingStack(groupId, userId) {
@@ -72,8 +96,6 @@ class Akhr {
     const result = AkhrService.combine(words, hrList);
     const data = await AkhrService.parseImageOutPut(result, true);
     QQService.sendGroupImage(groupId, data, { isBase64: true });
-    // const msg = AkhrService.parseTextOutput(result);
-    // QQService.sendGroupMessage(groupId, msg);
   }
 
   async go(body) {
@@ -83,25 +105,26 @@ class Akhr {
       if (await this.isInWaitingStack(groupId, userId)) {
         logger.info('hint waiting stack');
         const imgUrl = this.getImgsFromMsg(message);
-        if (imgUrl) {
+        if (imgUrl && imgUrl.url) {
           await this.combineAndSend(imgUrl.url, groupId);
           await this.clearStack(groupId);
         }
         return 'break';
       }
-      // 如为指令, 则判断启动模式
-      if (this.isCommand(message)) {
+      // 判断是否为指令 + 图片模式
+      if (this.isCommandWithImg(message)) {
         const imgUrl = this.getImgsFromMsg(message);
-        // 存在图片, 直接分析
-        if (imgUrl) {
+        if (imgUrl && imgUrl.url) {
           logger.info('message "with img" mod');
           await this.combineAndSend(imgUrl.url, groupId);
-        } else {
-          // 加入等待队列
-          logger.info('message "only command" mode');
-          await this.addIntoWaitingStack(groupId, userId);
-          QQService.sendGroupMessage(groupId, '等待发送图片...');
         }
+        return 'break';
+      }
+      // 判断是否为纯指令模式
+      if (this.isCommand(message)) {
+        logger.info('message "only command" mode');
+        await this.addIntoWaitingStack(groupId, userId);
+        QQService.sendGroupMessage(groupId, '等待发送图片...');
         return 'break';
       }
     } catch (e) {

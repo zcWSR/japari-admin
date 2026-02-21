@@ -8,5 +8,7 @@ firebase*.json
 res/
 .vs/
 built/
+apps/worker/dist/
 .taffy-pvp-card-sw-cache
 migrate/
+_src/

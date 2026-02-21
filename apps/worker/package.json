@@ -1,0 +1,28 @@
+{
+  "name": "japari-worker",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "description": "QQ 机器人 Worker，使用 Hono + D1/KV 绑定",
+  "scripts": {
+    "build": "npm run build:worker -w japari-admin",
+    "dev": "npm run build && wrangler dev",
+    "deploy": "npm run build && wrangler deploy"
+  },
+  "dependencies": {
+    "axios": "^1.13.2",
+    "date-fns": "^4.1.0",
+    "@date-fns/tz": "^1.4.1",
+    "es-toolkit": "^1.30.1",
+    "fflate": "^0.8.2",
+    "hono": "^4.12.0",
+    "html-entities": "^2.6.0",
+    "ojsama": "^2.2.0",
+    "pino": "^9.6.0"
+  },
+  "devDependencies": {
+    "@swc/cli": "^0.8.0",
+    "@swc/core": "^1.15.11",
+    "wrangler": "^4.67.0"
+  }
+}

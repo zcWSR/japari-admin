@@ -1,47 +1,28 @@
 {
   "name": "japari-admin",
   "version": "1.0.0",
-  "description": "",
-  "main": "www.js",
+  "description": "japari node + worker",
+  "private": true,
+  "workspaces": [
+    "apps/node",
+    "apps/worker"
+  ],
   "scripts": {
-    "build": "swc src -d built --strip-leading-paths",
-    "build:dev": "swc src -d .built-dev --strip-leading-paths --source-maps",
-    "start": "npm run build && node ./built/index.js",
-    "start:dev": "npm run build:dev && NODE_ENV=dev node ./.built-dev/index.js -p=2333",
-    "dev": "swc src -d .built-dev --strip-leading-paths --source-maps --watch",
-    "test": "npm run build:dev && NODE_ENV=dev node ./.built-dev/test/index.js",
-    "lint": "biome check src",
-    "lint:fix": "biome check --write src",
-    "format": "biome format --write src"
+    "build:node": "swc apps/node/src -d apps/node/built --strip-leading-paths",
+    "build:worker": "swc apps/worker/src -d apps/worker/dist --strip-leading-paths",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "format": "biome format --write .",
+    "worker:dev": "npm run dev -w japari-worker",
+    "worker:deploy": "npm run deploy -w japari-worker",
+    "node:dev": "npm run start:dev -w japari-node",
+    "node:start": "npm run start -w japari-node",
+    "node:build": "npm run build -w japari-node"
   },
   "author": "zcWSR",
   "license": "MIT",
-  "overrides": {
-    "taffy-pvp-card-sw": {
-      "node-fetch": "^2.6.1"
-    }
-  },
-  "dependencies": {
-    "@koa/router": "^15.0.0",
-    "@napi-rs/canvas": "^0.1.84",
-    "axios": "^1.13.2",
-    "cfonts": "^3.3.1",
-    "date-fns": "^4.1.0",
-    "date-fns-tz": "^3.2.0",
-    "es-toolkit": "^1.30.1",
-    "html-entities": "^2.6.0",
-    "koa": "^2.16.3",
-    "koa-body": "^6.0.1",
-    "node-schedule": "^2.1.1",
-    "ojsama": "^2.2.0",
-    "pino": "^9.6.0",
-    "pino-pretty": "^13.0.0",
-    "taffy-pvp-card-sw": "github:muedsa/taffy-pvp-card-sw#0.2.8"
-  },
   "devDependencies": {
-    "@biomejs/biome": "^1.9.4",
-    "@swc/cli": "^0.5.0",
-    "@swc/core": "^1.10.1"
+    "@biomejs/biome": "^1.9.4"
   },
   "repository": "https://github.com/zcWSR/japari-admin"
 }

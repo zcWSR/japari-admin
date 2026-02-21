@@ -1,18 +1,9 @@
 {
   "jsc": {
-    "parser": {
-      "syntax": "ecmascript",
-      "decorators": true
-    },
-    "transform": {
-      "legacyDecorator": true,
-      "decoratorMetadata": false
-    },
+    "parser": { "syntax": "ecmascript", "decorators": true },
+    "transform": { "legacyDecorator": true, "decoratorMetadata": false },
     "target": "es2022"
   },
-  "module": {
-    "type": "commonjs"
-  },
-  "sourceMaps": true
+  "module": { "type": "es6" },
+  "sourceMaps": false
 }
-

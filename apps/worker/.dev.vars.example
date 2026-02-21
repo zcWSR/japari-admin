@@ -1,0 +1,7 @@
+# 复制为 .dev.vars（不提交），本地 wrangler dev 时注入为 env
+QQ_SERVER=http://localhost:5000
+NODE_URL=http://localhost:3000
+ADMINS=942403779
+BOT_QQ_ID=3486955134
+OSU_APP_KEY=
+NET_EAST_MUSIC_SERVER=http://localhost:1630

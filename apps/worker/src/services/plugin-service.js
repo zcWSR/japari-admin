@@ -1,6 +1,6 @@
+import { plugins as pluginList } from '../plugins/registry';
 import logger from '../utils/logger';
 import KVService from './kv-service';
-import { plugins as pluginList } from '../plugins/registry';
 
 const GROUP_PLUGIN_CONFIG_KEY = 'group-plugin-config';
 
@@ -24,8 +24,22 @@ class PluginService {
     return `${GROUP_PLUGIN_CONFIG_KEY}-${groupId}`;
   }
 
+  /** KV 前缀，用于列出所有有配置的群 */
+  get configKeyPrefix() {
+    return `${GROUP_PLUGIN_CONFIG_KEY}-`;
+  }
+
   async getGroupPluginConfig(groupId) {
     return (await KVService.getJSON(this.getConfigKey(groupId))) || [];
+  }
+
+  /**
+   * 获取所有在 KV 中有插件配置的群 ID（供超管列表页）
+   * @returns {Promise<string[]>}
+   */
+  async getAllGroupIds() {
+    const keys = await KVService.listKeyNames(this.configKeyPrefix);
+    return keys.map((name) => name.slice(this.configKeyPrefix.length)).filter(Boolean);
   }
 
   async saveGroupPluginConfig(groupId, pluginList) {

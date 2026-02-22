@@ -1,6 +1,6 @@
+import OSUService from '@/services/osu-service.js';
+import QQService from '@/services/qq-service.js';
 import { Command } from '../../decorators/plugin';
-import OSUService from '../../services/osu-service';
-import QQService from '../../services/qq-service';
 
 @Command({
   name: '查看osu!所绑定账号的bp',

@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+
+# Next / OpenNext / Wrangler
+.next
+.open-next
+.wrangler
+dist
+
+# Env (local overrides)
+.env*.local
+
+# Generated
+cloudflare-env.d.ts
+
+# 含 D1/KV 等实例 ID，勿提交（参考 wrangler.example.toml）
+wrangler.toml
+# 含本地/敏感变量
+.dev.vars
+
+# Logs
+*.log

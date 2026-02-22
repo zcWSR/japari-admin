@@ -1,6 +1,6 @@
+import D1Service from '@/services/d1-service.js';
+import QQService from '@/services/qq-service.js';
 import { Plugin } from '../decorators/plugin';
-import D1Service from '../services/d1-service';
-import QQService from '../services/qq-service';
 import logger from '../utils/logger';
 
 const defaultMsg = (name) => `欢迎 ${name} 加入本群! 请使用"!help"查看可用指令~`;
@@ -56,6 +56,7 @@ class NewNotice {
   }
 
   convertMsg(msg, memberName) {
+    // biome-ignore lint/suspicious/noTemplateCurlyInString: ignore
     return msg.replace('${name}', memberName);
   }
 }

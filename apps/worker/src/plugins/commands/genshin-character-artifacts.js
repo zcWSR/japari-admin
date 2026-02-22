@@ -1,6 +1,6 @@
+import { generateImage } from '@/services/node-api.js';
+import QQService from '@/services/qq-service.js';
 import { Command } from '../../decorators/plugin';
-import { generateImage } from '../../services/node-api';
-import QQService from '../../services/qq-service';
 
 @Command({
   name: '查询原神角色面板与圣遗物',
@@ -37,12 +37,20 @@ class GenshinCharaArtifacts {
       return;
     }
     try {
-      const url = await generateImage('genshin', { uid, position: position || undefined });
+      const url = await generateImage('genshin', {
+        uid,
+        position: position || undefined
+      });
       this.sendImg(body, type, url);
     } catch (error) {
       const msg = error?.message || '出现了不可预料的错误';
       this.sendMsg(body, type, msg);
-      if (!msg.includes('UID') && !msg.includes('不存在') && !msg.includes('维护') && !msg.includes('频率')) {
+      if (
+        !msg.includes('UID') &&
+        !msg.includes('不存在') &&
+        !msg.includes('维护') &&
+        !msg.includes('频率')
+      ) {
         throw error;
       }
     }

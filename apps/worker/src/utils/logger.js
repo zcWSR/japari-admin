@@ -1,8 +1,18 @@
 import pino from 'pino';
 
-// Worker 环境无 fs/path，仅输出到 stdout（wrangler dev 会显示）
+const isDev = typeof process !== 'undefined' && process.env?.NODE_ENV === 'dev';
+
+// dev 且 Node 环境用 pino-pretty 输出可读日志；Worker/生产保持 JSON 行
 const logger = pino({
-  level: typeof process !== 'undefined' && process.env?.NODE_ENV === 'dev' ? 'debug' : 'info'
+  level: isDev ? 'debug' : 'info',
+  ...(isDev && typeof process !== 'undefined' && process.versions?.node
+    ? {
+        transport: {
+          target: 'pino-pretty',
+          options: { colorize: true, translateTime: 'SYS:HH:MM:ss' }
+        }
+      }
+    : {})
 });
 
 export function blockLog(
@@ -17,7 +27,7 @@ export function blockLog(
   }
   const width = content.sort((a, b) => b - a)[0].length + paddingWidth * 2;
   const height = content.length + paddingHeight * 2;
-  [...Array(height + 2)].forEach((line, index, instance) => {
+  [...Array(height + 2)].forEach((_line, index, instance) => {
     let msg = '';
     if (index === 0 || index === instance.length - 1) {
       msg = borderIcon.repeat(width + 2);

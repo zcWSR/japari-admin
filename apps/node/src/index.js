@@ -2,11 +2,11 @@ import Koa from 'koa';
 import { koaBody } from 'koa-body';
 
 import './config.js';
+import Config from './config.js';
 import errorCatcher from './middlewares/error-catcher.js';
+import router from './routes.js';
 import R2Service from './services/r2-service.js';
 import ScheduleService from './services/schedule-service.js';
-import router from './routes.js';
-import Config from './config.js';
 import logger from './utils/logger.js';
 
 const app = new Koa();

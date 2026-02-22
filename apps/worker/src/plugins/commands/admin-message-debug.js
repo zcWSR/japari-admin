@@ -1,7 +1,7 @@
+import QQService from '@/services/qq-service.js';
 import { Command, LEVEL } from '../../decorators/plugin';
-import QQService from '../../services/qq-service';
-import { setMessageDebug, getMessageDebug } from '../checkMessageDebug';
 import logger from '../../utils/logger';
+import { setMessageDebug } from '../checkMessageDebug';
 
 @Command({
   name: 'messageDebug',

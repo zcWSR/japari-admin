@@ -1,11 +1,11 @@
-import { deflateSync, unzlibSync } from 'fflate';
 import axios from 'axios';
+import { deflateSync, unzlibSync } from 'fflate';
 import * as OSU from 'ojsama';
 import Config from '../config';
-import D1Service from './d1-service';
 import logger from '../utils/logger';
 import { numberToOsuModes } from '../utils/osu-utils';
 import { objKeyToSmallCamel } from '../utils/string-utils';
+import D1Service from './d1-service';
 import QQService from './qq-service';
 
 const GET_USER_URL = 'https://osu.ppy.sh/api/get_user';

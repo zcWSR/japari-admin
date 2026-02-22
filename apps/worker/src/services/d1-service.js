@@ -1,13 +1,11 @@
-import { getRequestEnv } from '../env-store';
-import logger from '../utils/logger';
+import { getCloudflareContext } from '@opennextjs/cloudflare';
 
 /**
- * 使用 Worker 的 D1 绑定，不再走 HTTP API。
- * 依赖请求上下文的 env.DB（由 env-store 中间件注入）。
+ * 使用 Worker 的 D1 绑定，env 来自 getCloudflareContext().env。
  */
 class D1Service {
   _getDB() {
-    const env = getRequestEnv();
+    const env = getCloudflareContext().env;
     const db = env?.DB;
     if (!db) throw new Error('D1 DB binding not available (not running as Worker?)');
     return db;

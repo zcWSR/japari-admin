@@ -1,6 +1,6 @@
+import PluginService from '@/services/plugin-service.js';
+import QQService from '@/services/qq-service.js';
 import { Command, LEVEL } from '../../decorators/plugin';
-import PluginService from '../../services/plugin-service';
-import QQService from '../../services/qq-service';
 
 @Command({
   name: '插件配置',

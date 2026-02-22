@@ -1,6 +1,6 @@
+import HsoService from '@/services/hso-service.js';
+import QQService from '@/services/qq-service.js';
 import { Command, LEVEL } from '../../decorators/plugin';
-import HsoService from '../../services/hso-service';
-import QQService from '../../services/qq-service';
 import logger from '../../utils/logger';
 
 @Command({

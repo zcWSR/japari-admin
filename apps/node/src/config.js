@@ -22,9 +22,15 @@ class Config {
       const config = JSON.parse(configJson);
       this.port = config.port ?? 3000;
       this.workerUrl = config.workerUrl ?? '';
-      logger.info('Node config loaded: port=%s, workerUrl=%s', this.port, this.workerUrl || '(empty)');
+      logger.info(
+        'Node config loaded: port=%s, workerUrl=%s',
+        this.port,
+        this.workerUrl || '(empty)'
+      );
     } catch (e) {
-      logger.warn('config.json not found or invalid, using defaults. Copy config.example.json to config.json');
+      logger.warn(
+        'config.json not found or invalid, using defaults. Copy config.example.json to config.json'
+      );
     }
 
     const accountId = process.env.R2_ACCOUNT_ID || process.env.CF_ACCOUNT_ID;

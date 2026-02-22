@@ -1,7 +1,7 @@
-import { Command, LEVEL } from '../../decorators/plugin';
+import QQService from '@/services/qq-service.js';
+import ScheduleService from '@/services/schedule-service.js';
 import Config from '../../config';
-import QQService from '../../services/qq-service';
-import ScheduleService from '../../services/schedule-service';
+import { Command, LEVEL } from '../../decorators/plugin';
 
 async function refreshNodeSchedules() {
   const base = (Config.NODE_URL || '').replace(/\/$/, '');
@@ -16,6 +16,7 @@ async function refreshNodeSchedules() {
   command: 'schedule',
   type: 'group',
   level: LEVEL.ADMIN,
+  // biome-ignore lint/suspicious/noTemplateCurlyInString: ignore
   info: "设置定时显示文字内容, '!schedule 内容' 来调用\n内容不写为查看当前配置\n'!schedule clear' 为清除当前配置\n提供参数 year month date day hour minute second, 用${xxx}来插入"
 })
 class Schedule {

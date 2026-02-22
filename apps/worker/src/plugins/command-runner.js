@@ -1,8 +1,8 @@
 import { decode } from 'html-entities';
+import QQService from '@/services/qq-service.js';
 import { Plugin } from '../decorators/plugin';
-import QQService from '../services/qq-service';
-import { extractFirstText } from '../utils/message';
 import logger, { blockLog } from '../utils/logger';
+import { extractFirstText } from '../utils/message';
 import { commands as commandList } from './commands/registry';
 
 const COMMAND_404 = "您所调用的指令不存在尝试使用, '!help'来查看所有可用指令";

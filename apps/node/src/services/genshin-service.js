@@ -1,7 +1,6 @@
-import path from 'path';
-import { fileURLToPath } from 'url';
 import { createCanvas } from '@napi-rs/canvas';
 import axios from 'axios';
+import path from 'path';
 import {
   cardConfig,
   generateCard,
@@ -9,6 +8,7 @@ import {
   parseCharacterData,
   updateCache
 } from 'taffy-pvp-card-sw';
+import { fileURLToPath } from 'url';
 import { formatShangHaiTime } from '../utils/date.js';
 import logger from '../utils/logger.js';
 import R2Service from './r2-service.js';
@@ -100,7 +100,7 @@ class GenshinService {
     return R2Service.uploadImage(filePath, imageBuffer);
   }
 
-  async updateCache(fileChanges) {
+  async updateCache(_fileChanges) {
     await updateCache(true);
     // Node 端无 QQService，仅更新缓存；Worker 若需通知可由 Worker 侧发送
     logger.info('genshin cache updated at %s', formatShangHaiTime());

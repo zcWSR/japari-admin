@@ -1,4 +1,4 @@
-import { GlobalFonts, createCanvas } from '@napi-rs/canvas';
+import { createCanvas, GlobalFonts } from '@napi-rs/canvas';
 
 export default class Measurer {
   static instanceMap = {};

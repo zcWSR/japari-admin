@@ -1,8 +1,8 @@
 import axios from 'axios';
+import KVService from '@/services/kv-service.js';
+import QQService from '@/services/qq-service.js';
 import Config from '../config';
 import { Plugin } from '../decorators/plugin';
-import KVService from '../services/kv-service';
-import QQService from '../services/qq-service';
 import logger from '../utils/logger';
 import { extractFirstText } from '../utils/message';
 

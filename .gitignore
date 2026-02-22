@@ -1,14 +1,35 @@
+# Dependencies
 node_modules/
+
+# Build / output
+built/
+.built-dev/
+dist/
+.next/
+.open-next/
+
+# Env and secrets
+.env
+.env.*
+!.env.example
+config.json
+
+# Logs and DB
+*.log
 *.sqlite3
 dump.rdb
-.built-dev/
-config.json
-firebase*.json
+
+# IDE and OS
 .DS_Store
-res/
+Thumbs.db
 .vs/
-built/
-apps/worker/dist/
-.taffy-pvp-card-sw-cache
+
+# Project-specific
+res/
 migrate/
-_src/
+.taffy-pvp-card-sw-cache
+firebase*.json
+
+# Turbo (if used)
+.turbo/
+*.tsbuildinfo

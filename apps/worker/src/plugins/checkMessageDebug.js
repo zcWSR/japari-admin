@@ -1,5 +1,5 @@
+import QQService from '@/services/qq-service.js';
 import { Plugin } from '../decorators/plugin';
-import QQService from '../services/qq-service';
 
 // 本地变量存储调试开关状态
 let messageDebugEnabled = false;

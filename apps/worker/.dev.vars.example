@@ -1,7 +1,15 @@
 # 复制为 .dev.vars（不提交），本地 wrangler dev 时注入为 env
-QQ_SERVER=http://localhost:5000
-NODE_URL=http://localhost:3000
-ADMINS=942403779
-BOT_QQ_ID=3486955134
+QQ_SERVER=
+# node server 地址
+NODE_URL=
+ADMINS=
+BOT_QQ_ID=
 OSU_APP_KEY=
-NET_EAST_MUSIC_SERVER=http://localhost:1630
+NET_EAST_MUSIC_SERVER=
+# 管理后台长期鉴权密钥（Cookie admin_token），与一次性链接里的 token 区分
+ADMIN_SECRET=
+# !setting 下发的链接根地址。方案 A 联合调试（Next dev + Worker dev）时填 http://localhost:3000
+ADMIN_BASE_URL=
+# OpenNext 开发时加载 .env 的环境名
+NEXTJS_ENV=development
+

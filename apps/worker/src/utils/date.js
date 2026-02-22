@@ -1,14 +1,14 @@
+import { TZDate } from '@date-fns/tz';
 import {
+  formatDate,
   getDate,
   getDay,
   getHours,
   getMinutes,
   getMonth,
   getSeconds,
-  getYear,
-  formatDate
+  getYear
 } from 'date-fns';
-import { TZDate } from '@date-fns/tz';
 
 const TIMEZONE = 'Asia/Shanghai';
 

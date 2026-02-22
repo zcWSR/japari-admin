@@ -1,6 +1,6 @@
+import KVService from '@/services/kv-service.js';
+import QQService from '@/services/qq-service.js';
 import { Plugin } from '../decorators/plugin';
-import KVService from '../services/kv-service';
-import QQService from '../services/qq-service';
 import logger from '../utils/logger';
 import { sleep } from '../utils/process';
 
@@ -92,6 +92,63 @@ class GarbageWordRandom {
     }
     const wordIndex = Math.floor(Math.random() * list.length);
     return list[wordIndex];
+  }
+
+  // ==========================================
+  // 管理端配置页（getPageConfig / setPageConfig）
+  // ==========================================
+
+  async getPageConfig(groupId) {
+    const rate = await this.getRate(groupId);
+    const wordList = await this.getWordList(groupId);
+    const list = wordList.length ? wordList : DEFAULT_GARBAGE_WORD_LIST;
+    return {
+      title: '垃圾话随机',
+      sections: [
+        {
+          title: '概率与词库',
+          items: [
+            {
+              type: 'display',
+              text: '触发概率 (0~1)，如 0.01 表示 1%。留空使用默认。'
+            },
+            {
+              type: 'text',
+              id: 'rate',
+              label: '触发概率',
+              value: rate ?? String(DEFAULT_RATE),
+              placeholder: String(DEFAULT_RATE)
+            },
+            {
+              type: 'textarea',
+              id: 'wordList',
+              label: '词库（每行一个或逗号分隔）',
+              value: list.join('\n'),
+              placeholder: '每行一个词'
+            }
+          ]
+        }
+      ]
+    };
+  }
+
+  async setPageConfig(groupId, body) {
+    if (body.rate != null && body.rate !== '') {
+      const r = Number.parseFloat(String(body.rate));
+      if (!Number.isNaN(r) && r >= 0 && r <= 1) {
+        await this.setRate(groupId, r);
+      }
+    }
+    if (body.wordList != null && String(body.wordList).trim() !== '') {
+      const raw = String(body.wordList).trim();
+      const list = raw
+        .split(/[\n,]+/)
+        .map((s) => s.trim())
+        .filter(Boolean);
+      if (list.length > 0) {
+        await this.setWordList(groupId, list);
+      }
+    }
   }
 }
 

@@ -3,23 +3,45 @@ import Config from '../config';
 import { formatShangHaiTime } from '../utils/date';
 import { isDev } from '../utils/env';
 import logger from '../utils/logger';
-import { sleep } from '../utils/process';
 import { formatForLog } from '../utils/message';
+import { sleep } from '../utils/process';
 
 class QQService {
+  /** 模拟时收集本请求内通过 sendGroupMessage/sendPrivateMessage 发送的内容，供界面展示 */
+  _captureSent = null;
+
   constructor() {
     if (isDev()) {
       this.sendGroupMessage = (groupId, msg) => {
+        this._pushSent('group', String(groupId), msg);
         logger.debug(`===== send to group ${groupId}`);
         logger.debug(formatForLog(msg));
         logger.debug('===== done');
       };
       this.sendPrivateMessage = (userId, msg) => {
+        this._pushSent('private', String(userId), msg);
         logger.debug(`===== send to user ${userId}`);
         logger.debug(formatForLog(msg));
         logger.debug('===== done');
       };
     }
+  }
+
+  _pushSent(type, id, message) {
+    if (!this._captureSent) return;
+    this._captureSent.push({ type, id, message });
+  }
+
+  /** 开始收集本次请求的发送记录，用于消息模拟界面展示 */
+  startCapture() {
+    this._captureSent = [];
+  }
+
+  /** 返回并清空本次收集的发送记录 */
+  getCapturedAndClear() {
+    const out = this._captureSent || [];
+    this._captureSent = null;
+    return out;
   }
 
   async getGroupList() {
@@ -80,7 +102,11 @@ class QQService {
     if (typeof message === 'string') {
       message = [{ type: 'text', data: { text: message } }];
     }
-    axios.post(`${Config.QQ_SERVER}/send_private_msg`, { user_id: userId, message });
+    this._pushSent('private', String(userId), message);
+    axios.post(`${Config.QQ_SERVER}/send_private_msg`, {
+      user_id: userId,
+      message
+    });
   }
 
   sendPrivateMusic(userId, musicId) {
@@ -110,7 +136,11 @@ class QQService {
     if (typeof message === 'string') {
       message = [{ type: 'text', data: { text: message } }];
     }
-    axios.post(`${Config.QQ_SERVER}/send_group_msg`, { group_id: groupId, message });
+    this._pushSent('group', String(groupId), message);
+    axios.post(`${Config.QQ_SERVER}/send_group_msg`, {
+      group_id: groupId,
+      message
+    });
   }
 
   sendGroupImage(groupId, dataUrl, option = { isBase64: false }) {

@@ -1,5 +1,5 @@
+import QQService from '@/services/qq-service.js';
 import { Command } from '../../decorators/plugin';
-import QQService from '../../services/qq-service';
 
 @Command({
   name: 'pr',

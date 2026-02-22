@@ -1,6 +1,6 @@
+import KVService from '@/services/kv-service.js';
+import QQService from '@/services/qq-service.js';
 import { Command, LEVEL } from '../../decorators/plugin';
-import KVService from '../../services/kv-service';
-import QQService from '../../services/qq-service';
 
 @Command({
   name: '设置随机垃圾话及概率',

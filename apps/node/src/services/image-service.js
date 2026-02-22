@@ -1,6 +1,6 @@
-import HoShiiService from './hoshii-service/index.js';
-import GenshinService from './genshin-service.js';
 import logger from '../utils/logger.js';
+import GenshinService from './genshin-service.js';
+import HoShiiService from './hoshii-service/index.js';
 
 /**
  * 统一图片生成入口：画图 + 上传 R2 返回 URL

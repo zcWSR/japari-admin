@@ -2,7 +2,7 @@ import Config from '../config';
 import QQService from '../services/qq-service';
 import logger from '../utils/logger';
 
-export default async (ctx, next) => {
+export default async (_ctx, next) => {
   try {
     await next();
   } catch (e) {

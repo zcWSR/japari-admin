@@ -45,20 +45,20 @@ const homo = ((Nums) => {
   const finisher = (expr) => {
     expr = expr.replace(/\d+|⑨/g, (n) => Nums[n]).replace('^', '**');
     // As long as it matches ([\*|\/])\(([^\+\-\(\)]+)\), replace it with $1$2
-    while (expr.match(/[\*|\/]\([^\+\-\(\)]+\)/)) {
-      expr = expr.replace(/([\*|\/])\(([^\+\-\(\)]+)\)/, (m, $1, $2) => $1 + $2);
+    while (expr.match(/[*|/]\([^+\-()]+\)/)) {
+      expr = expr.replace(/([*|/])\(([^+\-()]+)\)/, (_m, $1, $2) => $1 + $2);
     }
     // As long as it matches ([\+|\-])\(([^\(\)]+)\)([\+|\-|\)]), replace it with $1$2$3
-    while (expr.match(/[\+|\-]\([^\(\)]+\)[\+|\-|\)]/)) {
-      expr = expr.replace(/([\+|\-])\(([^\(\)]+)\)([\+|\-|\)])/, (m, $1, $2, $3) => $1 + $2 + $3);
+    while (expr.match(/[+|-]\([^()]+\)[+|\-|)]/)) {
+      expr = expr.replace(/([+|-])\(([^()]+)\)([+|\-|)])/, (_m, $1, $2, $3) => $1 + $2 + $3);
     }
     // As long as it matches ([\+|\-])\(([^\(\)]+)\)$, replace it with $1$2
-    while (expr.match(/[\+|\-]\(([^\(\)]+)\)$/)) {
-      expr = expr.replace(/([\+|\-])\(([^\(\)]+)\)$/, (m, $1, $2) => $1 + $2);
+    while (expr.match(/[+|-]\(([^()]+)\)$/)) {
+      expr = expr.replace(/([+|-])\(([^()]+)\)$/, (_m, $1, $2) => $1 + $2);
     }
     // If there is a bracket in the outermost part, remove it
-    if (expr.match(/^\([^\(\)]+?\)$/)) {
-      expr = expr.replace(/^\(([^\(\)]+)\)$/, '$1');
+    if (expr.match(/^\([^()]+?\)$/)) {
+      expr = expr.replace(/^\(([^()]+)\)$/, '$1');
     }
 
     expr = expr.replace(/\+-/g, '-');

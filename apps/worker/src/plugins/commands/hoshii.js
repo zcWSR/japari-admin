@@ -1,6 +1,6 @@
+import { generateImage } from '@/services/node-api.js';
+import QQService from '@/services/qq-service.js';
 import { Command } from '../../decorators/plugin';
-import { generateImage } from '../../services/node-api';
-import QQService from '../../services/qq-service';
 import logger from '../../utils/logger';
 
 @Command({

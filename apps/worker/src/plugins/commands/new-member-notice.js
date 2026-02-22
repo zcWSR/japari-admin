@@ -1,13 +1,15 @@
+import D1Service from '@/services/d1-service.js';
+import QQService from '@/services/qq-service.js';
 import { Command, LEVEL } from '../../decorators/plugin';
-import D1Service from '../../services/d1-service';
-import QQService from '../../services/qq-service';
 
+// biome-ignore lint/suspicious/noTemplateCurlyInString: ignore
 const DEFAULT_TPL = '欢迎 ${name} 加入本群! 请使用"!help"查看可用指令~';
 
 @Command({
   name: '配置入群提醒模板',
   command: 'newNotice',
   type: 'group',
+  // biome-ignore lint/suspicious/noTemplateCurlyInString: ignore
   info: "查看当前或设置当前群的入群提醒模板, '!newNotice'来查看, '!newNotice set xxx'来设置, 模板中可使用'${name}'来代替入群人昵称",
   level: LEVEL.ADMIN
 })

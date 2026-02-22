@@ -1,6 +1,6 @@
+import KVService from '@/services/kv-service.js';
+import QQService from '@/services/qq-service.js';
 import { Plugin } from '../decorators/plugin';
-import KVService from '../services/kv-service';
-import QQService from '../services/qq-service';
 import logger from '../utils/logger';
 import { formatForLog } from '../utils/message';
 import { sleep } from '../utils/process';

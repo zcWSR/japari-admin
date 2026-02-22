@@ -10,9 +10,9 @@
   "scripts": {
     "build:node": "swc apps/node/src -d apps/node/built --strip-leading-paths",
     "build:worker": "swc apps/worker/src -d apps/worker/dist --strip-leading-paths",
-    "lint": "biome check .",
-    "lint:fix": "biome check --write .",
-    "format": "biome format --write .",
+    "lint": "npm run lint -w japari-node && npm run lint -w japari-worker",
+    "lint:fix": "npm run lint:fix -w japari-node && npm run lint:fix -w japari-worker",
+    "format": "npm run format -w japari-node && npm run format -w japari-worker",
     "worker:dev": "npm run dev -w japari-worker",
     "worker:deploy": "npm run deploy -w japari-worker",
     "node:dev": "npm run start:dev -w japari-node",
@@ -22,7 +22,7 @@
   "author": "zcWSR",
   "license": "MIT",
   "devDependencies": {
-    "@biomejs/biome": "^1.9.4"
+    "@biomejs/biome": "^2.4.4"
   },
   "repository": "https://github.com/zcWSR/japari-admin"
 }

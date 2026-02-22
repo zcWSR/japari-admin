@@ -1,29 +1,31 @@
+import adminMessageDebug from './admin-message-debug';
+import garbageWordRandom from './garbage-word-ramdom';
+import genshinCharacterArtifacts from './genshin-character-artifacts';
 import help from './help';
-import schedule from './schedule';
-import scheduleTime from './schedule-time';
-import plugin from './plugin';
-import roll from './roll';
-import hoshii from './hoshii';
 import homo from './homo';
+import hoshii from './hoshii';
+import hso from './hso';
+import masterSend from './master-send';
+import newMemberNotice from './new-member-notice';
 import osuBind from './osu-bind';
-import osuUnbind from './osu-unbind';
-import osuRecent from './osu-recent';
 import osuBp from './osu-bp';
 import osuBpme from './osu-bpme';
-import genshinCharacterArtifacts from './genshin-character-artifacts';
+import osuRecent from './osu-recent';
+import osuUnbind from './osu-unbind';
+import plugin from './plugin';
 import pr from './pr';
-import masterSend from './master-send';
-import hso from './hso';
-import newMemberNotice from './new-member-notice';
-import garbageWordRandom from './garbage-word-ramdom';
 import readAgainRandom from './read-again-random';
-import adminMessageDebug from './admin-message-debug';
+import roll from './roll';
+import schedule from './schedule';
+import scheduleTime from './schedule-time';
+import setting from './setting';
 
 export const commands = [
   help,
   schedule,
   scheduleTime,
   plugin,
+  setting,
   roll,
   hoshii,
   homo,

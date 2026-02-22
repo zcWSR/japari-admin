@@ -1,6 +1,6 @@
+import OSUService from '@/services/osu-service.js';
+import QQService from '@/services/qq-service.js';
 import { Command } from '../../decorators/plugin';
-import OSUService from '../../services/osu-service';
-import QQService from '../../services/qq-service';
 
 @Command({
   name: 'osu绑定账号',

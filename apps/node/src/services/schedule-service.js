@@ -39,7 +39,12 @@ class ScheduleService {
       body: JSON.stringify({ groupId: String(groupId) })
     });
     if (!res.ok) {
-      logger.error('trigger-schedule failed for group %s: %s %s', groupId, res.status, res.statusText);
+      logger.error(
+        'trigger-schedule failed for group %s: %s %s',
+        groupId,
+        res.status,
+        res.statusText
+      );
     }
   }
 
@@ -86,10 +91,9 @@ class ScheduleService {
   runSchedule(groupId, ruleString) {
     const { rule } = this.getRuleFromString(ruleString);
     const name = this.getScheduleName(groupId);
-    const self = this;
     scheduleJob(name, { rule, tz: 'Asia/Shanghai' }, async () => {
       logger.info('schedule trigger group %s', groupId);
-      await self.triggerWorker(groupId);
+      await this.triggerWorker(groupId);
     });
     logger.info(`run schedule '${name}', rule '${rule}'`);
   }

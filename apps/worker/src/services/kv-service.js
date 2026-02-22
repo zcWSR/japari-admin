@@ -1,13 +1,12 @@
-import { getRequestEnv } from '../env-store';
+import { getCloudflareContext } from '@opennextjs/cloudflare';
 import logger from '../utils/logger';
 
 /**
- * 使用 Worker 的 KV 绑定，不再走 HTTP API。
- * 依赖请求上下文的 env.KV（由 env-store 中间件注入）。
+ * 使用 Worker 的 KV 绑定，env 来自 getCloudflareContext().env。
  */
 class KVService {
   _getKV() {
-    const env = getRequestEnv();
+    const env = getCloudflareContext().env;
     const kv = env?.KV;
     if (!kv) throw new Error('KV binding not available (not running as Worker?)');
     return kv;
@@ -58,6 +57,29 @@ class KVService {
 
   async setJSON(key, value, expirationTtl) {
     return this.set(key, JSON.stringify(value), expirationTtl);
+  }
+
+  /**
+   * 按前缀列出 key 名称（用于如列出所有群 ID）
+   * @param {string} prefix
+   * @param {number} [limit=1000]
+   * @returns {Promise<string[]>}
+   */
+  async listKeyNames(prefix, limit = 1000) {
+    try {
+      const kv = this._getKV();
+      const out = [];
+      let cursor;
+      do {
+        const result = await kv.list({ prefix, limit, cursor });
+        out.push(...result.keys.map((k) => k.name));
+        cursor = result.list_complete ? undefined : result.cursor;
+      } while (cursor);
+      return out;
+    } catch (error) {
+      logger.error(`KV list error for prefix ${prefix}:`, error);
+      return [];
+    }
   }
 }
 

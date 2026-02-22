@@ -1,7 +1,7 @@
-import { Command, LEVEL } from '../../decorators/plugin';
+import QQService from '@/services/qq-service.js';
+import ScheduleService from '@/services/schedule-service.js';
 import Config from '../../config';
-import QQService from '../../services/qq-service';
-import ScheduleService from '../../services/schedule-service';
+import { Command, LEVEL } from '../../decorators/plugin';
 
 async function refreshNodeSchedules() {
   const base = (Config.NODE_URL || '').replace(/\/$/, '');
@@ -11,6 +11,7 @@ async function refreshNodeSchedules() {
   } catch (_) {}
 }
 
+// biome-ignore lint/suspicious/noTemplateCurlyInString: ignore
 const DEFAULT_TEXT = '${hour}点了!';
 
 @Command({

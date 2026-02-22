@@ -1,6 +1,6 @@
 import path from 'path';
-import { fileURLToPath } from 'url';
 import pino from 'pino';
+import { fileURLToPath } from 'url';
 import { isDev } from './env.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -44,7 +44,7 @@ export function blockLog(
   }
   const width = content.sort((a, b) => b - a)[0].length + paddingWidth * 2;
   const height = content.length + paddingHeight * 2;
-  [...Array(height + 2)].forEach((line, index, instance) => {
+  [...Array(height + 2)].forEach((_line, index, instance) => {
     let msg = '';
     if (index === 0 || index === instance.length - 1) {
       msg = borderIcon.repeat(width + 2);

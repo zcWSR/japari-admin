@@ -113,7 +113,7 @@ class ScheduleService {
   }
 
   /** 仅解析 rule 返回 hours/days，不注册定时（由 Node 负责） */
-  parseSchedule(groupId, ruleString) {
+  parseSchedule(_groupId, ruleString) {
     const { hours, days } = this.getRuleFromString(ruleString);
     return { hours, days };
   }

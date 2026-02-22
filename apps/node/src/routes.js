@@ -1,7 +1,7 @@
 import Router from '@koa/router';
+import GenshinService from './services/genshin-service.js';
 import ImageService from './services/image-service.js';
 import ScheduleService from './services/schedule-service.js';
-import GenshinService from './services/genshin-service.js';
 
 const router = new Router();
 

@@ -1,0 +1,25 @@
+# context 为 ./apps/node 时，仅能看见本目录，npm install 只会安装本 package.json 的依赖
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm install
+
+COPY . .
+RUN npm run build
+
+# 运行阶段：只装生产依赖，镜像内 node_modules 仅含 runtime 需要
+FROM node:20-alpine
+WORKDIR /app
+
+ENV NODE_ENV=production
+
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/package*.json ./
+# 不拷贝 builder 的 node_modules（含 devDependencies），在本阶段按 package.json 只装生产依赖
+RUN npm install --omit=dev
+
+EXPOSE 3000
+
+CMD ["node", "dist/index.js"]

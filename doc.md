@@ -1,96 +1,45 @@
+# 插件与指令设计说明
+
+本文描述 Worker 端插件模组与指令驱动的设计思路。实现上：**群插件配置存 KV**；插件列表在首次需要时通过 **ensurePluginsLoaded()** 加载并缓存在 PluginService；D1 用于 schedule、osu_bind、new_notice 等表。
+
+---
+
 ### 插件模组设计思路
 
-与1.0版本不同, 2.0引入了插件可配置方案
+与 1.0 不同，2.0 引入插件可配置方案。从路由顶部按上报事件分类：group（群聊）、private（私聊）、notice（通知）；request 暂不支持。
 
-从路由顶部开始分类上报事件, group:群聊, private:私聊, notice:通知, request 暂时不支持响应
+PluginService 负责插件的获取/加载/分类/执行。
 
-PluginService 为插件服务类, 负责所有插件的获取/加载/分类/运行 操作
+#### 群可配置插件方案
 
-(如果要做成群聊插件可配置, 举个例子, 入群提醒属于notice事件插件, 但是对于群聊来说是不可配置的, 因为没设计相关逻辑, 如果要可配置, 需要在添加一种配置项, 为通知类插件配置, 违背了只让群管理维护一套插件列表的设计初衷, 放弃方案, 以下为原先设计)
+- 服务启动时从 `plugins/` 读取并初始化（若有则 sync 执行插件的 createTable 和 init），按 `type` 维护在 PluginService.plugins.group / private / notice。
+- 收到消息后按上报类型取对应插件列表、按权重依次执行；**可配置**通过「群配置的插件名」包装：若当前插件名不在该群配置列表中则跳过。
+- 群配置从 **KV** 一次性读取，以 `{ group_id: { plugin.name: true } }` 形式存于 PluginService.groupConfigs，便于查找。
 
-~~服务启动时, 服务类会从 plugins 文件夹内读取并初始化(如果存在则 sync 执行插件的 createTable 和 init 方法), 根据插件的 type 所属事件类型, 以 `{ plugin.name: plugin }` 的形式, 维护在 PluginService.plugins.group/private/notice 中~~
-
-
-~~之后服务会 load 并根据权重排序个性化插件配置信息, 为最大限度的节省内存占用和提高运行速度, 存储群配置信息只存插件名~~
-
-~~群聊插件配置信息从数据库一次性读取, 维护在 PluginService.pluginConfigs.group 中, Map 结构, key 为 group_id, value 为按权重 plugin.weight 排序过的 Array, 内容是插件名称~~
-
-~~私聊插件配置信息维护在 PluginService.pluginConfigs.private 中, 数组形式保存, 值同理为权重排序过的 Array (第一版可设计为不可配置, 直接从 PluginService.plugins.private 中获取全部插件名)~~
-
-~~通知只有群聊会接受到, 所以通知插件因为配置信息数据结构与群聊相同, 维护在 PluginService.pluginConfigs.event 中~~
-
-#### 群可配置插件新方案:
-
-
-服务启动时, 服务类会从 plugins 文件夹内读取并初始化(如果存在则 sync 执行插件的 createTable 和 init 方法), 根据插件的 type 所属事件类型, 以数组形式, 维护在 PluginService.plugins.group/private/notice 中
-
-服务器启动时会加载所有插件, 收到消息会按照上报类型里的插件列表按权重依次执行, 为了实现可配置, 在执行插件外包装是否执行的逻辑, 根据群所配置的插件名, 如果当前执行到的插件名称没有出现在群配置列表里, 则直接跳过
-
-群配置信息一次性从数据库读取, 存储在 PluginService.groupConfigs 中, 以 `{ group_id: { plugin.name: true } }` 形式, 因为从数据库读出来的群插件配置是数组形式的, 为了保证响应速度, 改成Map的形式存储, hash比Array查找快得多
-
-此方案相比作废的方案更好理解, 但存在些许性能问题, 如果启动的插件过多, 会导致循环列表过长, 时间效率较低, 相当于一种用时间换空间的方案, 但考虑到, 如指令响应之类的插件有阻断后续插件执行的功能, 日常操作操作时几乎不会走完全部插件列表, 估计对性能影响并不会太大
+此方案用时间换空间（遍历插件列表），因多数情况下有 break 等不会走完全表，对性能影响可接受。
 
 #### 插件的生命周期
 
-服务启动时, 所有的插件都会被加载进内存保持单例模式且直到退出才会被销毁, 所以所谓的生命周期指的是群或是私聊从绑定该插件到解绑为止的流程
+- `init()`：插件初始化到内存  
+- `go(reqBody, type)`：执行插件  
+- `createTable(ctx)`：初始化时提供数据库实例，用于插件持久化（事务支持）
 
-因此设计如下几个生命周期函数(顺序从上到下):
+#### 特殊插件类型：指令驱动插件
 
-init(): 插件初始化到内存
+以 osu 为例：不是所有群都需要 osu 指令，但 !help 会展示；未开 osu 插件的群，该插件所加载的指令组不可查看和调用。用不同插件加载不同指令组，按文件夹区分（如 commands/osu）。
 
-~~attachToGroup(groupId): 绑定到某个群聊~~
+#### 权限管理
 
-~~attachToPrivate(): 绑定到私聊~~
+- **私聊插件**：由 config 中 ADMIN 配置的管理员配置，分级别展示不同列表。
+- **群聊插件**：群主/管理可配置，写入 KV；可通过群指令或管理后台配置。
 
-go(reqBody, type): 执行插件
+---
 
-~~detachFromGroup(groupId): 与群聊解绑~~
+### 指令驱动插件的指令设计
 
-~~detachFromPrivate(): 与私聊解绑~~
+指令格式：`!x y`（x 为长度大于 2 的英文单词，y 为参数）。
 
-##### 其他生命周期
-
-createTable(ctx): 会在初始化插件时提供数据库实例, 便于插件初始化自己的持久化数据 (数据库操作强制开启事务支持)
-
-
-#### 特殊插件类型: 指令驱动插件
-
-存在这样一种case, 用osu指令举例, 不是所有的群聊都需要osu指令, 但是!help的时候也会展示出来, 如果没有权限限制也可以正常调用
-
-所以采用特殊方案, 用不同的插件来加载不同的指令插件组, 用文件夹区分组别, 如osu类指令插件文件都放在 commend/osu 下, 只要群聊不开启该插件, 该插件所加载的指令插件组就都不可被查看和调用
-
-
-
-
-#### 实际情况分析
-
-新加入的群, 群插件配置查找不到, 使用 config.js 中的默认配置, 直接拍在 PluginService.groupConfig 中, 同时异步添加群默认配置至数据库, 
-
-预测可能会出现响应过频繁, 导致数据库重复创建新字段的情况, 思考后发现只会在单机集群时才会出现, 可暂时放一放
-
-#### 权限管理相关:
-
-私聊插件
-
-1. 由管理员配置, 管理员列表在 config.js 配置, ADMIN字段
-2. 分级别, 管理员展示的列表和普通用户的列表不同
-
-群聊插件
-
-1. 群管理和群主有权配置, 配置完成后写入数据库
-2. 暂时设计只能通过群指令配置, 后续可能有专门的配置页
-
-
-### 指令驱动插件的指令插件设计思路
-
-指令结构和1.0版本相同, 都是 !x y (x 为长度大于2的英文单词, y 为指令参数)
-
-新指令分为三种类型(type): 通用=all, 私聊=private, 群聊=group
-
-有三种权限等级(level): 普通=1, 群管理员=2, 系统管理员=3, 群管理员指令权限在私聊模式下不存在, 默认识别为普通模式
-
-初始化时, 会将所有的指令对象引用以 `{ command.command: command }` (指令名: 对象) 的形式维护在 CommandRunner.command.private/group 中, type=all的指令, 两个里面都放
-
-CommandRunner 执行时, 按照数据类型, 分别走私聊和群聊不同的逻辑, 直接在 CommandRunner 层判断指令是否存在, 如不存在直接响应不存在并 break 插件循环
-
-Command类构造时, 如果为私聊且 level=2, 则先将 level 置为1, 因为私聊没有群管理级别
+- **类型 (type)**：all / private / group  
+- **权限 (level)**：1 普通、2 群管、3 系统管理员；私聊下无群管，level=2 视为 1。  
+- 初始化时以 `{ command.command: command }` 维护在 CommandRunner.command.private / group；type=all 两边都放。  
+- 执行时按数据类型走私聊/群聊逻辑，在 CommandRunner 层判断指令是否存在，不存在则响应并 break。

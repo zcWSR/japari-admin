@@ -1,0 +1,76 @@
+name: Monorepo Deploy
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  # --- 任务 1: 部署 Workers ---
+  deploy-workers:
+    if: github.event_name == 'push' && contains(github.event.head_commit.modified, 'workers/')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy Workers
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          workingDirectory: 'workers'
+
+  # --- 任务 2: 构建并推送 Node 镜像 ---
+  build-and-push-node:
+    if: github.event_name == 'push' && contains(github.event.head_commit.modified, 'apps/node/')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image-tag: ${{ steps.meta.outputs.image_tag }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set short SHA
+        id: sha
+        run: echo "short=${GITHUB_SHA:0:7}" >> $GITHUB_OUTPUT
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and Push
+        id: build
+        uses: docker/build-push-action@v5
+        with:
+          context: ./apps/node
+          push: true
+          # latest + 完整 SHA + 短 SHA（便于命令行拉取、区分是否有新版、可回滚）
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/japari-node:latest
+            ghcr.io/${{ github.repository_owner }}/japari-node:${{ github.sha }}
+            ghcr.io/${{ github.repository_owner }}/japari-node:${{ steps.sha.outputs.short }}
+          labels: |
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}
+      - name: Set image tag output
+        id: meta
+        run: echo "image_tag=${{ steps.sha.outputs.short }}" >> $GITHUB_OUTPUT
+
+  # --- 任务 3: 通知服务器更新 (不发送私钥，仅通知) ---
+  notify-server:
+    needs: build-and-push-node
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Webhook
+        run: |
+          IMAGE="ghcr.io/${{ github.repository_owner }}/japari-node"
+          TAG="${{ needs.build-and-push-node.outputs.image-tag }}"
+          echo "镜像已推送到 GHCR"
+          echo "拉取最新: docker pull ${IMAGE}:latest"
+          echo "拉取本次构建: docker pull ${IMAGE}:${TAG}"
+          echo "建议在服务器执行: docker pull ${IMAGE}:${TAG} && docker compose up -d"
+          # 这里可加 curl 通知你的服务器 webhook

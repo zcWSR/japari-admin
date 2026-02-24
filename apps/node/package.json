@@ -22,8 +22,7 @@
 		"koa-body": "^6.0.1",
 		"node-schedule": "^2.1.1",
 		"pino": "^9.6.0",
-		"pino-pretty": "^13.0.0",
-		"taffy-pvp-card-sw": "github:muedsa/taffy-pvp-card-sw#0.2.8"
+		"pino-pretty": "^13.0.0"
 	},
 	"devDependencies": {
 		"@swc/cli": "^0.5.0",

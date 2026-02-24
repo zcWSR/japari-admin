@@ -2,45 +2,43 @@
 
 ## 1. 概述
 
-japari-admin 是一个基于 QQ 机器人的后台服务，采用 **Node + Cloudflare Worker** 双端分离的 monorepo 结构：**Node** 负责图片生成（含 R2 上传）与定时任务调度，**Worker** 负责 QQ 事件处理、插件/命令执行及 D1/KV 数据访问。两者通过 HTTP 内部接口协作，避免在 Worker 中依赖 Node 专有能力（如 canvas、taffy、fs）。
+japari-admin 是基于 QQ 机器人的后台服务，采用 **Node + Cloudflare Worker** 双端分离的 monorepo：**Node** 负责图片生成（含 R2 上传）与定时任务调度，**Worker** 为 Next.js App Router + OpenNext 单 Worker，负责 QQ 事件、插件/命令、管理后台及 D1/KV 访问。两者通过 HTTP 内部接口协作。
 
 ## 2. 仓库结构（Monorepo）
 
 ```
 japari-admin/
 ├── apps/
-│   ├── node/          # Koa 服务：图片生成 + 定时调度
+│   ├── node/              # Koa：图片生成 + 定时调度
 │   │   ├── src/
-│   │   │   ├── index.js
-│   │   │   ├── routes.js
-│   │   │   ├── config.js
-│   │   │   ├── services/     # ImageService, ScheduleService, GenshinService, R2, Hoshii...
-│   │   │   ├── utils/
-│   │   │   └── middlewares/
-│   │   ├── config.example.json
+│   │   │   ├── index.js, routes, config, services/, utils/, middlewares/
+│   │   │   └── (SWC 构建到 built/)
+│   │   ├── dockerfile     # 生产镜像，context 为 ./apps/node
 │   │   └── package.json
 │   │
-│   └── worker/         # Cloudflare Worker：Hono + D1/KV 绑定
+│   └── worker/            # Next.js + OpenNext 单 Worker
 │       ├── src/
-│       │   ├── worker.js      # 入口，export default { fetch }
-│       │   ├── routes.js      # Hono 路由
-│       │   ├── config.js      # 从 env 读取
-│       │   ├── env-store.js   # 请求级 env 注入
-│       │   ├── plugins/       # 插件 + commands，静态 registry
-│       │   ├── services/      # D1, KV, Schedule, QQ, NodeAPI...
-│       │   ├── decorators/    # @Plugin, @Command
-│       │   └── utils/
-│       ├── wrangler.toml
-│       ├── .dev.vars.example
+│       │   ├── app/                   # Next App Router
+│       │   │   ├── page.tsx, admin/, japari/, (layout, route handlers)
+│       │   │   └── japari/event/route.ts, japari/message/route.ts
+│       │   ├── actions/               # Server Actions（群配置、插件配置、模拟消息）
+│       │   ├── lib/                   # auth, ensure-plugins
+│       │   ├── plugins/               # 插件 + commands，@Plugin/@Command 装饰器
+│       │   ├── services/              # D1, KV, QQ, PluginService...
+│       │   ├── config.js              # getCloudflareContext().env
+│       │   └── decorators/
+│       ├── wrangler.toml              # 生产部署用（勿提交）
+│       ├── wrangler.dev.toml          # 本地 preview 用
+│       ├── .dev.vars                  # 本地环境变量（勿提交）
 │       └── package.json
 │
-├── package.json        # workspaces: apps/node, apps/worker
+├── package.json           # workspaces; lint/format 委托到各 app
 └── ARCHITECTURE.md
 ```
 
-- **根目录**：npm workspaces，统一 lint/format，`npm run worker:dev` / `npm run node:dev` 委托到对应 app。
-- **Node**：Koa + 手写路由，无 Controller/装饰器；构建用 SWC，输出 ESM。
-- **Worker**：Hono，入口 `worker.js`；先 SWC 转译装饰器再 wrangler 打包，使用 D1/KV 绑定，配置仅来自 env。
+- **根目录**：`npm run worker:dev` / `npm run node:dev`、`npm run lint` / `npm run format`。
+- **Node**：Koa，SWC 构建到 `built/`，运行 `node built/index.js`；Docker 最终阶段仅装生产依赖。
+- **Worker**：Next.js 构建 + OpenNext 生成 `.open-next/worker.js`；配置与绑定统一通过 **getCloudflareContext().env**（无 env-store）；插件使用 SWC 装饰器（next.config 中配置）。
 
 ## 3. 整体架构图
 
@@ -63,15 +61,15 @@ flowchart TB
     ImageService --> R2
   end
 
-  subgraph Worker["apps/worker (Hono)"]
-    WorkerRoutes[路由]
+  subgraph Worker["apps/worker (Next + OpenNext)"]
+    NextRoutes[App Router / Route Handlers]
     PluginChain[插件链 / 命令]
     ScheduleServiceW[ScheduleService]
     NodeAPI[NodeAPI]
     D1[(D1)]
     KV[(KV)]
-    WorkerRoutes --> PluginChain
-    WorkerRoutes --> ScheduleServiceW
+    NextRoutes --> PluginChain
+    NextRoutes --> ScheduleServiceW
     PluginChain --> NodeAPI
     ScheduleServiceW --> D1
     PluginChain --> D1
@@ -93,159 +91,91 @@ flowchart TB
 
 ### 4.1 职责
 
-- **图片生成**：hoshii 表情包、原神角色圣遗物图，生成后上传 R2，返回公网 URL。
-- **定时调度**：使用 `node-schedule` 按「从 Worker 拉取的 schedule 列表」注册 cron，到点只向 Worker 发起「发送该群定时消息」的请求，不直连 QQ。
-- **原神缓存**：接收 `POST /message`（type: genshinUpdate），调用 taffy 的 updateCache，不依赖 Worker 的 fs/Node 环境。
+- **图片生成**：hoshii、原神圣遗物图，上传 R2 返回 URL。
+- **定时调度**：node-schedule 按 Worker 拉取的 schedule 列表注册，到点请求 Worker 发群消息。
+- **原神缓存**：`POST /message`（genshinUpdate）更新 taffy 缓存。
 
-### 4.2 路由一览
+### 4.2 路由与构建
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
-| GET | / | 首页占位 |
-| POST | /generate-image | 生成图片并上传 R2；body: `{ type: 'hoshii'\|'genshin', ...params }`，返回 `{ url }` |
-| POST | /refresh-schedules | 从 Worker 拉取最新 schedule 并重新注册 node-schedule |
-| POST | /message | 内部消息，如 genshinUpdate 时更新本地 taffy 缓存 |
+| GET | / | 占位 |
+| POST | /generate-image | 生成图片并上传 R2 |
+| POST | /refresh-schedules | 从 Worker 拉取 schedule 并重新注册 |
+| POST | /message | 内部消息（如 genshinUpdate） |
 
-### 4.3 技术栈与配置
-
-- Koa、@koa/router、koa-body、node-schedule、@napi-rs/canvas、taffy-pvp-card-sw、@aws-sdk/client-s3（R2）。
-- 配置：`config.json`（port、workerUrl）+ 环境变量（R2_*）。
+- **配置**：复制 `config.example.json` 为 `config.json`，填写 `port`、`workerUrl`；R2 等用环境变量。
+- **构建**：`npm run node:build`（SWC）→ 输出 `built/`。
+- **运行**：`npm install && npm run build && npm start`（或在根目录 `npm run node:dev` / `npm run node:start`）。
+- **Docker**：context 为 `./apps/node`，最终阶段 `npm install --omit=dev`，见 `apps/node/dockerfile`。
 
 ## 5. Worker 端（apps/worker）
 
 ### 5.1 职责
 
-- **QQ 事件**：接收 QQ 平台 POST `/japari/event`，按消息类型跑插件链（含 command-runner 解析 `!xxx` 命令）。
-- **插件/命令**：静态 registry（`plugins/registry.js`、`plugins/commands/registry.js`），构建时打入 bundle；使用 @Plugin / @Command 装饰器（SWC 转译）。
-- **数据**：D1 存 schedule、osu_bind、new_notice 等；KV 存群插件配置等；全部通过 **Worker 绑定**（env.DB、env.KV）访问，不走 HTTP API。
-- **图片/原神**：不包含 canvas、taffy；hoshii/原神 命令通过 **NodeAPI** 请求 Node 的 `/generate-image`；原神缓存更新由 Worker `/japari/message` 转发到 Node `/message`。
+- **QQ 事件**：`POST /japari/event` 进入插件链（含 command-runner 解析 `!xxx`）。
+- **管理后台**：Next 页面与 Server Actions；鉴权 Cookie `admin_token`（ADMIN_SECRET 或 KV session）。
+- **插件/命令**：`plugins/` + 装饰器，PluginService 管理加载与群配置；**群插件配置存 KV**，首次需插件列表时调用 **ensurePluginsLoaded()**（getGroupConfig、getPluginConfig、japari/event、simulate 等）。
+- **配置与绑定**：全部通过 **getCloudflareContext().env**（Config、D1Service、KVService 内部使用），无 env-store。
 
 ### 5.2 路由一览
 
-| 方法 | 路径 | 说明 |
+| 类型 | 路径 | 说明 |
 |------|------|------|
-| GET | / | 首页 |
-| GET | /japari | ジャパリパーク 说明页 |
-| POST | /japari/event | QQ 事件上报，执行插件链 |
-| POST | /japari/message | 内部消息；genshinUpdate 时转发到 Node |
-| GET | /internal/schedules | 供 Node 拉取全量 schedule 列表 |
-| POST | /internal/trigger-schedule | 供 Node 到点触发；body: `{ groupId }`，Worker 查 D1 发 QQ |
+| 页面 | /, /admin, /admin/op, /admin/op/groups | 管理首页、超管、全部群 |
+| 页面 | /admin/group/[groupId], /admin/group/.../plugin/[pluginName], /admin/group/.../simulate | 单群管理、插件配置、消息模拟 |
+| 页面 | /admin/token/[token] | 一次性链接兑换（写 Cookie 后重定向） |
+| API | POST /japari/event | QQ 事件上报，执行插件链 |
+| API | POST /japari/message | 内部消息（如转发 genshinUpdate） |
+| API | GET /internal/schedules | Node 拉取定时列表 |
+| API | POST /internal/trigger-schedule | Node 到点触发 |
 
-### 5.3 技术栈与配置
+### 5.3 插件加载与配置
 
-- Hono、D1 绑定、KV 绑定、axios（调 QQ 与 Node）、fflate（替代 zlib）、ojsama、pino 等。
-- 配置：仅 env（.dev.vars / wrangler [vars]），如 QQ_SERVER、NODE_URL、ADMINS、BOT_QQ_ID、OSU_APP_KEY 等。
+- **加载时机**：首次需要插件列表时执行 **ensurePluginsLoaded()**（在 getGroupConfig、getPluginConfig、japari/event、simulate 等入口），之后 PluginService.plugins 有数据。
+- **群配置**：KV 存储；getGroupConfig 先 ensurePluginsLoaded，再读 KV 与插件列表供侧栏展示；插件开关通过 setGroupConfig 更新 KV。
+- **插件配置页**：getPluginConfig/setPluginConfig 同样先 ensurePluginsLoaded，再按插件名查找并调用 getPageConfig/setPageConfig。
 
-## 6. 核心数据流
+### 5.4 Worker 本地调试与部署
 
-### 6.1 QQ 消息与图片生成
+**方式一：Next 开发服务器（推荐日常开发）**
 
-```mermaid
-sequenceDiagram
-  participant User
-  participant QQ
-  participant Worker
-  participant Node
-  participant R2
+在 `apps/worker` 下：`npm install`、`npm run dev`（或根目录 `npm run worker:dev`）。使用 `next dev` + OpenNext 开发初始化，可访问本地模拟 D1/KV。前端默认 <http://localhost:3000>，管理后台 <http://localhost:3000/admin>，QQ 说明 <http://localhost:3000/japari>。环境变量与绑定：同目录 `.dev.vars`（`KEY=value` 每行一个），与 wrangler 配置中 `[vars]`、D1/KV 在本地会被模拟。
 
-  User->>QQ: 发消息 !hoshii 上 下
-  QQ->>Worker: POST /japari/event
-  Worker->>Worker: 插件链 -> command-runner
-  Worker->>Worker: 解析 !hoshii，执行 hoshii 命令
-  Worker->>Node: POST /generate-image { type: 'hoshii', topText, bottomText }
-  Node->>Node: ImageService -> HoshiiService + R2
-  Node->>R2: 上传图片
-  R2-->>Node: 公网 URL
-  Node-->>Worker: { url }
-  Worker->>QQ: 发送图片 URL/消息
-  QQ-->>User: 展示
-```
+**方式二：本地 Worker 预览（与线上运行时一致）**
 
-### 6.2 定时任务（Schedule）
+在 `apps/worker` 下：`npm run preview`。先 `opennextjs-cloudflare build` 生成 `.open-next/`，再以 Wrangler 启动（**使用 wrangler.dev.toml**，脚本已带 `--config wrangler.dev.toml`）。预览地址由 Wrangler 输出（通常 `http://localhost:8787`）。
 
-```mermaid
-sequenceDiagram
-  participant Node
-  participant Worker
-  participant D1
-  participant QQ
-  participant User
+**Wrangler 配置文件**
 
-  Note over Node: 启动或 refresh 时
-  Node->>Worker: GET /internal/schedules
-  Worker->>D1: 查询 schedules 表
-  D1-->>Worker: [{ group_id, rule, text }]
-  Worker-->>Node: JSON
-  Node->>Node: node-schedule 按 rule 注册 job
+| 场景 | 使用的配置 | 说明 |
+|------|------------|------|
+| 本地预览 | `wrangler.dev.toml` | `npm run preview` 已写死 `--config wrangler.dev.toml` |
+| 线上部署 | `wrangler.toml` | `npm run deploy` 使用默认文件名 |
 
-  Note over Node: 到点触发
-  Node->>Worker: POST /internal/trigger-schedule { groupId }
-  Worker->>D1: 查该群 rule/text
-  Worker->>Worker: formatText，组装内容
-  Worker->>QQ: 发群消息
-  QQ-->>User: 定时消息
+`wrangler.toml`、`wrangler.dev.toml`、`.dev.vars` 均在 `.gitignore`，不提交；需本地或 CI 自建（从占位符复制后填写 D1/KV 的 database_id、id 等）。
 
-  Note over User,Worker: 用户改定时
-  User->>QQ: !scheduleTime / !schedule
-  QQ->>Worker: POST /japari/event
-  Worker->>D1: 更新 schedules
-  Worker->>Node: POST /refresh-schedules
-  Node->>Worker: GET /internal/schedules
-  Node->>Node: 重新注册 node-schedule
-```
+**线上部署**
 
-### 6.3 原神缓存更新
+在 `apps/worker` 下：`npm run deploy`。会先 `opennextjs-cloudflare build`（内部跑 `next build`），再 `opennextjs-cloudflare deploy`。入口 `.open-next/worker.js`，静态资源 `.open-next/assets`（ASSETS 绑定）。绑定以 **wrangler.toml** 为准；敏感配置用 Cloudflare 控制台或 `wrangler secret`。
 
-```mermaid
-sequenceDiagram
-  participant Caller
-  participant Worker
-  participant Node
+**构建与上传分离**（按需）：`npm run build` 仅 next build；`opennextjs-cloudflare build` 生成 .open-next/；`opennextjs-cloudflare upload` 仅上传版本；`opennextjs-cloudflare deploy` 构建+部署。
 
-  Caller->>Worker: POST /japari/message { type: 'genshinUpdate', data }
-  Worker->>Node: POST /message (转发 body)
-  Node->>Node: GenshinService.updateCache(data)，taffy 更新
-  Node-->>Worker: ok
-  Worker-->>Caller: ok
-```
+**环境与绑定**：vars = wrangler `[vars]` + `.dev.vars`（本地）/ 控制台或 Secrets（线上）。D1/KV 在 wrangler 中配置，本地预览用本地 SQLite/KV。管理鉴权需 `ADMIN_SECRET`、`ADMIN_BASE_URL` 等。
 
-## 7. 配置与部署约定
+## 6. 配置与部署约定
 
 | 端 | 配置来源 | 关键项 |
 |----|----------|--------|
-| Node | config.json + 环境变量 | port、workerUrl；R2_ACCOUNT_ID、R2_ACCESS_KEY_ID、R2_SECRET_ACCESS_KEY、R2_BUCKET_NAME、R2_PUBLIC_DOMAIN |
-| Worker | .dev.vars / wrangler vars | QQ_SERVER、NODE_URL、ADMINS、BOT_QQ_ID、OSU_APP_KEY、NET_EAST_MUSIC_SERVER；D1/KV 在 wrangler.toml 绑定 |
+| Node | config.json + 环境变量 | port、workerUrl；R2_* |
+| Worker | .dev.vars / wrangler [vars]；getCloudflareContext().env | QQ_SERVER、NODE_URL、ADMINS、BOT_QQ_ID、ADMIN_SECRET、ADMIN_BASE_URL；D1/KV 在 wrangler 绑定 |
 
-- **Node 调 Worker**：`workerUrl` + `/internal/schedules`、`/internal/trigger-schedule`。
-- **Worker 调 Node**：`NODE_URL` + `/generate-image`、`/refresh-schedules`、`/message`（转发）。
+**内部接口约定**：Node 调 Worker → `GET {workerUrl}/internal/schedules`、`POST {workerUrl}/internal/trigger-schedule`（body: `{ groupId }`）。Worker 在 schedule 相关命令或后台修改定时后调 Node → `POST {nodeUrl}/refresh-schedules`。
 
-## 8. 构建与运行
+## 7. 核心数据流（与旧版一致）
 
-```mermaid
-flowchart LR
-  subgraph Build["构建"]
-    NodeSrc[apps/node/src]
-    WorkerSrc[apps/worker/src]
-    SWC1[SWC]
-    SWC2[SWC]
-    Wrangler[Wrangler]
-    NodeSrc --> SWC1
-    WorkerSrc --> SWC2
-    SWC1 --> NodeBuilt[apps/node/built]
-    SWC2 --> WorkerDist[apps/worker/dist]
-    WorkerDist --> Wrangler
-  end
+- QQ 消息 → POST /japari/event → 插件链 → 命令/图片等 → Node 或 QQ。
+- 定时：Node 拉 GET /internal/schedules，到点 POST /internal/trigger-schedule；用户改定时后 Worker 调 Node POST /refresh-schedules。
+- 原神缓存：POST /japari/message 转发到 Node POST /message。
 
-  subgraph Run["运行"]
-    NodeRun[node built/index.js]
-    WorkerRun[wrangler dev / deploy]
-    NodeBuilt --> NodeRun
-    Wrangler --> WorkerRun
-  end
-```
-
-- **Node**：`npm run node:build`（SWC）→ `npm run node:start`（node built/index.js）。
-- **Worker**：`npm run build -w japari-worker`（SWC 到 dist）→ `wrangler dev` / `wrangler deploy`（入口 dist/worker.js）。
-- 根目录：`npm run worker:dev`、`npm run node:dev` 通过 workspaces 调用上述脚本。
-
-以上为当前 japari-admin 的整体架构设计，Node 与 Worker 职责清晰，通过少量 HTTP 接口与 D1/KV 绑定协作，便于维护与扩展。
+以上为当前 japari-admin 的整体架构，Worker 已迁移为 Next.js + OpenNext 单 Worker，配置与绑定统一走 getCloudflareContext。

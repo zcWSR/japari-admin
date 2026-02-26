@@ -2,8 +2,8 @@
  * 与原 worker admin-api 鉴权一致：Cookie admin_token === ADMIN_SECRET 为超管，否则查 KV admin-session:${token}。
  * Config/KV 内部已用 getCloudflareContext().env，无需额外注入。
  */
-import Config from '@/config.js';
-import KVService from '@/services/kv-service.js';
+import Config from '@/config';
+import KVService from '@/services/kv-service';
 
 const ADMIN_SESSION_PREFIX = 'admin-session:';
 export const COOKIE_TOKEN_NAME = 'admin_token';

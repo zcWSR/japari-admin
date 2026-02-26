@@ -1,4 +1,4 @@
-import QQService from '@/services/qq-service.js';
+import QQService from '@/services/qq-service';
 import logger from '../utils/logger';
 
 export const Plugin = (config) => {

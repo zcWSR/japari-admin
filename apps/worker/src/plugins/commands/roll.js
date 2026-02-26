@@ -1,4 +1,4 @@
-import QQService from '@/services/qq-service.js';
+import QQService from '@/services/qq-service';
 import { Command } from '../../decorators/plugin';
 
 @Command({

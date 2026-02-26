@@ -1,5 +1,5 @@
-import { generateImage } from '@/services/node-api.js';
-import QQService from '@/services/qq-service.js';
+import { generateImage } from '@/services/node-api';
+import QQService from '@/services/qq-service';
 import { Command } from '../../decorators/plugin';
 
 @Command({

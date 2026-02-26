@@ -1,5 +1,5 @@
-import PluginService from '@/services/plugin-service.js';
-import QQService from '@/services/qq-service.js';
+import PluginService from '@/services/plugin-service';
+import QQService from '@/services/qq-service';
 import { Command, LEVEL } from '../../decorators/plugin';
 
 @Command({
@@ -19,8 +19,8 @@ class PluginConfig {
   async run(params, body) {
     const { group_id: groupId } = body;
     const isAdmin = QQService.isSuperAdmin(body.user_id);
-    const allPluginList = this.getAllPlugins();
     const configMap = await PluginService.getGroupConfig(groupId);
+    const allPluginList = this.getAllPlugins();
     if (!params) {
       let content = allPluginList.reduce((result, current, index) => {
         const hasThisPlugin = configMap[current.name];

@@ -1,14 +1,9 @@
 name = "japari-worker"
-# 融合后由 OpenNext 构建，入口为 .open-next/worker.js
 main = ".open-next/worker.js"
-compatibility_date = "2024-12-30"
+compatibility_date = "2025-04-01"
 compatibility_flags = ["nodejs_compat", "global_fetch_strictly_public"]
 
-# 本地调试: 在 apps/worker 下执行 npm run dev（next dev）或 npm run preview（OpenNext 本地 Worker）
-# .dev.vars 与本文件同目录，格式 KEY=value 每行一个
-
 [vars]
-# 非敏感默认值（可选）；敏感项放 .dev.vars
 
 [[d1_databases]]
 binding = "DB"

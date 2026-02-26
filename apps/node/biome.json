@@ -1,11 +1,20 @@
 {
   "$schema": "https://biomejs.dev/schemas/2.4.4/schema.json",
-  "assist": { "actions": { "source": { "organizeImports": "on" } } },
+  "root": false,
+  "assist": {
+    "actions": {
+      "source": {
+        "organizeImports": "on"
+      }
+    }
+  },
   "linter": {
     "enabled": true,
     "rules": {
       "recommended": true,
-      "complexity": { "noForEach": "off" },
+      "complexity": {
+        "noForEach": "off"
+      },
       "style": {
         "noParameterAssign": "off",
         "useNodejsImportProtocol": "off",
@@ -17,7 +26,9 @@
         "noAssignInExpressions": "off",
         "noDoubleEquals": "off"
       },
-      "correctness": { "noUnusedVariables": "off" }
+      "correctness": {
+        "noUnusedVariables": "off"
+      }
     }
   },
   "formatter": {
@@ -34,6 +45,8 @@
     }
   },
   "files": {
-    "includes": ["src/**/*.js"]
+    "includes": [
+      "src/**/*.js"
+    ]
   }
 }

@@ -2,10 +2,11 @@
 
 import { headers } from 'next/headers';
 import { getAuth, requireAdminToken } from '@/lib/auth';
-import { ensurePluginsLoaded } from '@/lib/ensure-plugins';
-import PluginService from '@/services/plugin-service.js';
-import QQService from '@/services/qq-service.js';
-import { formatForLog } from '@/utils/message.js';
+import PluginService from '@/services/plugin-service';
+import QQService from '@/services/qq-service';
+import type { PluginPostType } from '@/types/onebot';
+import type { MessageInput } from '@/utils/message';
+import { formatForLog } from '@/utils/message';
 
 export type SentItem = { type: 'group' | 'private'; id: string; messagePreview: string };
 
@@ -24,10 +25,9 @@ export async function simulateMessage(body: {
   if (!requireAdminToken(auth)) {
     return { error: 'forbidden', status: 403 };
   }
-  await ensurePluginsLoaded();
   QQService.startCapture();
   const type = QQService.convertMessageType(body);
-  const plugins = PluginService.getPlugins(type);
+  const plugins = await PluginService.getPlugins(type as PluginPostType);
   const groupId = body?.group_id != null ? Number(body.group_id) || body.group_id : undefined;
   const config = groupId != null ? await PluginService.getGroupConfig(Number(groupId)) : null;
   const results: unknown[] = [];
@@ -54,9 +54,7 @@ export async function simulateMessage(body: {
   const sent: SentItem[] = captured.map(({ type, id, message }) => ({
     type: type as 'group' | 'private',
     id,
-    messagePreview: formatForLog(
-      message as string | { type: string; data?: Record<string, unknown> }[]
-    )
+    messagePreview: formatForLog(message as MessageInput)
   }));
   return { ok: true, results, sent };
 }

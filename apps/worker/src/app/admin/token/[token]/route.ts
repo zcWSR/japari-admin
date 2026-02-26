@@ -4,8 +4,8 @@
  */
 import { getCloudflareContext } from '@opennextjs/cloudflare';
 import type { NextRequest } from 'next/server';
-import Config from '@/config.js';
-import KVService from '@/services/kv-service.js';
+import Config from '@/config';
+import KVService from '@/services/kv-service';
 
 const ADMIN_TOKEN_KEY_PREFIX = 'admin-token:';
 const ADMIN_SESSION_PREFIX = 'admin-session:';

@@ -1,5 +1,5 @@
-import OSUService from '@/services/osu-service.js';
-import QQService from '@/services/qq-service.js';
+import OSUService from '@/services/osu-service';
+import QQService from '@/services/qq-service';
 import { Command } from '../../decorators/plugin';
 
 @Command({

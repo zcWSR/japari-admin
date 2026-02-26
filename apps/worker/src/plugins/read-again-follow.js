@@ -1,6 +1,6 @@
-import KVService from '@/services/kv-service.js';
-import QQService from '@/services/qq-service.js';
-import ReadAgainService from '@/services/read-again-service.js';
+import KVService from '@/services/kv-service';
+import QQService from '@/services/qq-service';
+import ReadAgainService from '@/services/read-again-service';
 import { Plugin } from '../decorators/plugin';
 import logger from '../utils/logger';
 import { formatForLog, isSegmentEqual } from '../utils/message';

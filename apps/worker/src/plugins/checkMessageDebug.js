@@ -1,4 +1,4 @@
-import QQService from '@/services/qq-service.js';
+import QQService from '@/services/qq-service';
 import { Plugin } from '../decorators/plugin';
 
 // 本地变量存储调试开关状态

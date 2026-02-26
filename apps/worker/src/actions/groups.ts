@@ -2,7 +2,7 @@
 
 import { headers } from 'next/headers';
 import { getAuth, requireAdminToken } from '@/lib/auth';
-import PluginService from '@/services/plugin-service.js';
+import PluginService from '@/services/plugin-service';
 
 export type GroupsResult = { groups: { groupId: string }[] } | { error: string; status: number };
 

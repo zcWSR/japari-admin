@@ -1,83 +1,79 @@
+import type { IPlugin, PluginPostType } from '@/types/onebot';
+import { ensurePluginsLoaded } from '../lib/ensure-plugins';
 import { plugins as pluginList } from '../plugins/registry';
 import logger from '../utils/logger';
 import KVService from './kv-service';
 
 const GROUP_PLUGIN_CONFIG_KEY = 'group-plugin-config';
 
+type PluginCategory = 'loader' | 'group' | 'private' | 'notice';
+
+/** 群插件配置：插件名 -> 是否开启 */
+export type GroupConfigMap = Record<string, boolean>;
+
 class PluginService {
-  plugins = {
+  plugins: Record<PluginCategory, IPlugin[]> = {
     loader: [],
     group: [],
     private: [],
     notice: []
   };
 
-  groupConfigs = {};
-  defaultGroupConfig = [];
-  privateConfigs = [];
+  groupConfigs: Record<number, GroupConfigMap> = {};
+  defaultGroupConfig: string[] = [];
+  privateConfigs: Record<string, boolean> = {};
 
-  // ==========================================
-  // KV 数据操作
-  // ==========================================
-
-  getConfigKey(groupId) {
+  getConfigKey(groupId: number): string {
     return `${GROUP_PLUGIN_CONFIG_KEY}-${groupId}`;
   }
 
-  /** KV 前缀，用于列出所有有配置的群 */
-  get configKeyPrefix() {
+  get configKeyPrefix(): string {
     return `${GROUP_PLUGIN_CONFIG_KEY}-`;
   }
 
-  async getGroupPluginConfig(groupId) {
-    return (await KVService.getJSON(this.getConfigKey(groupId))) || [];
+  async getGroupPluginConfig(groupId: number): Promise<string[]> {
+    const raw = await KVService.getJSON<string[]>(this.getConfigKey(groupId));
+    return raw ?? [];
   }
 
-  /**
-   * 获取所有在 KV 中有插件配置的群 ID（供超管列表页）
-   * @returns {Promise<string[]>}
-   */
-  async getAllGroupIds() {
+  async getAllGroupIds(): Promise<string[]> {
+    await ensurePluginsLoaded();
     const keys = await KVService.listKeyNames(this.configKeyPrefix);
     return keys.map((name) => name.slice(this.configKeyPrefix.length)).filter(Boolean);
   }
 
-  async saveGroupPluginConfig(groupId, pluginList) {
-    return KVService.setJSON(this.getConfigKey(groupId), pluginList);
+  async saveGroupPluginConfig(groupId: number, pluginListArr: string[]): Promise<boolean> {
+    return KVService.setJSON(this.getConfigKey(groupId), pluginListArr);
   }
 
-  // ==========================================
-  // 插件管理逻辑
-  // ==========================================
-
-  sortByWeight(pluginA, pluginB) {
-    return pluginB.weight - pluginA.weight;
+  sortByWeight(pluginA: IPlugin, pluginB: IPlugin): number {
+    return (pluginB.weight ?? 0) - (pluginA.weight ?? 0);
   }
 
-  classifyPlugin(plugin) {
+  classifyPlugin(plugin: IPlugin): void {
     if (plugin.type === 'message' || plugin.type === 'private') {
       logger.debug(`category is '${plugin.type}', load into private plugin list`);
       this.plugins.private.push(plugin);
-      this.plugins.private.sort(this.sortByWeight);
+      this.plugins.private.sort(this.sortByWeight.bind(this));
     }
     if (plugin.type === 'message' || plugin.type === 'group') {
       logger.debug(`category is '${plugin.type}', load into group plugin list`);
       this.plugins.group.push(plugin);
-      this.plugins.group.sort(this.sortByWeight);
+      this.plugins.group.sort(this.sortByWeight.bind(this));
     }
     if (plugin.type === 'notice') {
       logger.debug("category is 'notice', load into notice plugin list");
       this.plugins.notice.push(plugin);
-      this.plugins.notice.sort(this.sortByWeight);
+      this.plugins.notice.sort(this.sortByWeight.bind(this));
     }
     if (!plugin.type || plugin.type === 'loader') {
       logger.debug("category is 'loader', load into loader plugin list");
       this.plugins.loader.push(plugin);
-      this.plugins.loader.sort(this.sortByWeight);
+      this.plugins.loader.sort(this.sortByWeight.bind(this));
     }
   }
 
-  async initSerial(plugins) {
+  async initSerial(plugins: IPlugin[]): Promise<void> {
     for (const plugin of plugins) {
       if (plugin.init) {
         logger.debug('init plugin');
@@ -87,65 +83,54 @@ class PluginService {
     }
   }
 
-  // 按类型 & 权重优先级顺序初始化插件
-  async initAllPlugin() {
-    // loader 类插件最先初始化
+  async initAllPlugin(): Promise<void> {
     await this.initSerial(this.plugins.loader);
     await this.initSerial(this.plugins.group);
     await this.initSerial(this.plugins.private);
     await this.initSerial(this.plugins.notice);
   }
 
-  async loadPrivatePluginConfig() {
-    // 暂时搞成加载全部, 后期改成可配置
-    // TODO 可在config.js 配置是否加载某插件
-    const nameList = this.plugins.private.map((plugin) => plugin.name);
-    nameList.forEach((name) => {
+  async loadPrivatePluginConfig(): Promise<void> {
+    const nameList = this.plugins.private.map((p) => p.name);
+    for (const name of nameList) {
       this.privateConfigs[name] = true;
-    });
+    }
   }
 
-  async loadPlugins() {
+  async loadPlugins(): Promise<void> {
     logger.info('======== start load plugin ========');
     for (const P of pluginList) {
-      const plugin = typeof P === 'function' ? new P() : P;
-      if (!plugin || !plugin.name) {
+      const plugin: IPlugin =
+        typeof P === 'function' ? (P as unknown as () => IPlugin)() : (P as IPlugin);
+      if (!plugin?.name) {
         logger.warn('invalid plugin in registry, skip');
         continue;
       }
       this.classifyPlugin(plugin);
     }
     await this.initAllPlugin();
-    this.defaultGroupConfig = this.plugins.group.reduce((prev, curr) => {
-      if (curr.default) {
-        prev.push(curr.name);
-      }
-      return prev;
-    }, []);
+    this.defaultGroupConfig = this.plugins.group.filter((p) => p.default).map((p) => p.name);
     logger.info('======== all plugin loaded ========');
     logger.info('load private plugin config');
     await this.loadPrivatePluginConfig();
   }
 
-  /**
-   * 获取对应postType的所有插件列表
-   * @param {string} postType 上报事件类型
-   * @return {[Plugin]} 插件列表
-   */
-  getPlugins(postType) {
-    return this.plugins[postType] || [];
+  async getPlugins(postType: PluginPostType): Promise<IPlugin[]> {
+    await ensurePluginsLoaded();
+    return this.plugins[postType] ?? [];
   }
 
-  /**
-   * 根据groupId 获取群插件列表
-   * @param {number} groupId 群id
-   * @returns {{ [object]: true }} Map 结构的插件列表
-   */
-  async getGroupConfig(groupId) {
+  async getGroupAndNoticePlugins(): Promise<{ group: IPlugin[]; notice: IPlugin[] }> {
+    await ensurePluginsLoaded();
+    return { group: this.plugins.group, notice: this.plugins.notice };
+  }
+
+  async getGroupConfig(groupId: number): Promise<GroupConfigMap> {
+    await ensurePluginsLoaded();
     if (this.groupConfigs[groupId]) {
-      return this.groupConfigs[groupId];
+      return this.groupConfigs[groupId]!;
     }
-    let config = null;
+    let config: string[] | null = null;
     try {
       logger.info(`did not find local group(${groupId}) config cache, getting from KV...`);
       config = await this.getGroupPluginConfig(groupId);
@@ -161,37 +146,33 @@ class PluginService {
       config = this.defaultGroupConfig;
     }
     logger.info('saving to cache...');
-    this.groupConfigs[groupId] = config.reduce((prev, curr) => {
-      prev[curr] = true;
-      return prev;
-    }, {});
+    const map: GroupConfigMap = {};
+    for (const curr of config) {
+      map[curr] = true;
+    }
+    this.groupConfigs[groupId] = map;
     await this.saveGroupPluginConfig(groupId, config);
-    return this.groupConfigs[groupId];
+    return this.groupConfigs[groupId]!;
   }
 
-  /**
-   * 根绝groupId 设置群插件列表
-   * @param {number} groupId 群id
-   * @param {{ [object]: true }} groupConfigMap Map 结构插件列表
-   */
-  async setGroupConfig(groupId, groupConfigMap) {
+  async setGroupConfig(groupId: number, groupConfigMap: GroupConfigMap): Promise<void> {
+    await ensurePluginsLoaded();
     this.groupConfigs[groupId] = groupConfigMap;
     const groupConfigList = Object.keys(groupConfigMap);
     await this.saveGroupPluginConfig(groupId, groupConfigList);
   }
 
-  /**
-   * 获取配置组
-   * @param {string} type 组名
-   * @param {{ group_id: string }} event 上报事件内容
-   * @returns {{}} 配置组
-   */
-  getConfig(type, { group_id: groupId }) {
+  async getConfig(
+    type: PluginPostType,
+    event: { group_id?: string }
+  ): Promise<GroupConfigMap | Record<string, boolean> | null> {
+    await ensurePluginsLoaded();
+    const groupId = event.group_id;
     switch (type) {
       case 'notice':
-        return groupId ? this.getGroupConfig(groupId) : this.privateConfigs;
+        return groupId ? this.getGroupConfig(Number(groupId)) : this.privateConfigs;
       case 'group':
-        return this.getGroupConfig(groupId);
+        return groupId ? this.getGroupConfig(Number(groupId)) : null;
       case 'private':
         return this.privateConfigs;
       default:

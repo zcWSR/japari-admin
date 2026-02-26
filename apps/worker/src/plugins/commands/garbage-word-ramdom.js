@@ -1,5 +1,5 @@
-import KVService from '@/services/kv-service.js';
-import QQService from '@/services/qq-service.js';
+import KVService from '@/services/kv-service';
+import QQService from '@/services/qq-service';
 import { Command, LEVEL } from '../../decorators/plugin';
 
 @Command({

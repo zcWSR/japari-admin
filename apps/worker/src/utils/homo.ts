@@ -1,17 +1,17 @@
 // copy 自 https://github.com/itorr/homo/tree/master
 // author: @itorr
 
-const homo = ((Nums) => {
+const homo = ((Nums: Record<string, string>) => {
   const numsReversed = Object.keys(Nums)
     .map((x) => +x)
     .filter((x) => x > 0);
-  const getMinDiv = (num) => {
+  const getMinDiv = (num: number): number | undefined => {
     for (let i = numsReversed.length; i >= 0; i--) {
       if (num >= numsReversed[i]) return numsReversed[i];
     }
   };
   const isDotRegex = /\.(\d+?)0{0,}$/;
-  const demolish = (num) => {
+  const demolish = (num: number): string => {
     if (typeof num !== 'number') {
       return '';
     }
@@ -27,23 +27,25 @@ const homo = ((Nums) => {
     if (!Number.isInteger(num)) {
       // abs(num) is definitely smaller than 2**51
       // rescale
-      const n = num.toFixed(16).match(isDotRegex)[1].length;
+      const m = num.toFixed(16).match(isDotRegex);
+      const n = m ? m[1].length : 0;
       return `(${demolish(num * 10 ** n)})/(10)^(${n})`;
     }
 
-    if (Nums[num]) {
+    if (Nums[String(num)]) {
       return String(num);
     }
 
     const div = getMinDiv(num);
+    if (div === undefined) return String(num);
     return `${div}*(${demolish(Math.floor(num / div))})+(${demolish(num % div)})`.replace(
       /\*\(1\)|\+\(0\)$/g,
       ''
     );
   };
   // Finisher
-  const finisher = (expr) => {
-    expr = expr.replace(/\d+|⑨/g, (n) => Nums[n]).replace('^', '**');
+  const finisher = (expr: string): string => {
+    expr = expr.replace(/\d+|⑨/g, (n) => Nums[n] ?? n).replace('^', '**');
     // As long as it matches ([\*|\/])\(([^\+\-\(\)]+)\), replace it with $1$2
     while (expr.match(/[*|/]\([^+\-()]+\)/)) {
       expr = expr.replace(/([*|/])\(([^+\-()]+)\)/, (_m, $1, $2) => $1 + $2);
@@ -64,7 +66,7 @@ const homo = ((Nums) => {
     expr = expr.replace(/\+-/g, '-');
     return expr;
   };
-  return (num) => finisher(demolish(num));
+  return (num: number): string => finisher(demolish(num));
 })({
   229028: '(114514+114514)',
   114514: '114514',

@@ -1,7 +1,7 @@
-let dev;
+let dev: boolean | undefined;
 const DEV_ENV_TYPES = ['dev', 'develop', 'development', 'debug'];
 
-export function isDev() {
+export function isDev(): boolean {
   if (dev !== undefined) return dev;
   const result = DEV_ENV_TYPES.find((value) => value === process.env.NODE_ENV);
   dev = !!result;

@@ -2,7 +2,7 @@
  * POST /internal/trigger-schedule - Node 到点触发。
  */
 import type { NextRequest } from 'next/server';
-import ScheduleService from '@/services/schedule-service.js';
+import ScheduleService from '@/services/schedule-service';
 
 export async function POST(request: NextRequest) {
   try {

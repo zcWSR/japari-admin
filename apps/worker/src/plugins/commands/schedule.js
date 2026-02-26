@@ -1,5 +1,5 @@
-import QQService from '@/services/qq-service.js';
-import ScheduleService from '@/services/schedule-service.js';
+import QQService from '@/services/qq-service';
+import ScheduleService from '@/services/schedule-service';
 import Config from '../../config';
 import { Command, LEVEL } from '../../decorators/plugin';
 

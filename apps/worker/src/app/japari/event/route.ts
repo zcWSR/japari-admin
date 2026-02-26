@@ -1,27 +1,26 @@
 /**
  * POST /japari/event - QQ 事件上报，执行插件链。
  */
+
 import type { NextRequest } from 'next/server';
-import { ensurePluginsLoaded } from '@/lib/ensure-plugins';
-import PluginService from '@/services/plugin-service.js';
-import QQService from '@/services/qq-service.js';
-import { notifyAdminsOfError } from '@/utils/notify-admin-error.js';
+import PluginService from '@/services/plugin-service';
+import QQService from '@/services/qq-service';
+import type { IncomingEvent, IPlugin, PluginPostType } from '@/types/onebot';
+import { notifyAdminsOfError } from '@/utils/notify-admin-error';
 
 export async function POST(request: NextRequest) {
   try {
-    await ensurePluginsLoaded();
-    const fromBot = await request.json().catch(() => ({}));
-    const type = QQService.convertMessageType(fromBot);
-    const plugins = PluginService.getPlugins(type);
-    const config = await PluginService.getConfig(type, fromBot);
+    const fromBot = (await request.json().catch(() => ({}))) as IncomingEvent;
+    const type = QQService.convertMessageType(fromBot) as PluginPostType;
+    const plugins = await PluginService.getPlugins(type);
+    const config = await PluginService.getConfig(type, fromBot as { group_id: string });
     if (!config) {
       return Response.json({});
     }
+    const configMap = config as Record<string, boolean>;
     for (const plugin of plugins) {
-      // @ts-expect-error
-      if (!config[plugin.name]) continue;
-      // @ts-expect-error
-      const result = await plugin.go(fromBot, type);
+      if (!configMap[plugin.name]) continue;
+      const result = await (plugin as IPlugin).go?.(fromBot, type);
       if (result === 'break') break;
     }
     return Response.json({});

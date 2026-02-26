@@ -1,5 +1,5 @@
-import D1Service from '@/services/d1-service.js';
-import QQService from '@/services/qq-service.js';
+import D1Service from '@/services/d1-service';
+import QQService from '@/services/qq-service';
 import { Command, LEVEL } from '../../decorators/plugin';
 
 // biome-ignore lint/suspicious/noTemplateCurlyInString: ignore

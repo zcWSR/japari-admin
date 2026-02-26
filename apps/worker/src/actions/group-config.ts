@@ -2,8 +2,7 @@
 
 import { headers } from 'next/headers';
 import { getAuth, requireGroupAccess } from '@/lib/auth';
-import { ensurePluginsLoaded } from '@/lib/ensure-plugins';
-import PluginService from '@/services/plugin-service.js';
+import PluginService from '@/services/plugin-service';
 
 export type GroupConfigResult =
   | {
@@ -18,17 +17,17 @@ export async function getGroupConfig(groupId: string): Promise<GroupConfigResult
   const auth = await getAuth(h.get('cookie'));
   if (!auth) return { error: 'unauthorized', status: 401 };
   if (!requireGroupAccess(auth, groupId)) return { error: 'forbidden', status: 403 };
-  await ensurePluginsLoaded();
-  const config = await PluginService.getGroupConfig(groupId);
+  const config = await PluginService.getGroupConfig(Number(groupId));
   const { group, notice } = PluginService.plugins;
   const all = [...group, ...notice];
+  const configMap = config as Record<string, boolean>;
   const plugins = all.map((p: { name: string; shortInfo?: string }) => ({
     name: p.name,
     shortInfo: p.shortInfo ?? p.name,
-    enabled: !!config[p.name]
+    enabled: !!configMap[p.name]
   }));
   return {
-    config,
+    config: configMap,
     plugins,
     isAdminToken: auth.isAdminToken
   };
@@ -42,6 +41,6 @@ export async function setGroupConfig(
   const auth = await getAuth(h.get('cookie'));
   if (!auth) return { error: 'unauthorized', status: 401 };
   if (!requireGroupAccess(auth, groupId)) return { error: 'forbidden', status: 403 };
-  await PluginService.setGroupConfig(groupId, config);
+  await PluginService.setGroupConfig(Number(groupId), config as never);
   return { ok: true };
 }

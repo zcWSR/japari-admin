@@ -1,5 +1,5 @@
 import { decode } from 'html-entities';
-import QQService from '@/services/qq-service.js';
+import QQService from '@/services/qq-service';
 import { Plugin } from '../decorators/plugin';
 import logger, { blockLog } from '../utils/logger';
 import { extractFirstText } from '../utils/message';

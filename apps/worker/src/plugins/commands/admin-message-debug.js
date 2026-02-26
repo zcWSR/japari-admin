@@ -1,4 +1,4 @@
-import QQService from '@/services/qq-service.js';
+import QQService from '@/services/qq-service';
 import { Command, LEVEL } from '../../decorators/plugin';
 import logger from '../../utils/logger';
 import { setMessageDebug } from '../checkMessageDebug';

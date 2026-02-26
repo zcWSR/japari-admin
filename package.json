@@ -9,8 +9,7 @@
   ],
   "scripts": {
     "build:node": "swc apps/node/src -d apps/node/built --strip-leading-paths",
-    "build:worker": "swc apps/worker/src -d apps/worker/dist --strip-leading-paths",
-    "lint": "npm run lint -w japari-node && npm run lint -w japari-worker",
+    "lint": "biome check",
     "lint:fix": "npm run lint:fix -w japari-node && npm run lint:fix -w japari-worker",
     "format": "npm run format -w japari-node && npm run format -w japari-worker",
     "worker:dev": "npm run dev -w japari-worker",

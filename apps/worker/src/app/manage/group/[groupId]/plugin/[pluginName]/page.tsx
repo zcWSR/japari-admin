@@ -1,7 +1,7 @@
 import { PluginConfigForm } from './plugin-config-form';
 
 export default async function PluginConfigPage({
-  params
+  params,
 }: {
   params: Promise<{ groupId: string; pluginName: string }>;
 }) {

@@ -1,5 +1,5 @@
 /**
- * 一次性链接兑换 session：GET /admin/token/:token
+ * 一次性链接兑换 session：GET /manage/token/:token
  * 逻辑与原 worker admin-token 一致。
  */
 import { getCloudflareContext } from '@opennextjs/cloudflare';
@@ -36,7 +36,7 @@ export async function GET(
   ) {
     const res = new Response(null, {
       status: 302,
-      headers: { Location: `${base}/admin/op` }
+      headers: { Location: `${base}/manage/group/op` }
     });
     const secret = String(env.ADMIN_SECRET ?? Config.ADMIN_SECRET);
     res.headers.set(
@@ -47,22 +47,22 @@ export async function GET(
   }
 
   if (!t) {
-    return Response.redirect(new URL('/admin?error=missing', request.url), 302);
+    return Response.redirect(new URL('/manage?error=missing', request.url), 302);
   }
 
   const key = `${ADMIN_TOKEN_KEY_PREFIX}${t}`;
   const raw = await KVService.get(key);
   if (!raw) {
-    return Response.redirect(new URL('/admin?error=expired', request.url), 302);
+    return Response.redirect(new URL('/manage?error=expired', request.url), 302);
   }
   let data: { groupId?: string; adminId?: string; used?: boolean };
   try {
     data = JSON.parse(raw);
   } catch {
-    return Response.redirect(new URL('/admin?error=invalid', request.url), 302);
+    return Response.redirect(new URL('/manage?error=invalid', request.url), 302);
   }
   if (data.used) {
-    return Response.redirect(new URL('/admin?error=used', request.url), 302);
+    return Response.redirect(new URL('/manage?error=used', request.url), 302);
   }
   await KVService.set(key, JSON.stringify({ ...data, used: true }), 300);
 
@@ -75,7 +75,7 @@ export async function GET(
   return new Response(null, {
     status: 302,
     headers: {
-      Location: `${base}/admin/group/${data.groupId}`,
+      Location: `${base}/manage/group/${data.groupId}`,
       'Set-Cookie': `${COOKIE_TOKEN_NAME}=${sessionToken}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${SESSION_TTL}${base.startsWith('https') ? '; Secure' : ''}`
     }
   });

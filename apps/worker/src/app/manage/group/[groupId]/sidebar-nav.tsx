@@ -19,7 +19,7 @@ export function SidebarNav({
 }) {
   const pathname = usePathname();
   const router = useRouter();
-  const base = `/admin/group/${groupId}`;
+  const base = `/manage/group/${groupId}`;
 
   const linkClass = (active: boolean) =>
     cn(

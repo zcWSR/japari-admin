@@ -31,7 +31,7 @@ class SettingCommand {
       },
       TTL
     );
-    const url = `${base}/admin/token/${token}`;
+    const url = `${base}/manage/token/${token}`;
     QQService.sendGroupMessage(groupId, `请在 5 分钟内打开链接完成配置：\n${url}`);
   }
 }

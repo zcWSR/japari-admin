@@ -7,7 +7,7 @@ import { SimulateForm } from './simulate/simulate-form';
 
 export function GroupContent({ groupId }: { groupId: string }) {
   const pathname = usePathname();
-  const base = `/admin/group/${groupId}`;
+  const base = `/manage/group/${groupId}`;
   const isOverview = pathname === base;
   const isSimulate = pathname === `${base}/simulate`;
   const pluginMatch = pathname?.startsWith(`${base}/plugin/`)

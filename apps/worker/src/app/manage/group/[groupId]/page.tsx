@@ -1,7 +1,7 @@
 import { GroupOverview } from './group-overview';
 
 export default async function GroupOverviewPage({
-  params
+  params,
 }: {
   params: Promise<{ groupId: string }>;
 }) {

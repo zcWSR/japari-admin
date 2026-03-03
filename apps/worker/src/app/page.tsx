@@ -6,8 +6,8 @@ export default function Home() {
         请使用 QQ 群内{' '}
         <code className="rounded bg-muted px-1 py-0.5 font-mono text-sm">!setting</code>{' '}
         获取管理链接，或使用管理员 token 访问{' '}
-        <a href="/admin/op" className="text-primary underline-offset-4 hover:underline">
-          /admin/op
+        <a href="/manage/group/op" className="text-primary underline-offset-4 hover:underline">
+          /manage/group/op
         </a>
         。
       </p>

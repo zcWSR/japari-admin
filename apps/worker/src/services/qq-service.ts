@@ -110,6 +110,24 @@ class QQService {
     }
   }
 
+  /** NapCat/OneBot get_group_info，返回群名等 */
+  async getGroupInfo(
+    groupId: string | number
+  ): Promise<{ group_name?: string } | null> {
+    try {
+      const meta = await axios.post<{ data?: { group_name?: string } }>(
+        `${Config.QQ_SERVER}/get_group_info`,
+        { group_id: groupId }
+      );
+      const data = meta.data?.data as { group_name?: string } | undefined;
+      return data ?? null;
+    } catch (e) {
+      logger.error(`get group(${groupId}) info error`);
+      logger.error(e);
+      return null;
+    }
+  }
+
   sendPrivateMessage(userId: string | number, message: MessageInput): void {
     const msg: OB11MessageData[] =
       typeof message === 'string'

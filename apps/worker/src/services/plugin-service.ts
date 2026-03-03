@@ -19,11 +19,11 @@ class PluginService {
     notice: []
   };
 
-  groupConfigs: Record<number, GroupConfigMap> = {};
+  groupConfigs: Record<string, GroupConfigMap> = {};
   defaultGroupConfig: string[] = [];
   privateConfigs: Record<string, boolean> = {};
 
-  getConfigKey(groupId: number): string {
+  getConfigKey(groupId: number | string): string {
     return `${GROUP_PLUGIN_CONFIG_KEY}-${groupId}`;
   }
 
@@ -44,6 +44,14 @@ class PluginService {
 
   async saveGroupPluginConfig(groupId: number, pluginListArr: string[]): Promise<boolean> {
     return KVService.setJSON(this.getConfigKey(groupId), pluginListArr);
+  }
+
+  /** 删除群配置（超管在群列表删除用），并清除内存缓存 */
+  async deleteGroupConfig(groupId: string): Promise<boolean> {
+    const key = this.getConfigKey(groupId);
+    const ok = await KVService.delete(key);
+    delete this.groupConfigs[groupId];
+    return ok;
   }
 
   sortByWeight(pluginA: IPlugin, pluginB: IPlugin): number {
@@ -101,7 +109,7 @@ class PluginService {
     logger.info('======== start load plugin ========');
     for (const P of pluginList) {
       const plugin: IPlugin =
-        typeof P === 'function' ? (P as unknown as () => IPlugin)() : (P as IPlugin);
+        typeof P === 'function' ? new (P as unknown as new () => IPlugin)() : (P as IPlugin);
       if (!plugin?.name) {
         logger.warn('invalid plugin in registry, skip');
         continue;

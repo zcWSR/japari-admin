@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 
 type GroupItem = { groupId: string };
 
-export default function OpGroupsPage() {
+export default function AdminGroupListPage() {
   const [groups, setGroups] = useState<GroupItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [forbidden, setForbidden] = useState(false);
@@ -23,15 +23,29 @@ export default function OpGroupsPage() {
   }, []);
 
   if (loading) {
-    return <p className="text-muted-foreground">加载中…</p>;
+    return (
+      <main className="min-h-screen p-8">
+        <p className="text-muted-foreground">加载中…</p>
+      </main>
+    );
   }
 
   if (forbidden) {
-    return <p className="text-destructive">仅超管（ADMIN_SECRET）可访问。</p>;
+    return (
+      <main className="min-h-screen p-8">
+        <p className="text-destructive">仅超管（ADMIN_SECRET）可访问此页。</p>
+        <Link
+          href="/manage"
+          className="mt-4 inline-block text-primary underline-offset-4 hover:underline"
+        >
+          返回管理首页
+        </Link>
+      </main>
+    );
   }
 
   return (
-    <div>
+    <main className="min-h-screen p-8">
       <Card>
         <CardHeader>
           <CardTitle>全部群</CardTitle>
@@ -45,7 +59,7 @@ export default function OpGroupsPage() {
               {groups.map(({ groupId }) => (
                 <li key={groupId}>
                   <Link
-                    href={`/admin/group/${groupId}`}
+                    href={`/manage/group/${groupId}`}
                     className="text-primary underline-offset-4 hover:underline"
                   >
                     群 {groupId}
@@ -56,6 +70,11 @@ export default function OpGroupsPage() {
           )}
         </CardContent>
       </Card>
-    </div>
+      <p className="mt-4 text-sm text-muted-foreground">
+        <Link href="/manage" className="text-primary underline-offset-4 hover:underline">
+          返回管理首页
+        </Link>
+      </p>
+    </main>
   );
 }

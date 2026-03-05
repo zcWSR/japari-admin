@@ -210,7 +210,7 @@ class QQService {
   }
 
   async sendReadyMessage(): Promise<void> {
-    const message = `服务(重)启动于: ${formatShangHaiTime()}`;
+    const message = `插件惰性载入完成于: ${formatShangHaiTime()}`;
     logger.info(message);
     await this.sendAdminsMessage(message);
   }

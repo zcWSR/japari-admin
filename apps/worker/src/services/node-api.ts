@@ -8,9 +8,7 @@ export async function generateImage(
   type: string,
   params: Record<string, unknown>
 ): Promise<string> {
-  const base = (Config.NODE_URL ?? '').replace(/\/$/, '');
-  if (!base) throw new Error('NODE_URL 未配置，无法生成图片');
-  const res = await fetch(`${base}/generate-image`, {
+  const res = await fetch(`${Config.NODE_SERVER}/generate-image`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ type, ...params })

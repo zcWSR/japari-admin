@@ -17,11 +17,6 @@ const TTL = 300; // 5 分钟
 class SettingCommand {
   async run(_params: string, body: CommandEvent) {
     const { group_id: groupId, user_id: adminId } = body;
-    const base = (Config.ADMIN_BASE_URL || '').replace(/\/$/, '');
-    if (!base) {
-      QQService.sendGroupMessage(groupId, '未配置 ADMIN_BASE_URL，无法生成链接');
-      return;
-    }
     const token = crypto.randomUUID();
     await KVService.setJSON(
       `${ADMIN_TOKEN_KEY_PREFIX}${token}`,
@@ -32,7 +27,7 @@ class SettingCommand {
       },
       TTL
     );
-    const url = `${base}/manage/token/${token}`;
+    const url = `${Config.HOST_BASE_URL}/manage/token/${token}`;
     QQService.sendGroupMessage(groupId, `请在 5 分钟内打开链接完成配置：\n${url}`);
   }
 }

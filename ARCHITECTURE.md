@@ -203,14 +203,14 @@ flowchart TB
 
 **构建与上传分离**（按需）：`npm run build` 仅 next build；`opennextjs-cloudflare build` 生成 .open-next/；`opennextjs-cloudflare upload` 仅上传版本；`opennextjs-cloudflare deploy` 构建+部署。
 
-**环境与绑定**：vars = wrangler `[vars]` + `.dev.vars`（本地）/ 控制台或 Secrets（线上）。D1/KV 在 wrangler 中配置，本地预览用本地 SQLite/KV。管理鉴权相关变量包括 `ADMIN_BASE_URL`、`ADMINS`、`MANAGE_SESSION_TTL_NORMAL`、`MANAGE_SESSION_TTL_ADMIN`。
+**环境与绑定**：vars = wrangler `[vars]` + `.dev.vars`（本地）/ 控制台或 Secrets（线上）。D1/KV 在 wrangler 中配置，本地预览用本地 SQLite/KV。管理鉴权相关变量包括 `HOST_BASE_URL`、`ADMINS`、`MANAGE_SESSION_TTL_NORMAL`、`MANAGE_SESSION_TTL_ADMIN`。
 
 ## 6. 配置与部署约定
 
 | 端 | 配置来源 | 关键项 |
 |----|----------|--------|
 | Node | config.json + 环境变量 | port、workerUrl；R2_* |
-| Worker | .dev.vars / wrangler [vars]；getCloudflareContext().env | QQ_SERVER、NODE_URL、ADMINS、BOT_QQ_ID、ADMIN_BASE_URL、MANAGE_SESSION_TTL_NORMAL、MANAGE_SESSION_TTL_ADMIN；D1/KV 在 wrangler 绑定 |
+| Worker | .dev.vars / wrangler [vars]；getCloudflareContext().env | QQ_SERVER、NODE_SERVER、ADMINS、BOT_QQ_ID、HOST_BASE_URL、MANAGE_SESSION_TTL_NORMAL、MANAGE_SESSION_TTL_ADMIN；D1/KV 在 wrangler 绑定 |
 
 **内部接口约定**：Node 调 Worker → `GET {workerUrl}/internal/schedules`、`POST {workerUrl}/internal/trigger-schedule`（body: `{ groupId }`）。Worker 在 schedule 相关命令或后台修改定时后调 Node → `POST {nodeUrl}/refresh-schedules`。
 

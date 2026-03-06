@@ -5,11 +5,7 @@ import { Command, LEVEL } from '../../decorators/plugin';
 import type { CommandEvent, CommandMap, PluginEvent, PluginPostTypeLike } from '../types';
 
 async function refreshNodeSchedules() {
-  const base = (Config.NODE_URL || '').replace(/\/$/, '');
-  if (!base) return;
-  try {
-    await fetch(`${base}/refresh-schedules`, { method: 'POST' });
-  } catch (_) {}
+  void fetch(`${Config.NODE_SERVER}/refresh-schedules`, { method: 'POST' });
 }
 
 @Command({

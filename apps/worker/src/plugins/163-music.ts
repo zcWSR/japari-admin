@@ -179,8 +179,7 @@ class NetEastMusic {
         method: 'get',
         params: {
           keywords: keyword,
-          type: 1,
-          realIP: Config.IP
+          type: 1
         }
       });
       const { result = {} } = meta.data;
@@ -290,6 +289,10 @@ class NetEastMusic {
   }
 
   async go(body: OB11Message, type: PluginPostTypeLike) {
+    if (Config.NET_EAST_MUSIC_SERVER) {
+      this.sendMessage('未配置网易云音乐接口', body, type);
+      return 'break';
+    }
     const { message } = body;
     const c = this.isCommand(message);
     if (!c) return; // 不是指令，直接跳过流程

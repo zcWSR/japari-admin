@@ -3,8 +3,8 @@
  * 与手动输入页共享同一会话模型与锁逻辑。
  */
 import type { NextRequest } from 'next/server';
-import Config from '@/config';
 import { acquireGroupLockWithSession } from '@/actions/group-lock';
+import Config from '@/config';
 import { getAvatarUrl, getSessionKey } from '@/lib/auth';
 import KVService from '@/services/kv-service';
 import QQService from '@/services/qq-service';
@@ -12,19 +12,12 @@ import QQService from '@/services/qq-service';
 const ADMIN_TOKEN_KEY_PREFIX = 'admin-token:';
 const COOKIE_TOKEN_NAME = 'admin_token';
 
-function getBase(request: NextRequest): string {
-  const url = request.url;
-  const base = (Config.ADMIN_BASE_URL as string)?.replace(/\/$/, '') || new URL(url).origin;
-  return base;
-}
-
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ token: string }> }
 ) {
   const { token } = await params;
   const t = (token || '').trim();
-  const base = getBase(request);
 
   if (!t) {
     return Response.redirect(new URL('/manage/token?error=missing', request.url), 302);
@@ -61,7 +54,9 @@ export async function GET(
   }
 
   const isAdminToken = Config.ADMINS.includes(Number(qq));
-  const ttlSeconds = isAdminToken ? Config.MANAGE_SESSION_TTL_ADMIN : Config.MANAGE_SESSION_TTL_NORMAL;
+  const ttlSeconds = isAdminToken
+    ? Config.MANAGE_SESSION_TTL_ADMIN
+    : Config.MANAGE_SESSION_TTL_NORMAL;
   const now = Date.now();
   const expiresAt = now + ttlSeconds * 1000;
   const sessionToken = crypto.randomUUID();
@@ -96,12 +91,14 @@ export async function GET(
   }
 
   await KVService.set(key, JSON.stringify({ ...data, used: true }), 300);
-  const location = isAdminToken ? `${base}/manage/group/op` : `${base}/manage/group/${groupId}`;
+  const location = isAdminToken
+    ? `${Config.HOST_BASE_URL}/manage/group/op`
+    : `${Config.HOST_BASE_URL}/manage/group/${groupId}`;
   return new Response(null, {
     status: 302,
     headers: {
       Location: location,
-      'Set-Cookie': `${COOKIE_TOKEN_NAME}=${sessionToken}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${ttlSeconds}${base.startsWith('https') ? '; Secure' : ''}`
+      'Set-Cookie': `${COOKIE_TOKEN_NAME}=${sessionToken}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${ttlSeconds}${Config.HOST_BASE_URL.startsWith('https') ? '; Secure' : ''}`
     }
   });
 }

@@ -48,7 +48,7 @@ class AkhrUpdate {
       this.sendImg(body, type, url);
     } catch (e) {
       logger.error(e);
-      this.sendMsg(body, type, '生成失败，请检查 Node 服务或 NODE_URL 配置');
+      this.sendMsg(body, type, '生成失败，请检查 Node 服务或 NODE_SERVER 配置');
     }
   }
 }

@@ -67,7 +67,7 @@ export default function OpGroupsPage() {
   }
 
   if (forbidden) {
-    return <p className="text-destructive">仅超管（ADMIN_SECRET）可访问。</p>;
+    return <p className="text-destructive">仅超管可访问。</p>;
   }
 
   return (

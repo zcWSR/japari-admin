@@ -60,6 +60,16 @@ const Config = {
   get ADMIN_BASE_URL(): string | null {
     return fromEnv('ADMIN_BASE_URL');
   },
+  /** 普通管理会话 TTL，默认 10 分钟 */
+  get MANAGE_SESSION_TTL_NORMAL(): number {
+    const v = Number(fromEnv('MANAGE_SESSION_TTL_NORMAL', '600'));
+    return Number.isFinite(v) && v > 0 ? v : 600;
+  },
+  /** 超管管理会话 TTL，默认 1 小时 */
+  get MANAGE_SESSION_TTL_ADMIN(): number {
+    const v = Number(fromEnv('MANAGE_SESSION_TTL_ADMIN', '3600'));
+    return Number.isFinite(v) && v > 0 ? v : 3600;
+  },
   get CF(): null {
     return null;
   },

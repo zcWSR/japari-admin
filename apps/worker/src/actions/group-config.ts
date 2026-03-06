@@ -60,7 +60,7 @@ export async function getGroupSidebarInfo(
     QQService.getGroupInfo(groupId),
     auth.isAdminToken
       ? Promise.resolve(null)
-      : QQService.getGroupUserName(groupId, auth.adminId ?? '')
+      : QQService.getGroupUserName(groupId, auth.adminId)
   ]);
   return {
     groupName: groupInfo?.group_name ?? null,

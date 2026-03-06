@@ -1,16 +1,16 @@
 /**
  * 一次性链接兑换 session：GET /manage/token/:token
- * 逻辑与原 worker admin-token 一致。
+ * 与手动输入页共享同一会话模型与锁逻辑。
  */
-import { getCloudflareContext } from '@opennextjs/cloudflare';
 import type { NextRequest } from 'next/server';
 import Config from '@/config';
+import { acquireGroupLockWithSession } from '@/actions/group-lock';
+import { getAvatarUrl, getSessionKey } from '@/lib/auth';
 import KVService from '@/services/kv-service';
+import QQService from '@/services/qq-service';
 
 const ADMIN_TOKEN_KEY_PREFIX = 'admin-token:';
-const ADMIN_SESSION_PREFIX = 'admin-session:';
 const COOKIE_TOKEN_NAME = 'admin_token';
-const SESSION_TTL = 60 * 60 * 24;
 
 function getBase(request: NextRequest): string {
   const url = request.url;
@@ -22,61 +22,86 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ token: string }> }
 ) {
-  const env = getCloudflareContext().env as {
-    ADMIN_SECRET?: string;
-    ADMIN_BASE_URL?: string;
-  };
   const { token } = await params;
   const t = (token || '').trim();
   const base = getBase(request);
 
-  if (
-    (env.ADMIN_SECRET ?? Config.ADMIN_SECRET) &&
-    t === (env.ADMIN_SECRET ?? Config.ADMIN_SECRET)
-  ) {
-    const res = new Response(null, {
-      status: 302,
-      headers: { Location: `${base}/manage/group/op` }
-    });
-    const secret = String(env.ADMIN_SECRET ?? Config.ADMIN_SECRET);
-    res.headers.set(
-      'Set-Cookie',
-      `${COOKIE_TOKEN_NAME}=${encodeURIComponent(secret)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${SESSION_TTL}${base.startsWith('https') ? '; Secure' : ''}`
-    );
-    return res;
-  }
-
   if (!t) {
-    return Response.redirect(new URL('/manage?error=missing', request.url), 302);
+    return Response.redirect(new URL('/manage/token?error=missing', request.url), 302);
   }
 
   const key = `${ADMIN_TOKEN_KEY_PREFIX}${t}`;
   const raw = await KVService.get(key);
   if (!raw) {
-    return Response.redirect(new URL('/manage?error=expired', request.url), 302);
+    return Response.redirect(new URL('/manage/token?error=expired', request.url), 302);
   }
   let data: { groupId?: string; adminId?: string; used?: boolean };
   try {
     data = JSON.parse(raw);
   } catch {
-    return Response.redirect(new URL('/manage?error=invalid', request.url), 302);
+    return Response.redirect(new URL('/manage/token?error=invalid', request.url), 302);
   }
   if (data.used) {
-    return Response.redirect(new URL('/manage?error=used', request.url), 302);
+    return Response.redirect(new URL('/manage/token?error=used', request.url), 302);
   }
-  await KVService.set(key, JSON.stringify({ ...data, used: true }), 300);
 
+  const groupId = String(data.groupId ?? '').trim();
+  const qq = String(data.adminId ?? '').trim();
+  if (!/^\d+$/.test(groupId) || !/^\d+$/.test(qq)) {
+    return Response.redirect(new URL('/manage/token?error=invalid', request.url), 302);
+  }
+
+  const member = await QQService.getGroupMemberInfo(groupId, qq);
+  if ('error' in member) {
+    const reason = member.error === 'member_not_found' ? 'not_found' : 'service_error';
+    return Response.redirect(new URL(`/manage/token?error=${reason}`, request.url), 302);
+  }
+  if (member.data.role !== 'admin' && member.data.role !== 'owner') {
+    return Response.redirect(new URL('/manage/token?error=forbidden', request.url), 302);
+  }
+
+  const isAdminToken = Config.ADMINS.includes(Number(qq));
+  const ttlSeconds = isAdminToken ? Config.MANAGE_SESSION_TTL_ADMIN : Config.MANAGE_SESSION_TTL_NORMAL;
+  const now = Date.now();
+  const expiresAt = now + ttlSeconds * 1000;
   const sessionToken = crypto.randomUUID();
-  await KVService.set(
-    `${ADMIN_SESSION_PREFIX}${sessionToken}`,
-    JSON.stringify({ groupId: data.groupId, adminId: data.adminId }),
-    SESSION_TTL
+  const sessionOk = await KVService.setJSON(
+    getSessionKey(sessionToken),
+    {
+      groupId,
+      adminId: qq,
+      qq,
+      isAdminToken,
+      displayName: member.data.card || member.data.nickname || qq,
+      avatarUrl: getAvatarUrl(qq),
+      ttlSeconds,
+      expiresAt,
+      createdAt: now
+    },
+    ttlSeconds
   );
+  if (!sessionOk) {
+    return Response.redirect(new URL('/manage/token?error=service_error', request.url), 302);
+  }
+  const lock = await acquireGroupLockWithSession({
+    groupId,
+    holderSessionId: sessionToken,
+    holderQq: qq,
+    holderName: member.data.card || member.data.nickname || qq
+  });
+  if ('error' in lock) {
+    await KVService.delete(getSessionKey(sessionToken));
+    const reason = lock.error === 'busy' ? 'busy' : 'service_error';
+    return Response.redirect(new URL(`/manage/token?error=${reason}`, request.url), 302);
+  }
+
+  await KVService.set(key, JSON.stringify({ ...data, used: true }), 300);
+  const location = isAdminToken ? `${base}/manage/group/op` : `${base}/manage/group/${groupId}`;
   return new Response(null, {
     status: 302,
     headers: {
-      Location: `${base}/manage/group/${data.groupId}`,
-      'Set-Cookie': `${COOKIE_TOKEN_NAME}=${sessionToken}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${SESSION_TTL}${base.startsWith('https') ? '; Secure' : ''}`
+      Location: location,
+      'Set-Cookie': `${COOKIE_TOKEN_NAME}=${sessionToken}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${ttlSeconds}${base.startsWith('https') ? '; Secure' : ''}`
     }
   });
 }

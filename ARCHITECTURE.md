@@ -19,13 +19,13 @@ japari-admin/
 │   └── worker/            # Next.js + OpenNext 单 Worker
 │       ├── src/
 │       │   ├── app/                   # Next App Router
-│       │   │   ├── page.tsx, admin/, japari/, (layout, route handlers)
+│       │   │   ├── page.tsx, manage/, japari/, (layout, route handlers)
 │       │   │   └── japari/event/route.ts, japari/message/route.ts
-│       │   ├── actions/               # Server Actions（群配置、插件配置、模拟消息）
+│       │   ├── actions/               # Server Actions（鉴权、群配置、锁、模拟消息）
 │       │   ├── lib/                   # auth, ensure-plugins
 │       │   ├── plugins/               # 插件 + commands，@Plugin/@Command 装饰器
 │       │   ├── services/              # D1, KV, QQ, PluginService...
-│       │   ├── config.js              # getCloudflareContext().env
+│       │   ├── config.ts              # getCloudflareContext().env
 │       │   └── decorators/
 │       ├── wrangler.toml              # 生产部署用（勿提交）
 │       ├── wrangler.dev.toml          # 本地 preview 用
@@ -114,7 +114,7 @@ flowchart TB
 ### 5.1 职责
 
 - **QQ 事件**：`POST /japari/event` 进入插件链（含 command-runner 解析 `!xxx`）。
-- **管理后台**：Next 页面与 Server Actions；鉴权 Cookie `admin_token`（ADMIN_SECRET 或 KV session）。
+- **管理后台**：Next 页面与 Server Actions；统一使用 `admin_token` + KV session 鉴权。
 - **插件/命令**：`plugins/` + 装饰器，PluginService 管理加载与群配置；**群插件配置存 KV**，首次需插件列表时调用 **ensurePluginsLoaded()**（getGroupConfig、getPluginConfig、japari/event、simulate 等）。
 - **配置与绑定**：全部通过 **getCloudflareContext().env**（Config、D1Service、KVService 内部使用），无 env-store。
 
@@ -122,13 +122,15 @@ flowchart TB
 
 | 类型 | 路径 | 说明 |
 |------|------|------|
-| 页面 | /, /admin, /admin/op, /admin/op/groups | 管理首页、超管、全部群 |
-| 页面 | /admin/group/[groupId], /admin/group/.../plugin/[pluginName], /admin/group/.../simulate | 单群管理、插件配置、消息模拟 |
-| 页面 | /admin/token/[token] | 一次性链接兑换（写 Cookie 后重定向） |
+| 页面 | /, /manage, /manage/token | 服务首页、管理入口、无参数鉴权输入页 |
+| 页面 | /manage/group/op, /manage/group/op/groups | 超管专属页、全部群 |
+| 页面 | /manage/group/[groupId], /manage/group/[groupId]/plugin/[pluginName], /manage/group/[groupId]/simulate | 单群管理、插件配置、消息模拟 |
+| 页面 | /manage/token/[token] | `!setting` 一次性链接兑换（写 Cookie 后重定向） |
 | API | POST /japari/event | QQ 事件上报，执行插件链 |
 | API | POST /japari/message | 内部消息（如转发 genshinUpdate） |
 | API | GET /internal/schedules | Node 拉取定时列表 |
 | API | POST /internal/trigger-schedule | Node 到点触发 |
+| API | POST /manage/lock/release | 页面关闭时释放同群占用锁 |
 
 ### 5.3 插件加载与配置
 
@@ -136,11 +138,51 @@ flowchart TB
 - **群配置**：KV 存储；getGroupConfig 先 ensurePluginsLoaded，再读 KV 与插件列表供侧栏展示；插件开关通过 setGroupConfig 更新 KV。
 - **插件配置页**：getPluginConfig/setPluginConfig 同样先 ensurePluginsLoaded，再按插件名查找并调用 getPageConfig/setPageConfig。
 
-### 5.4 Worker 本地调试与部署
+### 5.4 管理后台鉴权与会话模型（当前实现）
+
+- **统一鉴权入口**：
+  - `/manage/token`：手动输入 `groupId + qq`。
+  - `/manage/token/[token]`：`!setting` 一次性链接兑换。
+- **自动跳转**：访问 `/manage/token` 时，若当前 `admin_token` 对应会话有效，则直接跳转成功页（超管 -> `/manage/group/op`，普通用户 -> `/manage/group/{groupId}`）。
+- **鉴权规则**：
+  - `qq ∈ ADMINS`：允许 `groupId` 为空，进入超管会话。
+  - 普通用户：必须带 `groupId`，并通过 `get_group_member_info` 校验「在群内 + admin/owner」。
+- **会话存储**：KV key `admin-session:{sessionToken}`，payload 包含：
+  - `groupId`、`adminId`、`qq`、`isAdminToken`、`displayName`、`avatarUrl`、`ttlSeconds`、`expiresAt`、`createdAt`。
+- **TTL 配置**：
+  - `MANAGE_SESSION_TTL_NORMAL`（默认 `600` 秒）；
+  - `MANAGE_SESSION_TTL_ADMIN`（默认 `3600` 秒）。
+- **会话查询**：`getSessionInfo()` 返回 `remainingSeconds`，用于 UI 倒计时展示。
+- **登出行为**：`logout()` 删除 KV 会话、释放占用锁、清空 `admin_token`。
+
+### 5.5 同群互斥占用锁（KV + 心跳）
+
+- **锁 key**：`manage-lock:{groupId}`。
+- **锁 value**：`holderSessionId`、`holderQq`、`holderName`、`updatedAt`。
+- **TTL**：60 秒；客户端每 15 秒心跳续租。
+- **获取时机**：进入群管理页后 `acquire`；若被其他会话持有返回 `busy`。
+- **释放时机**：
+  - 页面卸载 / 关闭：`release`（含 `sendBeacon` 调用 `/manage/lock/release`）；
+  - 主动登出：`logout()` 内同步释放；
+  - 异常关闭：依赖 TTL 自动回收。
+
+### 5.6 Sidebar（manage/group）当前结构
+
+- 基于 shadcn `SidebarProvider + Sidebar + SidebarInset`。
+- `SidebarHeader`：
+  - 左侧群头像（`p.qlogo.cn/gh/{groupId}/{groupId}/100`）；
+  - 右侧两行显示群名、群号（超管页显示超管模式标识）。
+- `SidebarFooter`：
+  - 左侧会话头像 + 环形倒计时进度；
+  - 悬停显示「鉴权过期倒计时」；
+  - 右侧下拉菜单提供登出。
+- 插件项支持 `Switch` 实时开关，动作走 `setGroupConfig`。
+
+### 5.7 Worker 本地调试与部署
 
 **方式一：Next 开发服务器（推荐日常开发）**
 
-在 `apps/worker` 下：`npm install`、`npm run dev`（或根目录 `npm run worker:dev`）。使用 `next dev` + OpenNext 开发初始化，可访问本地模拟 D1/KV。前端默认 <http://localhost:3000>，管理后台 <http://localhost:3000/admin>，QQ 说明 <http://localhost:3000/japari>。环境变量与绑定：同目录 `.dev.vars`（`KEY=value` 每行一个），与 wrangler 配置中 `[vars]`、D1/KV 在本地会被模拟。
+在 `apps/worker` 下：`npm install`、`npm run dev`（或根目录 `npm run worker:dev`）。使用 `next dev` + OpenNext 开发初始化，可访问本地模拟 D1/KV。前端默认 <http://localhost:3000>，管理后台入口 <http://localhost:3000/manage/token>，QQ 说明 <http://localhost:3000/japari>。环境变量与绑定：同目录 `.dev.vars`（`KEY=value` 每行一个），与 wrangler 配置中 `[vars]`、D1/KV 在本地会被模拟。
 
 **方式二：本地 Worker 预览（与线上运行时一致）**
 
@@ -161,14 +203,14 @@ flowchart TB
 
 **构建与上传分离**（按需）：`npm run build` 仅 next build；`opennextjs-cloudflare build` 生成 .open-next/；`opennextjs-cloudflare upload` 仅上传版本；`opennextjs-cloudflare deploy` 构建+部署。
 
-**环境与绑定**：vars = wrangler `[vars]` + `.dev.vars`（本地）/ 控制台或 Secrets（线上）。D1/KV 在 wrangler 中配置，本地预览用本地 SQLite/KV。管理鉴权需 `ADMIN_SECRET`、`ADMIN_BASE_URL` 等。
+**环境与绑定**：vars = wrangler `[vars]` + `.dev.vars`（本地）/ 控制台或 Secrets（线上）。D1/KV 在 wrangler 中配置，本地预览用本地 SQLite/KV。管理鉴权相关变量包括 `ADMIN_BASE_URL`、`ADMINS`、`MANAGE_SESSION_TTL_NORMAL`、`MANAGE_SESSION_TTL_ADMIN`。
 
 ## 6. 配置与部署约定
 
 | 端 | 配置来源 | 关键项 |
 |----|----------|--------|
 | Node | config.json + 环境变量 | port、workerUrl；R2_* |
-| Worker | .dev.vars / wrangler [vars]；getCloudflareContext().env | QQ_SERVER、NODE_URL、ADMINS、BOT_QQ_ID、ADMIN_SECRET、ADMIN_BASE_URL；D1/KV 在 wrangler 绑定 |
+| Worker | .dev.vars / wrangler [vars]；getCloudflareContext().env | QQ_SERVER、NODE_URL、ADMINS、BOT_QQ_ID、ADMIN_BASE_URL、MANAGE_SESSION_TTL_NORMAL、MANAGE_SESSION_TTL_ADMIN；D1/KV 在 wrangler 绑定 |
 
 **内部接口约定**：Node 调 Worker → `GET {workerUrl}/internal/schedules`、`POST {workerUrl}/internal/trigger-schedule`（body: `{ groupId }`）。Worker 在 schedule 相关命令或后台修改定时后调 Node → `POST {nodeUrl}/refresh-schedules`。
 
@@ -178,4 +220,4 @@ flowchart TB
 - 定时：Node 拉 GET /internal/schedules，到点 POST /internal/trigger-schedule；用户改定时后 Worker 调 Node POST /refresh-schedules。
 - 原神缓存：POST /japari/message 转发到 Node POST /message。
 
-以上为当前 japari-admin 的整体架构，Worker 已迁移为 Next.js + OpenNext 单 Worker，配置与绑定统一走 getCloudflareContext。
+以上为当前 japari-admin 的整体架构，Worker 已迁移为 Next.js + OpenNext 单 Worker，配置与绑定统一走 getCloudflareContext，管理后台已切换到 `manage` 路由体系与统一会话鉴权模型。

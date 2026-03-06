@@ -38,6 +38,19 @@
 - **osu**：`!bind`、`!unbind`、`!bp`、`!bpme`、`!recent`
 - 管理后台：`!setting` 下发后台链接
 
+## 管理后台（当前）
+
+- 入口页：`/manage/token`（手动输入 `群号 + QQ 号`）。
+- 一次性链接：`/manage/token/[token]`（由 `!setting` 下发，兑换后写入 `admin_token`）。
+- 会话自动跳转：访问 `/manage/token` 时，如果当前 `cookie` 会话仍有效，会直接跳转到成功页。
+- 路由结构：
+  - 超管页：`/manage/group/op`、`/manage/group/op/groups`
+  - 单群页：`/manage/group/[groupId]`、`/manage/group/[groupId]/plugin/[pluginName]`、`/manage/group/[groupId]/simulate`
+- 会话与并发控制：
+  - 会话存储在 KV（`admin-session:{token}`）；
+  - 同群占用锁使用 KV + 心跳续租（避免多人同时改配置）；
+  - Footer 支持倒计时展示与登出销毁会话。
+
 ## 安装与运行
 
 ```bash

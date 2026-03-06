@@ -10,6 +10,13 @@ import { sleep } from '../utils/process';
 
 type AuthLevel = 'owner' | 'admin';
 
+type GroupMemberInfo = {
+  user_id?: number | string;
+  role?: string;
+  nickname?: string;
+  card?: string;
+};
+
 interface CapturedSentItem {
   type: string;
   id: string;
@@ -88,6 +95,32 @@ class QQService {
       logger.error(`get group(${groupId}) user(${userId}) role error`);
       logger.error(e);
       return null;
+    }
+  }
+
+  async getGroupMemberInfo(
+    groupId: string | number,
+    userId: string | number,
+    noCache = false
+  ): Promise<
+    | { data: GroupMemberInfo }
+    | { error: 'member_not_found' | 'service_error' }
+  > {
+    try {
+      const meta = await axios.post<{ data?: GroupMemberInfo }>(
+        `${Config.QQ_SERVER}/get_group_member_info`,
+        { group_id: groupId, user_id: userId, no_cache: noCache }
+      );
+      const memberInfo = meta.data?.data;
+      if (!memberInfo || memberInfo.user_id == null) {
+        return { error: 'member_not_found' };
+      }
+      logger.debug(`get group(${groupId}) user(${userId}) member info:`, memberInfo);
+      return { data: memberInfo };
+    } catch (e) {
+      logger.error(`get group(${groupId}) user(${userId}) member info error`);
+      logger.error(e);
+      return { error: 'service_error' };
     }
   }
 

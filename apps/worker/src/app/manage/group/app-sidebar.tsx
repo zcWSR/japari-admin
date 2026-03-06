@@ -1,10 +1,24 @@
 'use client';
 
-import { ShieldCheck, User2 } from 'lucide-react';
+import { EllipsisVertical, LogOut, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
+import { toast } from 'sonner';
+import { getSessionInfo, logout } from '@/actions/auth';
 import { getGroupConfig, getGroupSidebarInfo, setGroupConfig } from '@/actions/group-config';
+import {
+  acquireGroupLock,
+  heartbeatGroupLock,
+  releaseGroupLock
+} from '@/actions/group-lock';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu';
 import {
   Sidebar,
   SidebarContent,
@@ -19,10 +33,22 @@ import {
   useSidebar
 } from '@/components/ui/sidebar';
 import { Switch } from '@/components/ui/switch';
+import { SessionAvatarRing } from './session-avatar-ring';
 
 const OP_BASE = '/manage/group/op';
+const LOCK_HEARTBEAT_MS = 15_000;
 
 type PluginItem = { name: string; shortInfo: string; enabled: boolean };
+
+function formatDuration(seconds: number): string {
+  const s = Math.max(0, Math.floor(seconds));
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const sec = s % 60;
+  if (h > 0) return `${h} h ${m} m ${sec} s`;
+  if (m > 0) return `${m} m ${sec} s`;
+  return `${sec} s`;
+}
 
 function OpNav({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
@@ -132,6 +158,7 @@ function GroupNav({
 export function AppSidebar() {
   const { isMobile, open, setOpen, setOpenMobile } = useSidebar();
   const pathname = usePathname();
+  const router = useRouter();
   const [groupSidebar, setGroupSidebar] = useState<{
     groupId: string;
     groupName: string | null;
@@ -139,6 +166,15 @@ export function AppSidebar() {
     plugins: PluginItem[];
     isAdminToken: boolean;
   } | null>(null);
+  const [sessionInfo, setSessionInfo] = useState<{
+    qq: string;
+    displayName: string | null;
+    avatarUrl: string | null;
+    isAdminToken: boolean;
+    ttlSeconds: number;
+    expiresAt: number;
+  } | null>(null);
+  const [countdownTick, setCountdownTick] = useState(() => Date.now());
 
   const isOp = pathname === OP_BASE || pathname?.startsWith(`${OP_BASE}/`);
   const groupMatch = pathname?.match(/^\/manage\/group\/(\d+)(?:\/|$)/);
@@ -177,6 +213,81 @@ export function AppSidebar() {
   }, [groupId]);
 
   useEffect(() => {
+    getSessionInfo().then((res) => {
+      if ('error' in res) {
+        setSessionInfo(null);
+        return;
+      }
+      setSessionInfo({
+        qq: res.qq,
+        displayName: res.displayName,
+        avatarUrl: res.avatarUrl,
+        isAdminToken: res.isAdminToken,
+        ttlSeconds: res.ttlSeconds,
+        expiresAt: res.expiresAt
+      });
+    });
+  }, []);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCountdownTick(Date.now());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    if (!groupId || isOp) return;
+    let ended = false;
+    let timer: ReturnType<typeof setInterval> | null = null;
+
+    const handleBusy = () => {
+      if (ended) return;
+      ended = true;
+      toast.error('有同群其他人正在使用中');
+      router.push('/manage/token');
+    };
+
+    const start = async () => {
+      const first = await acquireGroupLock(groupId);
+      if ('error' in first) {
+        if (first.error === 'busy') {
+          handleBusy();
+        } else {
+          toast.error('服务异常');
+        }
+        return;
+      }
+      timer = setInterval(async () => {
+        const beat = await heartbeatGroupLock(groupId);
+        if ('error' in beat) {
+          if (beat.error === 'busy') {
+            handleBusy();
+          } else {
+            toast.error('服务异常');
+          }
+        }
+      }, LOCK_HEARTBEAT_MS);
+    };
+
+    const onBeforeUnload = () => {
+      navigator.sendBeacon(
+        '/manage/lock/release',
+        JSON.stringify({ groupId })
+      );
+    };
+    window.addEventListener('beforeunload', onBeforeUnload);
+    start();
+
+    return () => {
+      ended = true;
+      window.removeEventListener('beforeunload', onBeforeUnload);
+      if (timer) clearInterval(timer);
+      releaseGroupLock(groupId);
+    };
+  }, [groupId, isOp, router]);
+
+  useEffect(() => {
     if (!isMobile && prevOpenRef.current === false && open === true) {
       openedFromCollapsedRef.current = true;
     }
@@ -195,24 +306,46 @@ export function AppSidebar() {
   };
 
   const headerTitle = isOp
-    ? '超管'
-    : groupSidebar
-      ? `群 ${groupSidebar.groupId}${groupSidebar.groupName ? ` · ${groupSidebar.groupName}` : ''}`
-      : `群 ${groupId ?? ''}`;
+    ? '超管模式'
+    : (groupSidebar?.groupName ?? '群信息加载中');
+  const headerSubTitle = isOp ? 'manage/group/op' : `群号 ${groupId ?? '-'}`;
+  const groupAvatarUrl = groupId ? `https://p.qlogo.cn/gh/${groupId}/${groupId}/100` : '';
 
   const footerTitle = isOp
-    ? '超管'
-    : (groupSidebar?.memberName ?? (groupSidebar?.isAdminToken ? '超管' : '—'));
+    ? (sessionInfo?.displayName ?? '超管')
+    : (sessionInfo?.displayName ??
+      groupSidebar?.memberName ??
+      (groupSidebar?.isAdminToken ? '超管' : '—'));
+
+  const footerSubTitle = sessionInfo?.qq ?? '未登录';
+  const ttlSeconds = Math.max(1, sessionInfo?.ttlSeconds ?? 1);
+  const remainingSeconds = sessionInfo
+    ? Math.max(0, Math.floor((sessionInfo.expiresAt - countdownTick) / 1000))
+    : 0;
+  const countdownProgress = Math.min(1, remainingSeconds / ttlSeconds);
+  const countdownText = formatDuration(remainingSeconds);
+
+  const handleLogout = async () => {
+    await logout();
+    toast.success('已登出');
+    router.push('/manage/token');
+  };
 
   return (
     <Sidebar variant="inset" collapsible="offcanvas">
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild className="data-[slot=sidebar-menu-button]:p-1.5!">
-              <div className="flex min-w-0 items-center gap-2">
-                <ShieldCheck className="h-5 w-5 shrink-0" />
-                <span className="block truncate text-base font-semibold">{headerTitle}</span>
+            <SidebarMenuButton className="pointer-events-none min-h-14 data-[slot=sidebar-menu-button]:p-2!">
+              <Avatar className="h-10 w-10 rounded-full">
+                <AvatarImage src={groupAvatarUrl} alt={headerTitle} />
+                <AvatarFallback className="rounded-full bg-sidebar-primary/15 text-sidebar-primary">
+                  <ShieldCheck className="h-4 w-4" />
+                </AvatarFallback>
+              </Avatar>
+              <div className="grid flex-1 text-left text-sm leading-snug">
+                <span className="truncate font-semibold">{headerTitle}</span>
+                <span className="truncate text-xs text-sidebar-foreground/70">{headerSubTitle}</span>
               </div>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -246,10 +379,31 @@ export function AppSidebar() {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton className="pointer-events-none justify-start text-xs text-sidebar-foreground/80">
-              <User2 className="h-4 w-4" />
-              {footerTitle}
+            <SidebarMenuButton size="lg" className="pr-10">
+              <SessionAvatarRing
+                avatarUrl={sessionInfo?.avatarUrl ?? ''}
+                title={footerTitle}
+                countdownProgress={countdownProgress}
+                countdownText={countdownText}
+              />
+              <div className="grid flex-1 text-left text-sm leading-tight">
+                <span className="truncate font-medium">{footerTitle}</span>
+                <span className="truncate text-xs text-sidebar-foreground/70">{footerSubTitle}</span>
+              </div>
             </SidebarMenuButton>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <SidebarMenuAction showOnHover={false}>
+                  <EllipsisVertical className="h-4 w-4" />
+                </SidebarMenuAction>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent side="top" align="end" className="w-36">
+                <DropdownMenuItem onClick={handleLogout}>
+                  <LogOut className="h-4 w-4" />
+                  登出
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>

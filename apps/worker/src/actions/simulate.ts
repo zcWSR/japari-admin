@@ -4,7 +4,7 @@ import { headers } from 'next/headers';
 import { getAuth, requireAdminToken } from '@/lib/auth';
 import PluginService from '@/services/plugin-service';
 import QQService from '@/services/qq-service';
-import type { PluginPostType } from '@/types/onebot';
+import type { IncomingEvent, PluginPostType } from '@/types/onebot';
 import type { MessageInput } from '@/utils/message';
 import { formatForLog } from '@/utils/message';
 
@@ -26,8 +26,9 @@ export async function simulateMessage(body: {
     return { error: 'forbidden', status: 403 };
   }
   QQService.startCapture();
-  const type = QQService.convertMessageType(body);
-  const plugins = await PluginService.getPlugins(type as PluginPostType);
+  const event = body as unknown as IncomingEvent;
+  const type = QQService.convertMessageType(event) as PluginPostType;
+  const plugins = await PluginService.getPlugins(type);
   const groupId = body?.group_id != null ? Number(body.group_id) || body.group_id : undefined;
   const config = groupId != null ? await PluginService.getGroupConfig(Number(groupId)) : null;
   const results: unknown[] = [];
@@ -37,8 +38,8 @@ export async function simulateMessage(body: {
       if (config && !(config as Record<string, boolean>)[plugin.name]) continue;
       try {
         const result = await (
-          plugin as unknown as { go: (b: typeof body, t: string) => Promise<unknown> }
-        ).go(body, type);
+          plugin as unknown as { go: (b: IncomingEvent, t: PluginPostType) => Promise<unknown> }
+        ).go(event, type);
         results.push({ plugin: plugin.name, result });
         if (result === 'break') break;
       } catch (e) {

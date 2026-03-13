@@ -1,6 +1,12 @@
 import axios from 'axios';
-import type { OB11MessageData } from '@/types/onebot11';
-import { OB11MessageDataType } from '@/types/onebot11';
+import type { IncomingEvent, PluginPostType } from '@/types/onebot';
+import type {
+  Action,
+  GetGroupInfo,
+  GetGroupMemberInfo,
+  OB11Segment,
+  RequestResponse
+} from '@/types/onebot11';
 import Config from '../config';
 import { formatShangHaiTime } from '../utils/date';
 import { isDev } from '../utils/env';
@@ -10,17 +16,10 @@ import { sleep } from '../utils/process';
 
 type AuthLevel = 'owner' | 'admin';
 
-type GroupMemberInfo = {
-  user_id?: number | string;
-  role?: string;
-  nickname?: string;
-  card?: string;
-};
-
 interface CapturedSentItem {
   type: string;
   id: string;
-  message: OB11MessageData[] | string;
+  message: OB11Segment[] | string;
 }
 
 class QQService {
@@ -44,7 +43,7 @@ class QQService {
     }
   }
 
-  _pushSent(type: string, id: string, message: OB11MessageData[] | string): void {
+  _pushSent(type: string, id: string, message: OB11Segment[] | string): void {
     if (!this._captureSent) return;
     this._captureSent.push({ type, id, message });
   }
@@ -61,9 +60,11 @@ class QQService {
     return out;
   }
 
-  async getGroupList(): Promise<unknown> {
-    const list = await axios.post(`${Config.QQ_SERVER}/get_group_list`);
-    return list;
+  async getGroupList(): Promise<RequestResponse<Action.getGroupList>> {
+    const list = await axios.post<RequestResponse<Action.getGroupList>>(
+      `${Config.QQ_SERVER}/get_group_list`
+    );
+    return list.data;
   }
 
   isSuperAdmin(userId: string | number): boolean {
@@ -82,13 +83,13 @@ class QQService {
   async getGroupUserRole(
     groupId: string | number,
     userId: string | number
-  ): Promise<string | null> {
+  ): Promise<GetGroupMemberInfo['role'] | null> {
     try {
-      const meta = await axios.post<{ data?: { role?: string; user_id?: unknown } }>(
+      const meta = await axios.post<RequestResponse<Action.getGroupMemberInfo>>(
         `${Config.QQ_SERVER}/get_group_member_info`,
         { group_id: groupId, user_id: userId }
       );
-      const memberInfo = meta.data?.data as { role?: string; user_id?: unknown } | undefined;
+      const memberInfo = meta.data?.data;
       if (!memberInfo || memberInfo.user_id == null) return null;
       return memberInfo.role ?? null;
     } catch (e) {
@@ -102,12 +103,9 @@ class QQService {
     groupId: string | number,
     userId: string | number,
     noCache = false
-  ): Promise<
-    | { data: GroupMemberInfo }
-    | { error: 'member_not_found' | 'service_error' }
-  > {
+  ): Promise<{ data: GetGroupMemberInfo } | { error: 'member_not_found' | 'service_error' }> {
     try {
-      const meta = await axios.post<{ data?: GroupMemberInfo }>(
+      const meta = await axios.post<RequestResponse<Action.getGroupMemberInfo>>(
         `${Config.QQ_SERVER}/get_group_member_info`,
         { group_id: groupId, user_id: userId, no_cache: noCache }
       );
@@ -130,11 +128,11 @@ class QQService {
     noCache = false
   ): Promise<string | null> {
     try {
-      const meta = await axios.post<{ data?: { nickname?: string } }>(
+      const meta = await axios.post<RequestResponse<Action.getGroupMemberInfo>>(
         `${Config.QQ_SERVER}/get_group_member_info`,
         { group_id: groupId, user_id: userId, no_cache: noCache }
       );
-      const memberInfo = meta.data?.data as { nickname?: string } | undefined;
+      const memberInfo = meta.data?.data;
       return memberInfo?.nickname ?? null;
     } catch (e) {
       logger.error(`get group(${groupId}) user(${userId}) name error`);
@@ -144,15 +142,13 @@ class QQService {
   }
 
   /** NapCat/OneBot get_group_info，返回群名等 */
-  async getGroupInfo(
-    groupId: string | number
-  ): Promise<{ group_name?: string } | null> {
+  async getGroupInfo(groupId: string | number): Promise<GetGroupInfo | null> {
     try {
-      const meta = await axios.post<{ data?: { group_name?: string } }>(
+      const meta = await axios.post<RequestResponse<Action.getGroupInfo>>(
         `${Config.QQ_SERVER}/get_group_info`,
         { group_id: groupId }
       );
-      const data = meta.data?.data as { group_name?: string } | undefined;
+      const data = meta.data?.data;
       return data ?? null;
     } catch (e) {
       logger.error(`get group(${groupId}) info error`);
@@ -162,10 +158,8 @@ class QQService {
   }
 
   sendPrivateMessage(userId: string | number, message: MessageInput): void {
-    const msg: OB11MessageData[] =
-      typeof message === 'string'
-        ? [{ type: OB11MessageDataType.text, data: { text: message } }]
-        : message;
+    const msg: OB11Segment[] =
+      typeof message === 'string' ? [{ type: 'text', data: { text: message } }] : message;
     this._pushSent('private', String(userId), msg);
     axios.post(`${Config.QQ_SERVER}/send_private_msg`, { user_id: userId, message: msg });
   }
@@ -173,7 +167,7 @@ class QQService {
   sendPrivateMusic(userId: string | number, musicId: string | number): void {
     this.sendPrivateMessage(userId, [
       {
-        type: OB11MessageDataType.music,
+        type: 'music',
         data: { type: '163', id: String(musicId) }
       }
     ]);
@@ -186,17 +180,15 @@ class QQService {
   ): void {
     this.sendPrivateMessage(userId, [
       {
-        type: OB11MessageDataType.image,
+        type: 'image',
         data: { file: option.isBase64 ? `base64://${dataUrl}` : dataUrl }
       }
     ]);
   }
 
   sendGroupMessage(groupId: string | number, message: MessageInput): void {
-    const msg: OB11MessageData[] =
-      typeof message === 'string'
-        ? [{ type: OB11MessageDataType.text, data: { text: message } }]
-        : message;
+    const msg: OB11Segment[] =
+      typeof message === 'string' ? [{ type: 'text', data: { text: message } }] : message;
     this._pushSent('group', String(groupId), msg);
     axios.post(`${Config.QQ_SERVER}/send_group_msg`, { group_id: groupId, message: msg });
   }
@@ -208,7 +200,7 @@ class QQService {
   ): void {
     this.sendGroupMessage(groupId, [
       {
-        type: OB11MessageDataType.image,
+        type: 'image',
         data: { file: option.isBase64 ? `base64://${dataUrl}` : dataUrl }
       }
     ]);
@@ -217,7 +209,7 @@ class QQService {
   sendGroupMusic(groupId: string | number, musicId: string | number): void {
     this.sendGroupMessage(groupId, [
       {
-        type: OB11MessageDataType.music,
+        type: 'music',
         data: { type: '163', id: String(musicId) }
       }
     ]);
@@ -234,12 +226,15 @@ class QQService {
   /**
    * 将接收到的 postType 转换成插件对应的 postType
    */
-  convertMessageType(event: Record<string, unknown>): string {
-    const postType = event.post_type as string | undefined;
+  convertMessageType(event: IncomingEvent): PluginPostType | undefined {
+    if (!event || typeof event !== 'object') return;
+    const postType = typeof event.post_type === 'string' ? event.post_type : undefined;
     if (postType === 'message' || postType === 'message_sent') {
-      return (event.message_type as string | undefined) ?? postType ?? '';
+      return typeof event.message_type === 'string'
+        ? (event.message_type as PluginPostType)
+        : (postType as PluginPostType);
     }
-    return postType ?? '';
+    return postType ?? undefined;
   }
 
   async sendReadyMessage(): Promise<void> {

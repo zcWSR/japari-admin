@@ -13,8 +13,8 @@ dist
 # Generated
 cloudflare-env.d.ts
 
-# 含 D1/KV 等实例 ID，勿提交（参考 wrangler.example.toml）
-wrangler.dev.toml
+# 含 D1/KV 等实例 ID 时勿提交；首次使用复制 wrangler.dev.jsonc.example 为 wrangler.dev.jsonc 并填入本地 ID
+wrangler.dev.jsonc
 # 含本地/敏感变量
 .dev.vars
 

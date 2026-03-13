@@ -33,3 +33,5 @@ firebase*.json
 # Turbo (if used)
 .turbo/
 *.tsbuildinfo
+
+.agents/skills

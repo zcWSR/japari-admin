@@ -6,8 +6,8 @@ import { toast } from 'sonner';
 import { verifySettingAccess } from '@/actions/auth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Field, FieldGroup, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 
 const ERROR_TEXT: Record<string, string> = {
   member_not_found: '群内未找到该成员',
@@ -48,27 +48,29 @@ export function TokenForm() {
           <CardTitle className="text-center">群管理登录</CardTitle>
           {initialError ? <p className="text-center text-sm text-destructive">{initialError}</p> : null}
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="groupId">群号（超管可留空）</Label>
-            <Input
-              id="groupId"
-              inputMode="numeric"
-              placeholder="请输入群号"
-              value={groupId}
-              onChange={(e) => setGroupId(e.target.value.trim())}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="qq">QQ 号</Label>
-            <Input
-              id="qq"
-              inputMode="numeric"
-              placeholder="请输入 QQ 号"
-              value={qq}
-              onChange={(e) => setQq(e.target.value.trim())}
-            />
-          </div>
+        <CardContent>
+          <FieldGroup className="gap-4">
+            <Field className="gap-2">
+              <FieldLabel htmlFor="groupId">群号（超管可留空）</FieldLabel>
+              <Input
+                id="groupId"
+                inputMode="numeric"
+                placeholder="请输入群号"
+                value={groupId}
+                onChange={(e) => setGroupId(e.target.value.trim())}
+              />
+            </Field>
+            <Field className="gap-2">
+              <FieldLabel htmlFor="qq">QQ 号</FieldLabel>
+              <Input
+                id="qq"
+                inputMode="numeric"
+                placeholder="请输入 QQ 号"
+                value={qq}
+                onChange={(e) => setQq(e.target.value.trim())}
+              />
+            </Field>
+          </FieldGroup>
         </CardContent>
         <CardFooter>
           <Button className="w-full" disabled={pending} onClick={submit}>

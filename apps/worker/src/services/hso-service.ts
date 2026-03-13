@@ -1,5 +1,6 @@
 import axios from 'axios';
-import logger from '../utils/logger';
+import type { OB11Segment } from '@/types/onebot11';
+import logger from '@/utils/logger';
 import KVService from './kv-service';
 
 const HSO_CACHE_KEY = 'hso-cache';
@@ -95,13 +96,10 @@ class HsoService {
     return hso;
   }
 
-  buildMessage(
-    hso: HsoItem
-  ): Array<{ type: string; cache?: number; data: Record<string, string> }> {
+  buildMessage(hso: HsoItem): OB11Segment[] {
     return [
       {
         type: 'image',
-        cache: 0,
         data: {
           file: hso.plus ? (hso.preview ?? '') : (hso.sample ?? '')
         }

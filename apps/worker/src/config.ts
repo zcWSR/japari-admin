@@ -1,7 +1,8 @@
 import { getCloudflareContext } from '@opennextjs/cloudflare';
 
 /**
- * 从当前请求的 CF env 读取配置（wrangler [vars] / .dev.vars），统一用 getCloudflareContext().env。
+ * 从当前请求的 CF env 读取配置（wrangler vars / .dev.vars），统一用 getCloudflareContext().env。
+ * 本地：wrangler.dev.jsonc 的 vars.ENVIRONMENT + .dev.vars；线上：wrangler.jsonc 的 vars.ENVIRONMENT + Cloudflare Secrets。
  */
 function fromEnv(key: string, defaultValue: string | null = null): string | null {
   const env = getCloudflareContext().env as Record<string, unknown> | undefined;
@@ -27,6 +28,10 @@ function fromEnvArray(key: string, defaultValue: number[] = []): number[] {
 }
 
 const Config = {
+  /** 当前环境：local（本地 dev/preview）或 production（线上）；由 wrangler 的 vars 注入 */
+  get ENVIRONMENT(): string {
+    return fromEnv('ENVIRONMENT', 'local') ?? 'local';
+  },
   get OSU_APP_KEY(): string | null {
     return fromEnv('OSU_APP_KEY');
   },

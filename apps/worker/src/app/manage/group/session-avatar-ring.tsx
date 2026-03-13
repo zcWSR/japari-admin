@@ -19,7 +19,7 @@ export function SessionAvatarRing({
     countdownProgress <= 0.2
       ? 'var(--destructive)'
       : countdownProgress <= 0.5
-        ? '#f59e0b'
+        ? 'var(--chart-2)'
         : 'var(--sidebar-primary)';
   const ringTrackColor = 'color-mix(in oklch, var(--sidebar-border) 72%, transparent)';
 

@@ -3,7 +3,7 @@
 import { EllipsisVertical, LogOut, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { getSessionInfo, logout } from '@/actions/auth';
 import { getGroupConfig, getGroupSidebarInfo, setGroupConfig } from '@/actions/group-config';
@@ -15,6 +15,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
+  DropdownMenuGroup,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger
@@ -56,14 +57,19 @@ function OpNav({ onNavigate }: { onNavigate?: () => void }) {
   return (
     <>
       <SidebarMenuItem>
-        <SidebarMenuButton asChild isActive={pathname === `${OP_BASE}/groups`}>
+        <SidebarMenuButton
+          asChild
+          isActive={pathname === `${OP_BASE}/groups`}
+          size="lg"
+          className="px-4"
+        >
           <Link href={`${OP_BASE}/groups`} onClick={onNavigate}>
             全部群
           </Link>
         </SidebarMenuButton>
       </SidebarMenuItem>
       <SidebarMenuItem>
-        <SidebarMenuButton asChild isActive={pathname === OP_BASE}>
+        <SidebarMenuButton asChild isActive={pathname === OP_BASE} size="lg" className="px-4">
           <Link href={OP_BASE} onClick={onNavigate}>
             模拟消息
           </Link>
@@ -144,7 +150,12 @@ function GroupNav({
       ))}
       {isAdminToken && (
         <SidebarMenuItem>
-          <SidebarMenuButton asChild isActive={pathname === `${base}/simulate`}>
+          <SidebarMenuButton
+            asChild
+            size="lg"
+            isActive={pathname === `${base}/simulate`}
+            className="pl-4 pr-14"
+          >
             <Link href={`${base}/simulate`} onClick={onNavigate}>
               模拟消息
             </Link>
@@ -156,7 +167,7 @@ function GroupNav({
 }
 
 export function AppSidebar() {
-  const { isMobile, open, setOpen, setOpenMobile } = useSidebar();
+  const { isMobile, setOpenMobile } = useSidebar();
   const pathname = usePathname();
   const router = useRouter();
   const [groupSidebar, setGroupSidebar] = useState<{
@@ -179,8 +190,6 @@ export function AppSidebar() {
   const isOp = pathname === OP_BASE || pathname?.startsWith(`${OP_BASE}/`);
   const groupMatch = pathname?.match(/^\/manage\/group\/(\d+)(?:\/|$)/);
   const groupId = groupMatch?.[1] ?? null;
-  const prevOpenRef = useRef(open);
-  const openedFromCollapsedRef = useRef(false);
 
   const handlePluginToggle = (name: string, enabled: boolean) => {
     setGroupSidebar((prev) => {
@@ -287,21 +296,9 @@ export function AppSidebar() {
     };
   }, [groupId, isOp, router]);
 
-  useEffect(() => {
-    if (!isMobile && prevOpenRef.current === false && open === true) {
-      openedFromCollapsedRef.current = true;
-    }
-    prevOpenRef.current = open;
-  }, [isMobile, open]);
-
   const handleNavigate = () => {
     if (isMobile) {
       setOpenMobile(false);
-      return;
-    }
-    if (openedFromCollapsedRef.current) {
-      setOpen(false);
-      openedFromCollapsedRef.current = false;
     }
   };
 
@@ -332,7 +329,7 @@ export function AppSidebar() {
   };
 
   return (
-    <Sidebar variant="inset" collapsible="offcanvas">
+    <Sidebar variant="inset" collapsible={isMobile ? 'offcanvas' : 'none'}>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
@@ -393,15 +390,20 @@ export function AppSidebar() {
             </SidebarMenuButton>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <SidebarMenuAction showOnHover={false}>
-                  <EllipsisVertical className="h-4 w-4" />
+                <SidebarMenuAction
+                  showOnHover={false}
+                  className="right-2 top-1/2! size-8 -translate-y-1/2! rounded-md text-sidebar-foreground/80 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                >
+                  <EllipsisVertical className="h-5 w-5" />
                 </SidebarMenuAction>
               </DropdownMenuTrigger>
               <DropdownMenuContent side="top" align="end" className="w-36">
-                <DropdownMenuItem onClick={handleLogout}>
-                  <LogOut className="h-4 w-4" />
-                  登出
-                </DropdownMenuItem>
+                <DropdownMenuGroup>
+                  <DropdownMenuItem onClick={handleLogout}>
+                    <LogOut className="h-4 w-4" />
+                    登出
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
               </DropdownMenuContent>
             </DropdownMenu>
           </SidebarMenuItem>

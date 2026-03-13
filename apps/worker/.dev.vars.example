@@ -1,4 +1,6 @@
-# 复制为 .dev.vars（不提交），本地 wrangler dev 时注入为 env
+# 复制为 .dev.vars（不提交），仅用于本地 wrangler dev / preview。只放敏感项。
+# 非敏感项（如 ENVIRONMENT、NEXTJS_ENV）已在 wrangler.dev.jsonc 的 vars 里。
+
 QQ_SERVER=
 # node server 地址
 NODE_URL=
@@ -8,8 +10,7 @@ OSU_APP_KEY=
 NET_EAST_MUSIC_SERVER=
 # 管理后台长期鉴权密钥（Cookie admin_token），与一次性链接里的 token 区分
 ADMIN_SECRET=
-# !setting 下发的链接根地址。方案 A 联合调试（Next dev + Worker dev）时填 http://localhost:3000
+# !setting 下发的链接根地址。联合调试（Next dev + Worker dev）时填 http://localhost:3000
 ADMIN_BASE_URL=
-# OpenNext 开发时加载 .env 的环境名
-NEXTJS_ENV=development
 
+# 线上敏感项在 Cloudflare 用 wrangler secret put 配置。

@@ -1,9 +1,9 @@
+import { CommandBase } from '@/decorators/types';
 import HsoService from '@/services/hso-service';
 import QQService from '@/services/qq-service';
-import type { OB11Segment } from '@/types/onebot11';
+import type { OB11Message } from '@/types/onebot11';
 import { Command, LEVEL } from '../../decorators/plugin';
 import logger from '../../utils/logger';
-import type { CommandEvent, PluginPostTypeLike } from '../types';
 
 @Command({
   name: 'hso',
@@ -12,16 +12,7 @@ import type { CommandEvent, PluginPostTypeLike } from '../types';
   level: LEVEL.ADMIN,
   info: '好爽哦'
 })
-class NewNotice {
-  sendMessage(msg: OB11Segment[] | string, body: CommandEvent, type: PluginPostTypeLike) {
-    if (type === 'group' && body.group_id != null) {
-      QQService.sendGroupMessage(body.group_id, msg);
-    }
-    if (type === 'private' && body.user_id != null) {
-      QQService.sendPrivateMessage(body.user_id, msg);
-    }
-  }
-
+class NewNotice extends CommandBase {
   getParams(params = '') {
     return params
       .trim()
@@ -38,15 +29,15 @@ class NewNotice {
       );
   }
 
-  async run(params: string, body: CommandEvent, type: PluginPostTypeLike) {
+  async run(params: string, body: OB11Message) {
     try {
       const p = this.getParams(params);
       const hso = await HsoService.getOne(p['+'] || p['＋'], p.newList);
       const msg = HsoService.buildMessage(hso);
-      this.sendMessage(msg, body, type);
+      QQService.sendMessage(body, msg);
     } catch (e) {
       logger.error(e as Error);
-      this.sendMessage('色不动了', body, type);
+      QQService.sendMessage(body, '色不动了');
       throw e;
     }
   }

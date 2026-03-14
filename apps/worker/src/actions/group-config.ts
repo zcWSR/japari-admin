@@ -57,10 +57,12 @@ export async function getGroupSidebarInfo(
   if (!auth) return { error: 'unauthorized', status: 401 };
   if (!requireGroupAccess(auth, groupId)) return { error: 'forbidden', status: 403 };
   const [groupInfo, memberName] = await Promise.all([
-    QQService.getGroupInfo(groupId),
+    QQService.getGroupInfo(Number(groupId)),
     auth.isAdminToken
       ? Promise.resolve(null)
-      : QQService.getGroupUserName(groupId, auth.adminId)
+      : QQService.getGroupMemberInfo(Number(groupId), Number(auth.adminId)).then(
+          (member) => member.nickname
+        )
   ]);
   return {
     groupName: groupInfo?.group_name ?? null,

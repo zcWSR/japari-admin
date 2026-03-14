@@ -1,7 +1,8 @@
+import { GroupCommandBase } from '@/decorators/types';
 import PluginService from '@/services/plugin-service';
 import QQService from '@/services/qq-service';
+import type { OB11GroupMessage } from '@/types/onebot11';
 import { Command, LEVEL } from '../../decorators/plugin';
-import type { CommandEvent, CommandMap, PluginEvent, PluginPostTypeLike } from '../types';
 
 @Command({
   name: '插件配置',
@@ -11,13 +12,13 @@ import type { CommandEvent, CommandMap, PluginEvent, PluginPostTypeLike } from '
   default: true,
   level: LEVEL.ADMIN
 })
-class PluginConfig {
+class PluginConfig extends GroupCommandBase {
   getAllPlugins() {
     const { group, notice } = PluginService.plugins;
     return [...group, ...notice];
   }
 
-  async run(params: string, body: CommandEvent) {
+  async run(params: string, body: OB11GroupMessage) {
     const { group_id: groupId } = body;
     const isAdmin = QQService.isSuperAdmin(body.user_id);
     const configMap = await PluginService.getGroupConfig(groupId);

@@ -53,17 +53,16 @@ export async function verifySettingAccess(input: {
   const resolvedGroupId: string | null = isAdmin && !groupId ? null : groupId;
 
   if (resolvedGroupId) {
-    const member = await QQService.getGroupMemberInfo(resolvedGroupId, qq);
-    if ('error' in member) {
-      if (member.error === 'service_error') {
-        return { ok: false, error: 'service_error' };
-      }
+    const member = await QQService.getGroupMemberInfo(Number(resolvedGroupId), Number(qq)).catch(
+      () => null
+    );
+    if (!member) {
       return { ok: false, error: 'member_not_found' };
     }
-    if (!roleAllowed(member.data.role)) {
+    if (!roleAllowed(member.role)) {
       return { ok: false, error: 'insufficient_role' };
     }
-    memberName = member.data.card || member.data.nickname || qq;
+    memberName = member.card || member.nickname || qq;
   }
 
   const ttlSeconds = isAdmin ? Config.MANAGE_SESSION_TTL_ADMIN : Config.MANAGE_SESSION_TTL_NORMAL;

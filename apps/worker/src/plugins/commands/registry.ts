@@ -7,11 +7,11 @@ import hoshii from './hoshii';
 import hso from './hso';
 import masterSend from './master-send';
 import newMemberNotice from './new-member-notice';
-import osuBind from './osu-bind';
-import osuBp from './osu-bp';
-import osuBpme from './osu-bpme';
-import osuRecent from './osu-recent';
-import osuUnbind from './osu-unbind';
+import osuBind from './osu/osu-bind';
+import osuBp from './osu/osu-bp';
+import osuBpme from './osu/osu-bpme';
+import osuRecent from './osu/osu-recent';
+import osuUnbind from './osu/osu-unbind';
 import plugin from './plugin';
 import pr from './pr';
 import readAgainRandom from './read-again-random';
@@ -19,7 +19,6 @@ import roll from './roll';
 import schedule from './schedule';
 import scheduleTime from './schedule-time';
 import setting from './setting';
-import type { CommandEvent, CommandMap, PluginEvent, PluginPostTypeLike } from '../types';
 
 export const commands = [
   help,

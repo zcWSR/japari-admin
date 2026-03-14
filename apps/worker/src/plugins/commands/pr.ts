@@ -1,6 +1,7 @@
+import { GroupCommandBase } from '@/decorators/types';
 import QQService from '@/services/qq-service';
+import type { OB11GroupMessage } from '@/types/onebot11';
 import { Command } from '../../decorators/plugin';
-import type { CommandEvent, CommandMap, PluginEvent, PluginPostTypeLike } from '../types';
 
 @Command({
   name: 'pr',
@@ -9,12 +10,12 @@ import type { CommandEvent, CommandMap, PluginEvent, PluginPostTypeLike } from '
   info: '舔',
   default: true
 })
-class Roll {
+class Roll extends GroupCommandBase {
   noPr() {
     return Math.random() < 0.1;
   }
 
-  run(params: string, body: CommandEvent) {
+  run(params: string, body: OB11GroupMessage) {
     if (this.noPr()) {
       QQService.sendGroupMessage(body.group_id, '不舔了, 舔不动了');
       return;
@@ -25,7 +26,7 @@ class Roll {
       } else {
         // 戳一戳消息段
         QQService.sendGroupMessage(body.group_id, [
-          { type: 'poke', data: { qq: String(body.user_id) } }
+          { type: 'poke', data: { type: '1', id: String(body.user_id) } }
         ]);
       }
     } else {

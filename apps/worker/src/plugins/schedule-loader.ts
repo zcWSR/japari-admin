@@ -1,17 +1,21 @@
+import { PluginBase } from '@/decorators/types';
 import { Plugin } from '../decorators/plugin';
 import logger from '../utils/logger';
-import type { CommandEvent, CommandMap, PluginEvent, PluginPostTypeLike } from './types';
 
 @Plugin({
   name: 'schedule-loader',
   weight: 1,
-  type: null,
+  type: 'loader',
   mute: true
 })
-class ScheduleLoader {
-  init() {
+class ScheduleLoader extends PluginBase {
+  async init() {
     // 定时任务由 Node 端 node-schedule 驱动，到点请求本 Worker /internal/trigger-schedule
     logger.info('schedule-loader: timer is driven by Node, no local schedule jobs');
+  }
+
+  go() {
+    return;
   }
 }
 

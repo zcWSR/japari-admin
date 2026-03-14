@@ -1,6 +1,7 @@
+import { CommandBase, type CommandMap } from '@/decorators/types';
 import QQService from '@/services/qq-service';
+import type { OB11Message } from '@/types/onebot11';
 import { Command } from '../../decorators/plugin';
-import type { CommandEvent, CommandMap, PluginPostTypeLike } from '../types';
 
 @Command({
   name: '帮助',
@@ -8,8 +9,8 @@ import type { CommandEvent, CommandMap, PluginPostTypeLike } from '../types';
   type: 'all',
   info: "用来查看所有指令或者某特定指令的使用方法的指令, '!help 指令名' 来调用"
 })
-class Help {
-  getCommandInstance(commandName, body, commandMap) {
+class Help extends CommandBase {
+  getCommandInstance(commandName: string, body: OB11Message, commandMap: CommandMap) {
     const isAdmin = QQService.isSuperAdmin(body.user_id);
     const commandInstance = commandMap[commandName];
     if (commandInstance === this) {
@@ -23,17 +24,17 @@ class Help {
     return commandInstance;
   }
 
-  showOne(commandName, body, commandMap) {
+  showOne(commandName: string, body: OB11Message, commandMap: CommandMap) {
     const instance = this.getCommandInstance(commandName, body, commandMap);
     if (instance) {
       const { name, command, info } = instance;
-      const cmd = Array.isArray(command) ? instance.command.join('|') : command;
+      const cmd = Array.isArray(command) ? command.join('|') : command;
       return `指令名: ${name}\ncommand: ${cmd}\n描述: ${info || '无描述'}`;
     }
     return `指令'${commandName}'不存在或被隐藏`;
   }
 
-  showAll(body, commandMap) {
+  showAll(body: OB11Message, commandMap: CommandMap) {
     let content = "可用指令: (使用'!help 指令名'可查看详细用法)";
     const commands = Object.keys(commandMap).map((name) =>
       this.getCommandInstance(name, body, commandMap)
@@ -48,7 +49,7 @@ class Help {
     return content;
   }
 
-  run(params: string, body: CommandEvent, type: PluginPostTypeLike, commandMap: CommandMap) {
+  run(params: string, body: OB11Message, commandMap: CommandMap) {
     const commandName = params;
     let content: string;
     if (commandName) {
@@ -56,11 +57,7 @@ class Help {
     } else {
       content = this.showAll(body, commandMap);
     }
-    if (type === 'group') {
-      QQService.sendGroupMessage(body.group_id, content);
-    } else if (type === 'private') {
-      QQService.sendPrivateMessage(body.user_id, content);
-    }
+    QQService.sendMessage(body, content);
   }
 }
 

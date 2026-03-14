@@ -1,7 +1,8 @@
+import { GroupCommandBase } from '@/decorators/types';
 import OSUService from '@/services/osu-service';
 import QQService from '@/services/qq-service';
-import { Command } from '../../decorators/plugin';
-import type { CommandEvent, CommandMap, PluginEvent, PluginPostTypeLike } from '../types';
+import type { OB11GroupMessage } from '@/types/onebot11';
+import { Command } from '../../../decorators/plugin';
 
 @Command({
   name: 'osu绑定账号',
@@ -12,18 +13,21 @@ import type { CommandEvent, CommandMap, PluginEvent, PluginPostTypeLike } from '
   模式代码: (0 = osu!, 1 = Taiko, 2 = CtB, 3 = osu!mania)
   例子: !bind zcWSR,3`
 })
-class OSUBind {
-  async run(params: string, body: CommandEvent) {
+class OSUBind extends GroupCommandBase {
+  async run(params: string, body: OB11GroupMessage) {
     const { group_id: groupId, user_id: userId } = body;
     if (!params) {
       QQService.sendGroupMessage(groupId, "非法调用, 使用'!help bind'查看调用方式");
       return;
     }
     params = params.replace('，', ','); // 处理全角逗号
-    params = params.split(',');
-    const osuName = params[0];
-    const mode = params[1] ? Number.parseInt(params[1], 10) || 0 : 0;
-    const message = await OSUService.getInstance().bindOSUId(groupId, userId, osuName, mode);
+    const [osuName, mode] = params.split(',');
+    const message = await OSUService.getInstance().bindOSUId(
+      groupId,
+      userId,
+      osuName,
+      Number(mode)
+    );
     QQService.sendGroupMessage(groupId, message);
   }
 }

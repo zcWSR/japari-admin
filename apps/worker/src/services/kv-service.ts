@@ -1,25 +1,13 @@
+import type { KVNamespace } from '@cloudflare/workers-types/2023-07-01';
 import { getCloudflareContext } from '@opennextjs/cloudflare';
 import logger from '../utils/logger';
-
-/** 最小 KV 绑定接口（与 Cloudflare KV 一致） */
-interface KVNamespaceLike {
-  get(key: string): Promise<string | null>;
-  put(key: string, value: string, options?: { expirationTtl?: number }): Promise<void>;
-  delete(key: string): Promise<void>;
-  list(options: { prefix?: string; limit?: number; cursor?: string }): Promise<{
-    keys: { name: string }[];
-    list_complete: boolean;
-    cursor?: string;
-  }>;
-}
 
 /**
  * 使用 Worker 的 KV 绑定，env 来自 getCloudflareContext().env。
  */
 class KVService {
-  _getKV(): KVNamespaceLike {
-    const env = getCloudflareContext().env as { KV?: KVNamespaceLike } | undefined;
-    const kv = env?.KV;
+  _getKV(): KVNamespace {
+    const kv = getCloudflareContext().env.KV;
     if (!kv) throw new Error('KV binding not available (not running as Worker?)');
     return kv;
   }
@@ -38,7 +26,7 @@ class KVService {
     try {
       const kv = this._getKV();
       const options = expirationTtl ? { expirationTtl } : undefined;
-      await kv.put(key, String(value), options);
+      await kv.put(key, value, options);
       return true;
     } catch (error) {
       logger.error(`KV set error for key ${key}: ${String(error)}`);

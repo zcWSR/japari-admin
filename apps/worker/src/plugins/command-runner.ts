@@ -1,10 +1,16 @@
 import { decode } from 'html-entities';
+import {
+  type CommandBase,
+  type CommandMap,
+  PluginBase,
+  type PluginPostType
+} from '@/decorators/types';
 import QQService from '@/services/qq-service';
+import type { OB11Message } from '@/types/onebot11';
 import { Plugin } from '../decorators/plugin';
 import logger, { blockLog } from '../utils/logger';
 import { extractFirstText } from '../utils/message';
 import { commands as commandList } from './commands/registry';
-import type { CommandEvent, CommandMap, PluginEvent, PluginPostTypeLike } from './types';
 
 const COMMAND_404 = "您所调用的指令不存在尝试使用, '!help'来查看所有可用指令";
 
@@ -18,21 +24,21 @@ const COMMAND_404 = "您所调用的指令不存在尝试使用, '!help'来查�
   hide: true,
   mute: true
 })
-class CommandRunner {
+class CommandRunner extends PluginBase {
   command = {
-    private: {},
-    group: {}
+    private: {} as CommandMap,
+    group: {} as CommandMap
   };
 
   /**
    * 指令分类
    * @param {any} command 指令对象
    */
-  classifyCommand(command) {
+  classifyCommand(command: CommandBase) {
     if (command.type === 'all' || command.type === 'private') {
       logger.debug(`type is '${command.type}', load into private command list`);
       if (Array.isArray(command.command)) {
-        command.command.forEach((name) => {
+        command.command.forEach((name: string) => {
           this.command.private[name] = command;
         });
       } else {
@@ -42,7 +48,7 @@ class CommandRunner {
     if (command.type === 'all' || command.type === 'group') {
       logger.debug(`type is '${command.type}', load into group command list`);
       if (Array.isArray(command.command)) {
-        command.command.forEach((name) => {
+        command.command.forEach((name: string) => {
           this.command.group[name] = command;
         });
       } else {
@@ -55,7 +61,7 @@ class CommandRunner {
     blockLog(['CommandRunner', 'v1.0'], 'info', '@', 0, 10);
     logger.info('======== start load command  ========');
     for (const C of commandList) {
-      const command = typeof C === 'function' ? new C() : C;
+      const command: CommandBase = new C();
       if (!command || !command.name) {
         logger.warn('invalid command in registry, skip');
         continue;
@@ -74,7 +80,7 @@ class CommandRunner {
    * 判断是否为指令调用内容, 返回指令和参数
    * @param {Array|string} message 消息段数组或字符串
    */
-  isCommand(message: CommandEvent['message'] | string) {
+  isCommand(message: OB11Message['message']) {
     // 从消息段数组提取第一个 text 段的内容
     const content = extractFirstText(message);
     if (!content) return null;
@@ -94,36 +100,22 @@ class CommandRunner {
     };
   }
 
-  groupCommand(body, command, type) {
-    const commandInstance = this.command.group[command.name];
+  runCommand(body: OB11Message, command: { name: string; params: string }, type: PluginPostType) {
+    const commandMap = type === 'group' ? this.command.group : this.command.private;
+    const commandInstance = commandMap[command.name];
     if (!commandInstance) {
-      QQService.sendGroupMessage(body.group_id, COMMAND_404);
+      QQService.sendMessage(body, COMMAND_404);
       return;
     }
-    return commandInstance.trigger(command.params, body, type, this.command.group);
+    return commandInstance.trigger(command.params, body, commandMap);
   }
 
-  privateCommand(body, command, type) {
-    const commandInstance = this.command.private[command.name];
-    if (!commandInstance) {
-      QQService.sendPrivateMessage(body.user_id, COMMAND_404);
-      return;
-    }
-    return commandInstance.trigger(command.params, body, type, this.command.private);
-  }
-
-  async go(body: PluginEvent, type: PluginPostTypeLike) {
-    const { message } = body;
+  async go(body: OB11Message) {
+    const { message, message_type } = body;
     const c = this.isCommand(message);
     if (!c) return; // 不是指令, 直接跳过流程
-    switch (type) {
-      case 'group':
-        await this.groupCommand(body, c, type);
-        break;
-      case 'private':
-        await this.privateCommand(body, c, type);
-        break;
-      default:
+    if (message_type === 'group' || message_type === 'private') {
+      await this.runCommand(body, c, message_type);
     }
     return 'break';
   }

@@ -1,7 +1,8 @@
+import { GroupCommandBase } from '@/decorators/types';
 import OSUService from '@/services/osu-service';
 import QQService from '@/services/qq-service';
-import { Command } from '../../decorators/plugin';
-import type { CommandEvent, CommandMap, PluginEvent, PluginPostTypeLike } from '../types';
+import type { OB11GroupMessage } from '@/types/onebot11';
+import { Command } from '../../../decorators/plugin';
 
 @Command({
   name: '查询osu!最近游玩记录',
@@ -10,8 +11,8 @@ import type { CommandEvent, CommandMap, PluginEvent, PluginPostTypeLike } from '
   info: `查看所绑定账号的最近一次游玩记录, '!recent 最近的第几次'来调用, 第几次不传默认为最近一次
   例子: '!recent 2' 或 '!recent`
 })
-class OSURecent {
-  async run(params: string, body: CommandEvent) {
+class OSURecent extends GroupCommandBase {
+  async run(params: string, body: OB11GroupMessage) {
     const { group_id: groupId, user_id: userId } = body;
     params = (params || '1').trim();
     const index = Number.parseInt(params, 10);

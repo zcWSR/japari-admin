@@ -1,8 +1,9 @@
+import { GroupCommandBase } from '@/decorators/types';
 import QQService from '@/services/qq-service';
 import ScheduleService from '@/services/schedule-service';
+import type { OB11GroupMessage } from '@/types/onebot11';
 import Config from '../../config';
 import { Command, LEVEL } from '../../decorators/plugin';
-import type { CommandEvent, CommandMap, PluginEvent, PluginPostTypeLike } from '../types';
 
 async function refreshNodeSchedules() {
   void fetch(`${Config.NODE_SERVER}/refresh-schedules`, { method: 'POST' });
@@ -18,8 +19,8 @@ const DEFAULT_TEXT = '${hour}点了!';
   level: LEVEL.ADMIN,
   info: "设置定时任务时间, '!scheduleTime xxx yyy' 来调用\nxxx为每日几时执行, 为数字, 例如 '6,7,8' '23', 区间0-23, 用逗号分隔\nyyy为周几执行, 可以不填, 默认为每天\n可设为 '每天' 或 'everyday', '工作日' 或 'weekday', '周末' 或 'weekend', 或用数字表示, 区间0-7, 用逗号分隔"
 })
-class ScheduleTime {
-  async run(params: string, body: CommandEvent) {
+class ScheduleTime extends GroupCommandBase {
+  async run(params: string, body: OB11GroupMessage) {
     const { group_id: groupId } = body;
     if (!params) {
       QQService.sendGroupMessage(groupId, '参数非法, 请输入必要参数');
@@ -41,7 +42,7 @@ class ScheduleTime {
     const { hours, days } = await ScheduleService.setSchedule(
       groupId,
       params,
-      currentSchedule ? currentSchedule.text : DEFAULT_TEXT
+      currentSchedule?.text ?? DEFAULT_TEXT
     );
     await refreshNodeSchedules();
     if (!currentSchedule) {

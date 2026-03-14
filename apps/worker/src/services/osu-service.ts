@@ -35,8 +35,8 @@ function uint8ArrayToBase64(arr: Uint8Array): string {
 }
 
 export interface OsuBoundInfo {
-  groupId?: string;
-  userId?: string;
+  groupId?: number;
+  userId?: number;
   osuId?: string;
   osuName?: string;
   mode?: number;
@@ -88,8 +88,8 @@ export default class OSUService {
   }
 
   async getOsuBind(
-    groupId: string | number,
-    userId: string | number
+    groupId: number,
+    userId: number
   ): Promise<Record<string, unknown> | null> {
     const row = await D1Service.first('SELECT * FROM osu_bind WHERE group_id = ? AND user_id = ?', [
       groupId,
@@ -99,8 +99,8 @@ export default class OSUService {
   }
 
   async setOsuBind(
-    groupId: string | number,
-    userId: string | number,
+    groupId: number,
+    userId: number,
     osuId: string | number,
     osuName: string,
     mode: number
@@ -113,8 +113,8 @@ export default class OSUService {
   }
 
   async deleteOsuBind(
-    groupId: string | number,
-    userId: string | number
+    groupId: number,
+    userId: number
   ): Promise<{ results: unknown[] }> {
     return D1Service.query('DELETE FROM osu_bind WHERE group_id = ? AND user_id = ?', [
       groupId,
@@ -166,16 +166,21 @@ export default class OSUService {
   }
 
   async getBoundInfo(
-    groupId: string | number,
-    userId: string | number
+    groupId: number,
+    userId: number
   ): Promise<OsuBoundInfo | null> {
     const meta = await this.getOsuBind(groupId, userId);
     if (meta) return objKeyToSmallCamel(meta as Record<string, unknown>) as OsuBoundInfo;
     return null;
   }
 
-  async getUserByName(osuName: string, mode = 0): Promise<Record<string, unknown> | string> {
-    const users = await this.fetch<Record<string, unknown>[]>(GET_USER_URL, {
+  async getUserByName(osuName: string, mode = 0) {
+    const users = await this.fetch<
+      {
+        user_id: string;
+        username: string;
+      }[]
+    >(GET_USER_URL, {
       u: osuName,
       type: 'string',
       mode
@@ -189,8 +194,8 @@ export default class OSUService {
   }
 
   async bindOSUId(
-    groupId: string | number,
-    userId: string | number,
+    groupId: number,
+    userId: number,
     osuName: string,
     mode = 0
   ): Promise<string> {
@@ -211,7 +216,7 @@ export default class OSUService {
     return message;
   }
 
-  async unBindOSUId(groupId: string | number, userId: string | number): Promise<string> {
+  async unBindOSUId(groupId: number, userId: number): Promise<string> {
     const isBind = await this.getBoundInfo(groupId, userId);
     if (!isBind) {
       const message = '未绑定任何账号, 无法解除绑定';
@@ -225,7 +230,7 @@ export default class OSUService {
   async getBP(
     userInfo: OsuBoundInfo,
     index: number
-  ): Promise<string | { playInfo: PlayInfo; mapInfo: Record<string, unknown> }> {
+  ): Promise<string | { playInfo: PlayInfo; mapInfo: MapInfo }> {
     const idx = index || 1;
     const playInfos = await this.fetch<PlayInfo[]>(GET_BP_URL, {
       u: userInfo.osuId,
@@ -241,7 +246,7 @@ export default class OSUService {
       return message;
     }
     const playInfo = playInfos.slice().reverse()[0]!;
-    const mapsInfo = await this.fetch<Record<string, unknown>[]>(GET_MAP_URL, {
+    const mapsInfo = await this.fetch<MapInfo[]>(GET_MAP_URL, {
       b: playInfo.beatmap_id
     });
     if (!mapsInfo?.length) {
@@ -256,7 +261,7 @@ export default class OSUService {
   async getRecent(
     userInfo: OsuBoundInfo,
     index: number
-  ): Promise<string | { playInfo: PlayInfo; mapInfo: Record<string, unknown> }> {
+  ): Promise<string | { playInfo: PlayInfo; mapInfo: MapInfo }> {
     const idx = index || 1;
     const playInfos = await this.fetch<PlayInfo[]>(GET_RECENT_URL, {
       u: userInfo.osuId,
@@ -272,7 +277,7 @@ export default class OSUService {
       return message;
     }
     const playInfo = playInfos.slice().reverse()[0]!;
-    const mapsInfo = await this.fetch<Record<string, unknown>[]>(GET_MAP_URL, {
+    const mapsInfo = await this.fetch<MapInfo[]>(GET_MAP_URL, {
       b: playInfo.beatmap_id
     });
     if (!mapsInfo?.length) {
@@ -359,7 +364,7 @@ export default class OSUService {
   async sendInfo(
     prefix: string,
     info: { playInfo: PlayInfo; mapInfo: MapInfo },
-    groupId: string | number
+    groupId: number
   ): Promise<void> {
     const ppInfo = await this.getPP(info);
     if (typeof ppInfo === 'string') {

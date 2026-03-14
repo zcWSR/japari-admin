@@ -1,25 +1,12 @@
+import type { D1Database } from '@cloudflare/workers-types/2023-07-01';
 import { getCloudflareContext } from '@opennextjs/cloudflare';
-
-/** D1 预处理语句（最小接口） */
-interface D1PreparedStatement {
-  bind(...params: unknown[]): D1PreparedStatement;
-  all(): Promise<{ results?: unknown[] }>;
-  first(): Promise<unknown>;
-  run(): Promise<unknown>;
-}
-
-/** 最小 D1 绑定接口 */
-interface D1DatabaseLike {
-  prepare(sql: string): D1PreparedStatement;
-}
 
 /**
  * 使用 Worker 的 D1 绑定，env 来自 getCloudflareContext().env。
  */
 class D1Service {
-  _getDB(): D1DatabaseLike {
-    const env = getCloudflareContext().env as { DB?: D1DatabaseLike } | undefined;
-    const db = env?.DB;
+  _getDB(): D1Database {
+    const db = getCloudflareContext().env.DB;
     if (!db) throw new Error('D1 DB binding not available (not running as Worker?)');
     return db;
   }

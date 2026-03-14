@@ -1,9 +1,14 @@
-import type { CommandMap } from '@/plugins/types';
 import QQService from '@/services/qq-service';
-import type { IncomingEvent, PluginPostType } from '@/types/onebot';
+import type { OB11Message } from '@/types/onebot11';
+import { isGroupMessage } from '@/utils/qq';
 import logger from '../utils/logger';
+import type { CommandBase, CommandMap, IncomingEvent, PluginBase, PluginPostType } from './types';
 
-type Class<TInstance extends object = object> = new (...args: any[]) => TInstance;
+type PluginClass<TInstance extends PluginBase = PluginBase> = new (...args: any[]) => TInstance;
+type CommandClass<TInstance extends CommandBase = CommandBase> = new (...args: any[]) => TInstance;
+type PluginDecoratorResult<TBase extends PluginClass> = new (
+  ...args: ConstructorParameters<TBase>
+) => InstanceType<TBase> & PluginConfig;
 
 /** @Plugin 的配置参数 */
 export interface PluginConfig {
@@ -17,13 +22,6 @@ export interface PluginConfig {
   mute?: boolean;
 }
 
-type PluginDecoratorResult<TBase extends Class> = new (
-  ...args: ConstructorParameters<TBase>
-) => InstanceType<TBase> &
-  PluginConfig & {
-    go(body: IncomingEvent, type: PluginPostType): Promise<undefined | 'break'>;
-  };
-
 const defaultPluginConfig: PluginConfig = {
   name: '',
   weight: 0,
@@ -35,13 +33,13 @@ const defaultPluginConfig: PluginConfig = {
   mute: false
 };
 
-export function Plugin(config: string | Partial<PluginConfig>) {
+export function Plugin(config: string | PluginConfig) {
   const merged: PluginConfig =
     typeof config === 'string'
       ? { ...defaultPluginConfig, name: config }
       : { ...defaultPluginConfig, ...config };
 
-  return <TBase extends Class>(target: TBase): PluginDecoratorResult<TBase> => {
+  return <TBase extends PluginClass>(target: TBase): PluginDecoratorResult<TBase> => {
     class PluginWrapped extends target {
       declare name: string;
       declare mute: boolean;
@@ -53,12 +51,10 @@ export function Plugin(config: string | Partial<PluginConfig>) {
         }
       }
 
-      go(body: IncomingEvent, type: PluginPostType): Promise<undefined | 'break'> {
+      go(body: IncomingEvent, type?: PluginPostType): Promise<void | 'break'> {
         if (!this.mute) logger.info(`plugin ${this.name} triggered`);
-        const proto = target.prototype as {
-          go?: (body: IncomingEvent, type: PluginPostType) => Promise<undefined | 'break'>;
-        };
-        return proto.go?.call(this, body, type) ?? Promise.resolve(undefined);
+        const proto = target.prototype;
+        return Promise.resolve(proto.go?.call(this, body, type));
       }
     }
 
@@ -76,7 +72,7 @@ export const LEVEL = {
 /** @Command 的配置参数 */
 export interface CommandConfig {
   name: string;
-  command: string;
+  command: string | string[];
   type?: 'all' | 'group' | 'private';
   info?: string;
   mute?: boolean;
@@ -99,7 +95,7 @@ type CommandRuntime = {
   ): Promise<unknown>;
 };
 
-type CommandDecoratorResult<TBase extends Class> = new (
+type CommandDecoratorResult<TBase extends CommandClass> = new (
   ...args: ConstructorParameters<TBase>
 ) => InstanceType<TBase> & CommandConfig & CommandRuntime;
 
@@ -122,9 +118,9 @@ export function Command(config: string | Partial<CommandConfig>) {
     merged = { ...merged, level: 1 };
   }
 
-  return <TBase extends Class>(target: TBase): CommandDecoratorResult<TBase> => {
+  return <TBase extends CommandClass>(target: TBase): CommandDecoratorResult<TBase> => {
     class CommandWrapped extends target {
-      declare command: string;
+      declare command: string | string[];
       declare mute: boolean;
       declare level: number;
       declare permissionDeniedNotice: string;
@@ -136,50 +132,31 @@ export function Command(config: string | Partial<CommandConfig>) {
         }
       }
 
-      sendNoPermissionMsg(
-        ctx: { group_id?: string | number; user_id?: string | number },
-        type: PluginPostType
-      ): void {
-        if (type === 'group' && ctx.group_id != null) {
-          QQService.sendGroupMessage(ctx.group_id, this.permissionDeniedNotice ?? '权限不足');
-          return;
-        }
-        if (type === 'private' && ctx.user_id != null) {
-          QQService.sendPrivateMessage(ctx.user_id, this.permissionDeniedNotice ?? '权限不足');
-        }
+      sendNoPermissionMsg(ctx: OB11Message, _type?: PluginPostType) {
+        QQService.sendMessage(ctx, this.permissionDeniedNotice ?? '权限不足');
       }
 
-      async trigger(
-        params: string,
-        body: IncomingEvent,
-        type: PluginPostType,
-        commandMap: CommandMap
-      ): Promise<unknown> {
+      run(params: string, body: OB11Message, commandMap: unknown) {
+        const proto = target.prototype as CommandBase;
+        return proto.run.call(this, params, body, commandMap);
+      }
+
+      async trigger(params: string, body: OB11Message, commandMap: CommandMap) {
         if (!this.mute) logger.info(`command '!${this.command}' triggered, params: ${params}`);
         if (this.level === 3) {
-          const uid = (body as { user_id?: string | number }).user_id;
-          if (uid == null || !QQService.isSuperAdmin(uid)) {
-            this.sendNoPermissionMsg(body as { group_id?: string | number; user_id?: string | number }, type);
+          if (!QQService.isSuperAdmin(body.user_id)) {
+            this.sendNoPermissionMsg(body);
             return;
           }
         } else if (this.level === 2) {
-          const b = body as { group_id?: string | number; user_id?: string | number };
-          if (b.group_id == null || b.user_id == null) return;
-          const userRole = await QQService.getGroupUserRole(b.group_id, b.user_id);
-          if (userRole !== 'owner' && userRole !== 'admin') {
-            QQService.sendGroupMessage(b.group_id, this.permissionDeniedNotice ?? '权限不足');
+          if (!isGroupMessage(body)) return;
+          const role = body.sender.role;
+          if (role !== 'owner' && role !== 'admin') {
+            QQService.sendGroupMessage(body.group_id, this.permissionDeniedNotice ?? '权限不足');
             return;
           }
         }
-        const proto = target.prototype as {
-          run?: (
-            params: string,
-            body: IncomingEvent,
-            type: PluginPostType,
-            commandMap: CommandMap
-          ) => Promise<unknown> | unknown;
-        };
-        return proto.run?.call(this, params, body, type, commandMap);
+        this.run(params, body, commandMap);
       }
     }
 

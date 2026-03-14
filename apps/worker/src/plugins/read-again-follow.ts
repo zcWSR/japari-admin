@@ -1,13 +1,19 @@
+import { PluginBase } from '@/decorators/types';
 import KVService from '@/services/kv-service';
 import QQService from '@/services/qq-service';
 import ReadAgainService from '@/services/read-again-service';
+import type { OB11GroupMessage, OB11Segment } from '@/types/onebot11';
 import { Plugin } from '../decorators/plugin';
 import logger from '../utils/logger';
 import { formatForLog, isSegmentEqual } from '../utils/message';
 import { sleep } from '../utils/process';
-import type { PluginEvent } from './types';
 
-const DEFAULT_GROUP_INFO = { message: null, count: 1 };
+type FollowState = {
+  message: OB11Segment[] | string | null;
+  count: number;
+};
+
+const DEFAULT_GROUP_INFO: FollowState = { message: null, count: 1 };
 
 @Plugin({
   name: 'read-again-follow',
@@ -18,20 +24,20 @@ const DEFAULT_GROUP_INFO = { message: null, count: 1 };
   default: true,
   mute: true
 })
-class ReadAgainFollow {
+class ReadAgainFollow extends PluginBase {
   // ==========================================
   // KV 数据操作
   // ==========================================
 
-  getStateKey(groupId) {
+  getStateKey(groupId: number) {
     return `read-again-follow-${groupId}`;
   }
 
-  async getState(groupId) {
+  async getState(groupId: number): Promise<FollowState | null> {
     return KVService.getJSON(this.getStateKey(groupId));
   }
 
-  async setState(groupId, state) {
+  async setState(groupId: number, state: FollowState) {
     return KVService.setJSON(this.getStateKey(groupId), state);
   }
 
@@ -40,7 +46,7 @@ class ReadAgainFollow {
   // ==========================================
 
   // 判断和前一条是否相似
-  isSimilar(a: OB11Segment[], b: OB11Segment[]) {
+  isSimilar(a: FollowState['message'], b: FollowState['message']) {
     try {
       // 兼容旧数据：如果存储的是字符串或 null
       if (!a || !b) return false;
@@ -62,7 +68,7 @@ class ReadAgainFollow {
           return false;
         }
         // 文字段：相似度比较
-        if (segA.type === 'text') {
+        if (segA.type === 'text' && segB.type === 'text') {
           return ReadAgainService.similar(segA.data.text || '', segB.data.text || '');
         }
         // 非文字段（image/at/face/record 等）：全等比较 data
@@ -75,7 +81,7 @@ class ReadAgainFollow {
     }
   }
 
-  async go(body: PluginEvent) {
+  async go(body: OB11GroupMessage) {
     const { group_id: groupId, message } = body;
     let groupInfo = (await this.getState(groupId)) || DEFAULT_GROUP_INFO;
     if (!this.isSimilar(groupInfo.message, message)) {

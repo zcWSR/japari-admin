@@ -1,8 +1,9 @@
+import { GroupCommandBase } from '@/decorators/types';
 import KVService from '@/services/kv-service';
 import QQService from '@/services/qq-service';
+import type { OB11GroupMessage } from '@/types/onebot11';
 import Config from '../../config';
 import { Command, LEVEL } from '../../decorators/plugin';
-import type { CommandEvent, CommandMap, PluginEvent, PluginPostTypeLike } from '../types';
 
 const ADMIN_TOKEN_KEY_PREFIX = 'admin-token:';
 const TTL = 300; // 5 分钟
@@ -14,8 +15,8 @@ const TTL = 300; // 5 分钟
   info: '获取管理后台一次性配置链接（5 分钟内有效），仅群管可用',
   level: LEVEL.ADMIN
 })
-class SettingCommand {
-  async run(_params: string, body: CommandEvent) {
+class SettingCommand extends GroupCommandBase {
+  async run(_params: string, body: OB11GroupMessage) {
     const { group_id: groupId, user_id: adminId } = body;
     const token = crypto.randomUUID();
     await KVService.setJSON(

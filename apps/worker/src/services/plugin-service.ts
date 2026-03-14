@@ -1,4 +1,4 @@
-import type { IPlugin, PluginPostType } from '@/types/onebot';
+import type { PluginBase, PluginPostType } from '@/decorators/types';
 import { ensurePluginsLoaded } from '../lib/ensure-plugins';
 import { plugins as pluginList } from '../plugins/registry';
 import logger from '../utils/logger';
@@ -12,7 +12,7 @@ type PluginCategory = 'loader' | 'group' | 'private' | 'notice';
 export type GroupConfigMap = Record<string, boolean>;
 
 class PluginService {
-  plugins: Record<PluginCategory, IPlugin[]> = {
+  plugins: Record<PluginCategory, PluginBase[]> = {
     loader: [],
     group: [],
     private: [],
@@ -23,7 +23,7 @@ class PluginService {
   defaultGroupConfig: string[] = [];
   privateConfigs: Record<string, boolean> = {};
 
-  getConfigKey(groupId: number | string): string {
+  getConfigKey(groupId: number): string {
     return `${GROUP_PLUGIN_CONFIG_KEY}-${groupId}`;
   }
 
@@ -47,18 +47,18 @@ class PluginService {
   }
 
   /** 删除群配置（超管在群列表删除用），并清除内存缓存 */
-  async deleteGroupConfig(groupId: string): Promise<boolean> {
+  async deleteGroupConfig(groupId: number): Promise<boolean> {
     const key = this.getConfigKey(groupId);
     const ok = await KVService.delete(key);
     delete this.groupConfigs[groupId];
     return ok;
   }
 
-  sortByWeight(pluginA: IPlugin, pluginB: IPlugin): number {
+  sortByWeight(pluginA: PluginBase, pluginB: PluginBase): number {
     return (pluginB.weight ?? 0) - (pluginA.weight ?? 0);
   }
 
-  classifyPlugin(plugin: IPlugin): void {
+  classifyPlugin(plugin: PluginBase): void {
     if (plugin.type === 'message' || plugin.type === 'private') {
       logger.debug(`category is '${plugin.type}', load into private plugin list`);
       this.plugins.private.push(plugin);
@@ -81,7 +81,7 @@ class PluginService {
     }
   }
 
-  async initSerial(plugins: IPlugin[]): Promise<void> {
+  async initSerial(plugins: PluginBase[]): Promise<void> {
     for (const plugin of plugins) {
       if (plugin.init) {
         logger.debug('init plugin');
@@ -108,8 +108,7 @@ class PluginService {
   async loadPlugins(): Promise<void> {
     logger.info('======== start load plugin ========');
     for (const P of pluginList) {
-      const plugin: IPlugin =
-        typeof P === 'function' ? new (P as unknown as new () => IPlugin)() : (P as IPlugin);
+      const plugin: PluginBase = new P();
       if (!plugin?.name) {
         logger.warn('invalid plugin in registry, skip');
         continue;
@@ -123,12 +122,12 @@ class PluginService {
     await this.loadPrivatePluginConfig();
   }
 
-  async getPlugins(postType: PluginPostType): Promise<IPlugin[]> {
+  async getPlugins(postType: PluginPostType): Promise<PluginBase[]> {
     await ensurePluginsLoaded();
     return this.plugins[postType] ?? [];
   }
 
-  async getGroupAndNoticePlugins(): Promise<{ group: IPlugin[]; notice: IPlugin[] }> {
+  async getGroupAndNoticePlugins(): Promise<{ group: PluginBase[]; notice: PluginBase[] }> {
     await ensurePluginsLoaded();
     return { group: this.plugins.group, notice: this.plugins.notice };
   }
@@ -170,17 +169,14 @@ class PluginService {
     await this.saveGroupPluginConfig(groupId, groupConfigList);
   }
 
-  async getConfig(
-    type: PluginPostType,
-    event: { group_id?: string }
-  ): Promise<GroupConfigMap | Record<string, boolean> | null> {
+  async getConfig(type: PluginPostType, event: { group_id?: number }) {
     await ensurePluginsLoaded();
     const groupId = event.group_id;
     switch (type) {
       case 'notice':
-        return groupId ? this.getGroupConfig(Number(groupId)) : this.privateConfigs;
+        return groupId ? this.getGroupConfig(groupId) : this.privateConfigs;
       case 'group':
-        return groupId ? this.getGroupConfig(Number(groupId)) : null;
+        return groupId ? this.getGroupConfig(groupId) : null;
       case 'private':
         return this.privateConfigs;
       default:

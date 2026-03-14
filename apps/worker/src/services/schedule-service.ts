@@ -15,10 +15,10 @@ const DAY_NAME_MAP: Record<number, string> = {
 };
 
 export interface ScheduleRow {
-  group_id?: string;
-  rule?: string;
-  text?: string;
-  updated_at?: number;
+  group_id: number;
+  rule: string;
+  text: string;
+  updated_at: number;
 }
 
 interface ParsedRule {
@@ -32,7 +32,7 @@ class ScheduleService {
     return D1Service.all('SELECT * FROM schedules') as Promise<ScheduleRow[]>;
   }
 
-  async getScheduleByGroupId(groupId: string | number): Promise<ScheduleRow | null> {
+  async getScheduleByGroupId(groupId: number): Promise<ScheduleRow | null> {
     const row = await D1Service.first('SELECT * FROM schedules WHERE group_id = ?', [
       String(groupId)
     ]);
@@ -40,7 +40,7 @@ class ScheduleService {
   }
 
   async saveSchedule(
-    groupId: string | number,
+    groupId: number,
     rule: string,
     text: string
   ): Promise<{ results: unknown[] }> {
@@ -51,7 +51,7 @@ class ScheduleService {
     );
   }
 
-  async deleteSchedule(groupId: string | number): Promise<{ results: unknown[] }> {
+  async deleteSchedule(groupId: number): Promise<{ results: unknown[] }> {
     return D1Service.query('DELETE FROM schedules WHERE group_id = ?', [String(groupId)]);
   }
 
@@ -59,7 +59,7 @@ class ScheduleService {
     return this.getAllSchedules();
   }
 
-  getScheduleName(groupId: string | number): string {
+  getScheduleName(groupId: number): string {
     return `s-${groupId}`;
   }
 
@@ -107,16 +107,13 @@ class ScheduleService {
       .replace(/\$\{day\}/g, DAY_NAME_MAP[day] ?? '');
   }
 
-  sendText(groupId: string | number, text: string): void {
+  sendText(groupId: number, text: string): void {
     const formattedText = this.formatText(text);
     logger.info(`auto sendText to ${String(groupId)} ${formattedText}`);
     QQService.sendGroupMessage(groupId, formattedText);
   }
 
-  parseSchedule(
-    _groupId: string | number,
-    ruleString: string
-  ): { hours: number[]; days: number[] } {
+  parseSchedule(_groupId: number, ruleString: string): { hours: number[]; days: number[] } {
     const { hours, days } = this.getRuleFromString(ruleString);
     return { hours, days };
   }
@@ -128,7 +125,7 @@ class ScheduleService {
   cancelSchedule(_id: string): void {}
 
   async setSchedule(
-    groupId: string | number,
+    groupId: number,
     rule: string,
     text: string
   ): Promise<{ hours: number[]; days: number[] }> {
@@ -138,12 +135,12 @@ class ScheduleService {
     return { hours, days };
   }
 
-  async removeSchedule(groupId: string | number): Promise<number> {
+  async removeSchedule(groupId: number): Promise<number> {
     await this.deleteSchedule(groupId);
     return 0;
   }
 
-  async triggerSendForGroup(groupId: string | number): Promise<void> {
+  async triggerSendForGroup(groupId: number): Promise<void> {
     const row = await this.getScheduleByGroupId(groupId);
     if (!row?.text) return;
     const formattedText = this.formatText(row.text);

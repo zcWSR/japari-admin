@@ -1,10 +1,11 @@
+import { PluginBase } from '@/decorators/types';
 import KVService from '@/services/kv-service';
 import QQService from '@/services/qq-service';
+import type { OB11GroupMessage } from '@/types/onebot11';
 import { Plugin } from '../decorators/plugin';
 import logger from '../utils/logger';
 import { formatForLog } from '../utils/message';
 import { sleep } from '../utils/process';
-import type { CommandEvent, CommandMap, PluginEvent, PluginPostTypeLike } from './types';
 
 // 默认随机复读频率 5%
 const DEFAULT_RATE = 0.05;
@@ -18,20 +19,22 @@ const DEFAULT_RATE = 0.05;
   default: true,
   mute: true
 })
-class ReadAgainRandom {
+class ReadAgainRandom extends PluginBase {
   // ==========================================
   // KV 数据操作
   // ==========================================
 
-  getRateKey(groupId) {
+  getRateKey(groupId: number) {
     return `read-again-random-${groupId}`;
   }
 
-  async getRate(groupId) {
-    return KVService.get(this.getRateKey(groupId));
+  async getRate(groupId: number) {
+    const rateString = await KVService.get(this.getRateKey(groupId));
+    if (!rateString) return 0;
+    return Number.parseFloat(rateString);
   }
 
-  async setRate(groupId, rate) {
+  async setRate(groupId: number, rate: number) {
     return KVService.set(this.getRateKey(groupId), String(rate));
   }
 
@@ -39,7 +42,7 @@ class ReadAgainRandom {
   // 业务逻辑
   // ==========================================
 
-  async go(body: PluginEvent) {
+  async go(body: OB11GroupMessage) {
     const { message, group_id: groupId } = body;
     const randomRate = Math.random();
     const groupRate = await this.getGroupRandomRate(groupId);
@@ -48,12 +51,11 @@ class ReadAgainRandom {
       await sleep();
       // 直接透传消息段数组
       QQService.sendGroupMessage(groupId, message);
-      return 'block';
+      return 'break';
     }
-    return null;
   }
 
-  async getGroupRandomRate(groupId) {
+  async getGroupRandomRate(groupId: number) {
     let randomRate = await this.getRate(groupId);
     if (!randomRate) {
       randomRate = DEFAULT_RATE;

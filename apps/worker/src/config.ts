@@ -32,7 +32,7 @@ interface CachedConfigShape {
   NET_EAST_MUSIC_SERVER?: string;
   AKHR_UPDATE_SERVER?: string;
   ADMINS: number[];
-  BOT_QQ_ID?: number;
+  BOT_QQ_ID: number;
   NODE_SERVER: string;
   HOST_BASE_URL: string;
   MANAGE_SESSION_TTL_NORMAL: number;
@@ -52,8 +52,6 @@ function getCachedConfig(env: EnvLike): CachedConfigShape {
   const ttlNormal = Number.isFinite(ttlNormalRaw) && ttlNormalRaw > 0 ? ttlNormalRaw : 600;
   const ttlAdmin = Number.isFinite(ttlAdminRaw) && ttlAdminRaw > 0 ? ttlAdminRaw : 3600;
 
-  const botIdRaw = fromEnv(env, 'BOT_QQ_ID', '');
-
   const cachedConfig: CachedConfigShape = {
     ENVIRONMENT: fromEnv(env, 'ENVIRONMENT', 'local'),
     OSU_APP_KEY: fromEnv(env, 'OSU_APP_KEY'),
@@ -61,7 +59,7 @@ function getCachedConfig(env: EnvLike): CachedConfigShape {
     NET_EAST_MUSIC_SERVER: fromEnv(env, 'NET_EAST_MUSIC_SERVER'),
     AKHR_UPDATE_SERVER: fromEnv(env, 'AKHR_UPDATE_SERVER'),
     ADMINS: fromEnvArray(env, 'ADMINS', []),
-    BOT_QQ_ID: botIdRaw ? Number(botIdRaw) : undefined,
+    BOT_QQ_ID: Number(fromEnv(env, 'BOT_QQ_ID')),
     NODE_SERVER: fromEnv(env, 'NODE_SERVER', '').replace(/\/$/, ''),
     HOST_BASE_URL: fromEnv(env, 'HOST_BASE_URL', '').replace(/\/$/, ''),
     MANAGE_SESSION_TTL_NORMAL: ttlNormal,
@@ -72,15 +70,12 @@ function getCachedConfig(env: EnvLike): CachedConfigShape {
   return cachedConfig;
 }
 
-const NULL_BINDINGS = new Set(['CF', 'R2', 'D1', 'KV']);
-
 /**
  * 从当前请求的 CF env 读取配置（wrangler [vars] / .dev.vars），统一用 getCloudflareContext().env。
  * 同一请求内按 env 引用缓存，只解析一次。
  */
 const Config = new Proxy<CachedConfigShape>({} as CachedConfigShape, {
   get(_: any, prop: string) {
-    if (NULL_BINDINGS.has(prop)) return null;
     const c = getCachedConfig(getCloudflareContext().env as EnvLike);
     return (c as unknown as Record<string, unknown>)[prop];
   }

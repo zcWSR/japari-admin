@@ -1,17 +1,13 @@
 import axios, { type AxiosError } from 'axios';
+import { PluginBase } from '@/decorators/types';
 import KVService from '@/services/kv-service';
 import QQService from '@/services/qq-service';
-import type {
-  OB11GroupMessage,
-  OB11Message,
-  OB11PrivateMessage,
-  OB11Segment
-} from '@/types/onebot11';
+import type { OB11Message, OB11Segment } from '@/types/onebot11';
+import { isGroupMessage } from '@/utils/qq';
 import Config from '../config';
 import { Plugin } from '../decorators/plugin';
 import logger from '../utils/logger';
 import { extractFirstText } from '../utils/message';
-import type { CommandEvent, PluginPostTypeLike } from './types';
 
 const commandPrefixList = ['点歌', '来一首', '我想听'];
 
@@ -45,7 +41,7 @@ type MusicCommand = {
   default: true,
   mute: true
 })
-class NetEastMusic {
+class NetEastMusic extends PluginBase {
   // ==========================================
   // KV 数据操作
   // ==========================================
@@ -106,15 +102,12 @@ class NetEastMusic {
     return false;
   }
 
-  async canSearch(body: OB11Message, type: PluginPostTypeLike) {
+  async canSearch(body: OB11Message) {
     if (Config.ADMINS.includes(body.user_id)) {
       return true;
     }
     try {
-      const id =
-        type === 'group'
-          ? (body as OB11GroupMessage).group_id
-          : (body as OB11PrivateMessage).user_id;
+      const id = isGroupMessage(body) ? body.group_id : body.user_id;
       const [firstTimeString, countString] = ((await this.getTimeout(id)) || ',').split(',');
       const nowDateTime = Date.now();
       const firstTime = +firstTimeString || nowDateTime;
@@ -227,11 +220,7 @@ class NetEastMusic {
     return shiftedSong.id;
   }
 
-  async doSearch(
-    { keyword, suffix, shiftCount }: MusicCommand,
-    body: OB11Message,
-    type: PluginPostTypeLike
-  ) {
+  async doSearch({ keyword, suffix, shiftCount }: MusicCommand, body: OB11Message) {
     try {
       let id = suffix !== 'clear' ? await this.checkKeywordCache(keyword) : null;
       // if (!id && suffix) {
@@ -242,10 +231,9 @@ class NetEastMusic {
       }
       if (id && suffix && suffix !== 'clear') {
         logger.info(`searching music which ${suffix} ${shiftCount} current id`);
-        this.sendMessage(
-          `正在查询当前关键词搜索结果的${SUFFIX_TEXT_TEMPLATE_MAP[suffix](shiftCount!)}...`,
+        QQService.sendMessage(
           body,
-          type
+          `正在查询当前关键词搜索结果的${SUFFIX_TEXT_TEMPLATE_MAP[suffix](shiftCount!)}...`
         );
       }
       if (!id || suffix) {
@@ -270,58 +258,39 @@ class NetEastMusic {
     }
   }
 
-  sendMessage(msg: string, body: CommandEvent, type: PluginPostTypeLike) {
-    if (type === 'group') {
-      QQService.sendGroupMessage((body as OB11GroupMessage).group_id, msg);
-    }
-    if (type === 'private') {
-      QQService.sendPrivateMessage(body.user_id, msg);
-    }
-  }
-
-  sendMusic(id: string | number, body: CommandEvent, type: PluginPostTypeLike) {
-    if (type === 'group') {
-      QQService.sendGroupMusic((body as OB11GroupMessage).group_id, id);
-    }
-    if (type === 'private') {
-      QQService.sendPrivateMusic(body.user_id, id);
-    }
-  }
-
-  async go(body: OB11Message, type: PluginPostTypeLike) {
+  async go(body: OB11Message) {
     if (Config.NET_EAST_MUSIC_SERVER) {
-      this.sendMessage('未配置网易云音乐接口', body, type);
+      QQService.sendMessage(body, '未配置网易云音乐接口');
       return 'break';
     }
-    const { message } = body;
-    const c = this.isCommand(message);
+    const c = this.isCommand(body.message);
     if (!c) return; // 不是指令，直接跳过流程
     logger.info(`163-music triggered, params: ${JSON.stringify(c)}`);
     if (!c.keyword) {
-      this.sendMessage('非法参数', body, type);
+      QQService.sendMessage(body, '非法参数');
       return 'break';
     }
     if (c.shiftCount > 9) {
-      this.sendMessage('超出最大偏移量, 最多偏移九位', body, type);
+      QQService.sendMessage(body, '超出最大偏移量, 最多偏移九位');
       return 'break';
     }
     if (c.shiftCount === 0) {
-      this.sendMessage('偏移0位和不偏移有啥区别呢?', body, type);
+      QQService.sendMessage(body, '偏移0位和不偏移有啥区别呢?');
       // 假装无事发生
       c.suffix = undefined;
       c.shiftCount = 0;
     }
-    if (await this.canSearch(body, type)) {
-      const id = await this.doSearch(c, body, type);
+    if (await this.canSearch(body)) {
+      const id = await this.doSearch(c, body);
       if (!id || Number.isNaN(+id)) {
         logger.info(`an error occurred: ${id}`);
-        this.sendMessage('非法 id', body, type);
+        QQService.sendMessage(body, '非法 id');
       } else {
         logger.info(`send music with id: ${id}`);
-        this.sendMusic(id, body, type);
+        QQService.sendMusic(body, id);
       }
     } else {
-      this.sendMessage(`每分钟最多可点${MAX_COUNT_PRE_MINUTE}首, 请稍后重试`, body, type);
+      QQService.sendMessage(body, `每分钟最多可点${MAX_COUNT_PRE_MINUTE}首, 请稍后重试`);
     }
     return 'break';
   }

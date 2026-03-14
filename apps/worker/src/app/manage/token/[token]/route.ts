@@ -44,12 +44,12 @@ export async function GET(
     return Response.redirect(new URL('/manage/token?error=invalid', request.url), 302);
   }
 
-  const member = await QQService.getGroupMemberInfo(groupId, qq);
-  if ('error' in member) {
-    const reason = member.error === 'member_not_found' ? 'not_found' : 'service_error';
+  const member = await QQService.getGroupMemberInfo(Number(groupId), Number(qq)).catch(() => null);
+  if (!member) {
+    const reason = 'not_found';
     return Response.redirect(new URL(`/manage/token?error=${reason}`, request.url), 302);
   }
-  if (member.data.role !== 'admin' && member.data.role !== 'owner') {
+  if (member.role !== 'admin' && member.role !== 'owner') {
     return Response.redirect(new URL('/manage/token?error=forbidden', request.url), 302);
   }
 
@@ -67,7 +67,7 @@ export async function GET(
       adminId: qq,
       qq,
       isAdminToken,
-      displayName: member.data.card || member.data.nickname || qq,
+      displayName: member.card || member.nickname || qq,
       avatarUrl: getAvatarUrl(qq),
       ttlSeconds,
       expiresAt,
@@ -82,7 +82,7 @@ export async function GET(
     groupId,
     holderSessionId: sessionToken,
     holderQq: qq,
-    holderName: member.data.card || member.data.nickname || qq
+    holderName: member.card || member.nickname || qq
   });
   if ('error' in lock) {
     await KVService.delete(getSessionKey(sessionToken));

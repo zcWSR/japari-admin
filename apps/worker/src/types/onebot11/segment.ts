@@ -253,7 +253,7 @@ export interface DirectNodeSegment extends Segment {
 export interface CustomNodeSegments extends Segment {
   type: 'node';
   data: {
-    user_id: string;
+    user_id: number;
     nickname: string;
     content: OB11Segment[];
     prompt?: string;

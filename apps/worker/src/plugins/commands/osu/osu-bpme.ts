@@ -1,7 +1,8 @@
+import { GroupCommandBase } from '@/decorators/types';
 import OSUService from '@/services/osu-service';
 import QQService from '@/services/qq-service';
-import { Command } from '../../decorators/plugin';
-import type { CommandEvent, CommandMap, PluginEvent, PluginPostTypeLike } from '../types';
+import type { OB11GroupMessage } from '@/types/onebot11';
+import { Command } from '../../../decorators/plugin';
 
 @Command({
   name: '查看osu!所绑定账号的bp',
@@ -9,8 +10,8 @@ import type { CommandEvent, CommandMap, PluginEvent, PluginPostTypeLike } from '
   type: 'group',
   info: "查看所绑定账号的bp, '!bpme 第几bp'来调用, 第几bp不传默认为第一bp, 如: '!bpme 2' 或 '!bpme'"
 })
-class OSUBpMe {
-  async run(params: string, body: CommandEvent) {
+class OSUBpMe extends GroupCommandBase {
+  async run(params: string, body: OB11GroupMessage) {
     const { group_id: groupId, user_id: userId } = body;
     params = (params || '1').trim();
     const index = Number.parseInt(params, 10);

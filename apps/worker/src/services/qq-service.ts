@@ -1,24 +1,34 @@
 import axios from 'axios';
 import type { IncomingEvent, PluginPostType } from '@/types/onebot';
-import type {
+import {
   Action,
-  GetGroupInfo,
-  GetGroupMemberInfo,
-  OB11Segment,
-  RequestResponse
+  type OB11Message,
+  type OB11Segment,
+  type Params,
+  type Request
 } from '@/types/onebot11';
+import { isGroupMessage } from '@/utils/qq';
 import Config from '../config';
 import { formatShangHaiTime } from '../utils/date';
 import { isDev } from '../utils/env';
 import logger from '../utils/logger';
-import { formatForLog, type MessageInput } from '../utils/message';
+import { formatForLog, image, music, text } from '../utils/message';
 import { sleep } from '../utils/process';
+
+export type AllOB11RequestKeys = keyof Request;
+export type AllOBRequestValues = Request[AllOB11RequestKeys];
+
+export interface RequestResponse<T extends Action> {
+  status: 'ok' | 'async' | 'failed';
+  retcode: number;
+  data: Request[T];
+}
 
 type AuthLevel = 'owner' | 'admin';
 
 interface CapturedSentItem {
   type: string;
-  id: string;
+  id: number;
   message: OB11Segment[] | string;
 }
 
@@ -28,14 +38,14 @@ class QQService {
 
   constructor() {
     if (isDev()) {
-      this.sendGroupMessage = (groupId: string | number, msg: MessageInput) => {
-        this._pushSent('group', String(groupId), msg);
+      this.sendGroupMessage = (groupId: number, msg: OB11Segment[]) => {
+        this._pushSent('group', groupId, msg);
         logger.debug(`===== send to group ${groupId}`);
         logger.debug(formatForLog(msg));
         logger.debug('===== done');
       };
-      this.sendPrivateMessage = (userId: string | number, msg: MessageInput) => {
-        this._pushSent('private', String(userId), msg);
+      this.sendPrivateMessage = (userId: number, msg: OB11Segment[]) => {
+        this._pushSent('private', userId, msg);
         logger.debug(`===== send to user ${userId}`);
         logger.debug(formatForLog(msg));
         logger.debug('===== done');
@@ -43,7 +53,15 @@ class QQService {
     }
   }
 
-  _pushSent(type: string, id: string, message: OB11Segment[] | string): void {
+  async request<K extends Action>(action: K, params: Params[K]): Promise<Request[K]> {
+    const res = await axios.post<RequestResponse<K>>(`${Config.QQ_SERVER}/${action}`, params);
+    if (res.data.status === 'failed') {
+      throw new Error(`request ${action} failed: ${res.data.retcode}`);
+    }
+    return res.data.data;
+  }
+
+  _pushSent(type: string, id: number, message: OB11Segment[] | string): void {
     if (!this._captureSent) return;
     this._captureSent.push({ type, id, message });
   }
@@ -60,167 +78,106 @@ class QQService {
     return out;
   }
 
-  async getGroupList(): Promise<RequestResponse<Action.getGroupList>> {
-    const list = await axios.post<RequestResponse<Action.getGroupList>>(
-      `${Config.QQ_SERVER}/get_group_list`
-    );
-    return list.data;
+  getGroupList() {
+    return this.request(Action.getGroupList, {});
   }
 
-  isSuperAdmin(userId: string | number): boolean {
-    return Config.ADMINS.includes(Number(userId));
+  isSuperAdmin(userId: number) {
+    return Config.ADMINS.includes(userId);
   }
 
-  async isGroupOwner(groupId: string | number, userId: string | number): Promise<boolean> {
-    return (await this.getGroupUserRole(groupId, userId)) === 'owner';
+  async getGroupMemberInfo(groupId: number, userId: number, noCache = false) {
+    return this.request(Action.getGroupMemberInfo, {
+      group_id: groupId,
+      user_id: userId,
+      no_cache: noCache
+    });
   }
 
-  async isGroupAdminOrOwner(groupId: string | number, userId: string | number): Promise<boolean> {
-    const role = await this.getGroupUserRole(groupId, userId);
+  async isGroupOwner(groupId: number, userId: number) {
+    return (await this.getGroupMemberInfo(groupId, userId)).role === 'owner';
+  }
+
+  async isGroupAdminOrOwner(groupId: number, userId: number): Promise<boolean> {
+    const role = (await this.getGroupMemberInfo(groupId, userId)).role;
     return role === 'admin' || role === 'owner';
   }
 
-  async getGroupUserRole(
-    groupId: string | number,
-    userId: string | number
-  ): Promise<GetGroupMemberInfo['role'] | null> {
-    try {
-      const meta = await axios.post<RequestResponse<Action.getGroupMemberInfo>>(
-        `${Config.QQ_SERVER}/get_group_member_info`,
-        { group_id: groupId, user_id: userId }
-      );
-      const memberInfo = meta.data?.data;
-      if (!memberInfo || memberInfo.user_id == null) return null;
-      return memberInfo.role ?? null;
-    } catch (e) {
-      logger.error(`get group(${groupId}) user(${userId}) role error`);
-      logger.error(e);
-      return null;
-    }
+  getGroupInfo(groupId: number) {
+    return this.request(Action.getGroupInfo, { group_id: groupId });
   }
 
-  async getGroupMemberInfo(
-    groupId: string | number,
-    userId: string | number,
-    noCache = false
-  ): Promise<{ data: GetGroupMemberInfo } | { error: 'member_not_found' | 'service_error' }> {
-    try {
-      const meta = await axios.post<RequestResponse<Action.getGroupMemberInfo>>(
-        `${Config.QQ_SERVER}/get_group_member_info`,
-        { group_id: groupId, user_id: userId, no_cache: noCache }
-      );
-      const memberInfo = meta.data?.data;
-      if (!memberInfo || memberInfo.user_id == null) {
-        return { error: 'member_not_found' };
-      }
-      logger.debug(`get group(${groupId}) user(${userId}) member info:`, memberInfo);
-      return { data: memberInfo };
-    } catch (e) {
-      logger.error(`get group(${groupId}) user(${userId}) member info error`);
-      logger.error(e);
-      return { error: 'service_error' };
-    }
+  sendPrivateMessage(userId: number, message: OB11Segment[] | string): void {
+    const msg: OB11Segment[] = Array.isArray(message) ? message : text(message);
+    this._pushSent('private', userId, msg);
+    this.request(Action.sendPrivateMsg, {
+      user_id: userId,
+      message: msg
+    });
   }
 
-  async getGroupUserName(
-    groupId: string | number,
-    userId: string | number,
-    noCache = false
-  ): Promise<string | null> {
-    try {
-      const meta = await axios.post<RequestResponse<Action.getGroupMemberInfo>>(
-        `${Config.QQ_SERVER}/get_group_member_info`,
-        { group_id: groupId, user_id: userId, no_cache: noCache }
-      );
-      const memberInfo = meta.data?.data;
-      return memberInfo?.nickname ?? null;
-    } catch (e) {
-      logger.error(`get group(${groupId}) user(${userId}) name error`);
-      logger.error(e);
-      return null;
-    }
-  }
-
-  /** NapCat/OneBot get_group_info，返回群名等 */
-  async getGroupInfo(groupId: string | number): Promise<GetGroupInfo | null> {
-    try {
-      const meta = await axios.post<RequestResponse<Action.getGroupInfo>>(
-        `${Config.QQ_SERVER}/get_group_info`,
-        { group_id: groupId }
-      );
-      const data = meta.data?.data;
-      return data ?? null;
-    } catch (e) {
-      logger.error(`get group(${groupId}) info error`);
-      logger.error(e);
-      return null;
-    }
-  }
-
-  sendPrivateMessage(userId: string | number, message: MessageInput): void {
-    const msg: OB11Segment[] =
-      typeof message === 'string' ? [{ type: 'text', data: { text: message } }] : message;
-    this._pushSent('private', String(userId), msg);
-    axios.post(`${Config.QQ_SERVER}/send_private_msg`, { user_id: userId, message: msg });
-  }
-
-  sendPrivateMusic(userId: string | number, musicId: string | number): void {
-    this.sendPrivateMessage(userId, [
-      {
-        type: 'music',
-        data: { type: '163', id: String(musicId) }
-      }
-    ]);
+  sendPrivateMusic(userId: number, musicId: string): void {
+    this.sendPrivateMessage(userId, music(musicId));
   }
 
   sendPrivateImage(
-    userId: string | number,
+    userId: number,
     dataUrl: string,
     option: { isBase64?: boolean } = { isBase64: false }
   ): void {
-    this.sendPrivateMessage(userId, [
-      {
-        type: 'image',
-        data: { file: option.isBase64 ? `base64://${dataUrl}` : dataUrl }
-      }
-    ]);
+    this.sendPrivateMessage(userId, image(dataUrl, option.isBase64));
   }
 
-  sendGroupMessage(groupId: string | number, message: MessageInput): void {
-    const msg: OB11Segment[] =
-      typeof message === 'string' ? [{ type: 'text', data: { text: message } }] : message;
-    this._pushSent('group', String(groupId), msg);
-    axios.post(`${Config.QQ_SERVER}/send_group_msg`, { group_id: groupId, message: msg });
+  sendGroupMessage(groupId: number, message: OB11Segment[] | string): void {
+    const msg: OB11Segment[] = Array.isArray(message)
+      ? message
+      : [{ type: 'text', data: { text: message } }];
+    typeof message === 'string' ? [{ type: 'text', data: { text: message } }] : message;
+    this._pushSent('group', groupId, msg);
+    this.request(Action.sendGroupMsg, {
+      group_id: groupId,
+      message: msg
+    });
   }
 
   sendGroupImage(
-    groupId: string | number,
+    groupId: number,
     dataUrl: string,
     option: { isBase64?: boolean } = { isBase64: false }
   ): void {
-    this.sendGroupMessage(groupId, [
-      {
-        type: 'image',
-        data: { file: option.isBase64 ? `base64://${dataUrl}` : dataUrl }
-      }
-    ]);
+    this.sendGroupMessage(groupId, image(dataUrl, option.isBase64));
   }
 
-  sendGroupMusic(groupId: string | number, musicId: string | number): void {
-    this.sendGroupMessage(groupId, [
-      {
-        type: 'music',
-        data: { type: '163', id: String(musicId) }
-      }
-    ]);
+  sendGroupMusic(groupId: number, musicId: string): void {
+    this.sendGroupMessage(groupId, music(musicId));
   }
 
-  banGroupUser(groupId: string | number, userId: string | number, duration: number): void {
-    axios.post(`${Config.QQ_SERVER}/set_group_ban`, {
-      group_id: groupId,
-      user_id: userId,
-      duration
-    });
+  sendMessage(incomingMessage: OB11Message, msg: OB11Segment[] | string): void {
+    if (isGroupMessage(incomingMessage)) {
+      this.sendGroupMessage(incomingMessage.group_id, msg);
+    } else {
+      this.sendPrivateMessage(incomingMessage.user_id, msg);
+    }
+  }
+
+  sendMusic(incomingMessage: OB11Message, musicId: string): void {
+    if (isGroupMessage(incomingMessage)) {
+      this.sendGroupMusic(incomingMessage.group_id, musicId);
+    } else {
+      this.sendPrivateMusic(incomingMessage.user_id, musicId);
+    }
+  }
+
+  sendImage(
+    incomingMessage: OB11Message,
+    dataUrl: string,
+    option: { isBase64?: boolean } = { isBase64: false }
+  ): void {
+    if (isGroupMessage(incomingMessage)) {
+      this.sendGroupImage(incomingMessage.group_id, dataUrl, option);
+    } else {
+      this.sendPrivateImage(incomingMessage.user_id, dataUrl, option);
+    }
   }
 
   /**
@@ -243,25 +200,22 @@ class QQService {
     await this.sendAdminsMessage(message);
   }
 
-  async sendAdminsMessage(message: MessageInput): Promise<void> {
+  async sendAdminsMessage(message: OB11Segment[] | string): Promise<void> {
     for (const admin of Config.ADMINS) {
       await this.sendPrivateMessage(admin, message);
       await sleep();
     }
   }
 
-  authCheckFuncMap: Record<
-    AuthLevel,
-    (g: string | number, u: string | number) => Promise<boolean>
-  > = {
+  authCheckFuncMap: Record<AuthLevel, (g: number, u: number) => Promise<boolean>> = {
     owner: this.isGroupOwner.bind(this),
     admin: this.isGroupAdminOrOwner.bind(this)
   };
 
   async checkRateWithMessage(
     rate: number,
-    groupId: string | number,
-    userId: string | number,
+    groupId: number,
+    userId: number,
     min = 0,
     max = 1,
     rateNeedAuth = 0.5,

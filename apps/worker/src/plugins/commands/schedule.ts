@@ -1,8 +1,9 @@
+import { GroupCommandBase } from '@/decorators/types';
 import QQService from '@/services/qq-service';
 import ScheduleService from '@/services/schedule-service';
+import type { OB11GroupMessage } from '@/types/onebot11';
 import Config from '../../config';
 import { Command, LEVEL } from '../../decorators/plugin';
-import type { CommandEvent, CommandMap, PluginEvent, PluginPostTypeLike } from '../types';
 
 async function refreshNodeSchedules() {
   void fetch(`${Config.NODE_SERVER}/refresh-schedules`, { method: 'POST' });
@@ -16,8 +17,8 @@ async function refreshNodeSchedules() {
   // biome-ignore lint/suspicious/noTemplateCurlyInString: ignore
   info: "设置定时显示文字内容, '!schedule 内容' 来调用\n内容不写为查看当前配置\n'!schedule clear' 为清除当前配置\n提供参数 year month date day hour minute second, 用${xxx}来插入"
 })
-class Schedule {
-  async run(params: string, body: CommandEvent) {
+class Schedule extends GroupCommandBase {
+  async run(params: string, body: OB11GroupMessage) {
     const { group_id: groupId } = body;
     const currentSchedule = await ScheduleService.getScheduleByGroupId(groupId);
     if (currentSchedule) {

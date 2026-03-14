@@ -6,7 +6,6 @@ import newNotice from './new-notice';
 import readAgainFollow from './read-again-follow';
 import readAgainRandom from './read-again-random';
 import selfIgnore from './self-ignore';
-import type { CommandEvent, CommandMap, PluginEvent, PluginPostTypeLike } from './types';
 
 export const plugins = [
   commandRunner,

@@ -38,6 +38,15 @@ export function at(qq: string | number): OB11Segment[] {
   return [{ type: 'at', data: { qq: String(qq) } }];
 }
 
+/** 构建表情消息段 */
+export function face(id: string): OB11Segment[] {
+  return [{ type: 'face', data: { id } }];
+}
+
+export function music(id: string): OB11Segment[] {
+  return [{ type: 'music', data: { type: '163', id } }];
+}
+
 /** 合并多个消息段数组 */
 export function concat(...segments: OB11Segment[][]): OB11Segment[] {
   return segments.flat();

@@ -17,13 +17,13 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
-type GroupItem = { groupId: string };
+type GroupItem = { groupId: number };
 
 export default function OpGroupsPage() {
   const [groups, setGroups] = useState<GroupItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [forbidden, setForbidden] = useState(false);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
   const load = useCallback(() => {
@@ -41,7 +41,7 @@ export default function OpGroupsPage() {
     load();
   }, [load]);
 
-  const handleDelete = async (groupId: string) => {
+  const handleDelete = async (groupId: number) => {
     setActionError(null);
     setDeletingId(groupId);
     const r = await deleteGroupConfig(groupId);

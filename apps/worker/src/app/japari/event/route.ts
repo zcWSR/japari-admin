@@ -3,9 +3,9 @@
  */
 
 import type { NextRequest } from 'next/server';
+import type { IncomingEvent } from '@/decorators/types';
 import PluginService from '@/services/plugin-service';
 import QQService from '@/services/qq-service';
-import type { IncomingEvent, IPlugin } from '@/types/onebot';
 import { notifyAdminsOfError } from '@/utils/notify-admin-error';
 
 export async function POST(request: NextRequest) {
@@ -16,14 +16,13 @@ export async function POST(request: NextRequest) {
       return Response.json({});
     }
     const plugins = await PluginService.getPlugins(type);
-    const config = await PluginService.getConfig(type, fromBot as { group_id: string });
-    if (!config) {
+    const configMap = await PluginService.getConfig(type, fromBot as { group_id?: number });
+    if (!configMap) {
       return Response.json({});
     }
-    const configMap = config as Record<string, boolean>;
     for (const plugin of plugins) {
       if (!configMap[plugin.name]) continue;
-      const result = await (plugin as IPlugin).go?.(fromBot, type);
+      const result = await plugin.go(fromBot);
       if (result === 'break') break;
     }
     return Response.json({});

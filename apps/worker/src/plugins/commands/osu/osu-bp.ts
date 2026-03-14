@@ -1,7 +1,8 @@
+import { GroupCommandBase } from '@/decorators/types';
 import OSUService from '@/services/osu-service';
 import QQService from '@/services/qq-service';
-import { Command } from '../../decorators/plugin';
-import type { CommandEvent, CommandMap, PluginEvent, PluginPostTypeLike } from '../types';
+import type { OB11GroupMessage } from '@/types/onebot11';
+import { Command } from '../../../decorators/plugin';
 
 @Command({
   name: '查询osu! bp',
@@ -12,26 +13,25 @@ import type { CommandEvent, CommandMap, PluginEvent, PluginPostTypeLike } from '
   模式代码: (0 = osu!, 1 = Taiko, 2 = CtB, 3 = osu!mania)
   例子: !bp zcWSR,2,3  !bp zcWSR`
 })
-class OSUBp {
-  async run(params: string, body: CommandEvent) {
+class OSUBp extends GroupCommandBase {
+  async run(params: string, body: OB11GroupMessage) {
     const { group_id: groupId } = body;
     if (!params) {
       QQService.sendGroupMessage(groupId, "缺少查询参数, 使用'!help bp'查看调用方式");
       return;
     }
     params = params.replace('，', ',');
-    params = params.split(',');
-    const osuName = params[0];
+    const [osuName, bpIndexString, modeString] = params.split(',');
     if (!osuName) {
       QQService.sendGroupMessage(groupId, '非法参数, 请输入玩家昵称');
       return;
     }
-    const bpIndex = Number.parseInt(params[1] || 1, 10);
+    const bpIndex = Number.parseInt(bpIndexString || '1', 10);
     if (bpIndex > 20 || bpIndex < 0) {
       QQService.sendGroupMessage(groupId, '非法参数, 仅支持bp查询范围#1-#20, 请重试');
       return;
     }
-    const mode = Number.parseInt(params[2] || 0, 10);
+    const mode = Number.parseInt(modeString || '0', 10);
     if (mode !== 0 && mode !== 2 && mode !== 1 && mode !== 3) {
       QQService.sendGroupMessage(groupId, '非法参数, 请不要写不存在的模式谢谢');
       return;
@@ -44,7 +44,7 @@ class OSUBp {
     const bpInfo = await OSUService.getInstance().getBP(
       {
         osuName: userInfo.username,
-        osuId: +userInfo.user_id,
+        osuId: userInfo.user_id,
         mode
       },
       bpIndex

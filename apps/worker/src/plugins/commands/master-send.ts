@@ -1,6 +1,7 @@
+import { PrivateCommandBase } from '@/decorators/types';
 import QQService from '@/services/qq-service';
+import type { OB11PrivateMessage } from '@/types/onebot11';
 import { Command, LEVEL } from '../../decorators/plugin';
-import type { CommandEvent, CommandMap, PluginEvent, PluginPostTypeLike } from '../types';
 
 @Command({
   name: 'masterSend',
@@ -9,8 +10,8 @@ import type { CommandEvent, CommandMap, PluginEvent, PluginPostTypeLike } from '
   level: LEVEL.SUPER_ADMIN,
   info: '操作 bot 说话'
 })
-class MasterSend {
-  async run(params: string, body: CommandEvent) {
+class MasterSend extends PrivateCommandBase {
+  async run(params: string, body: OB11PrivateMessage) {
     const match = params.match(/(group|private)(\d+)[\s|\n](.*)$/);
     if (!match) {
       QQService.sendPrivateMessage(body.user_id, '非法参数');
@@ -19,11 +20,9 @@ class MasterSend {
     const [, type, id, msg] = match;
     if (!msg) return;
     if (type === 'private') {
-      QQService.sendPrivateMessage(id, msg);
+      QQService.sendPrivateMessage(Number(id), msg);
     } else if (type === 'group') {
-      QQService.sendGroupMessage(id, msg);
-    } else {
-      QQService.sendPrivateMessage(body.user_id, '非法参数');
+      QQService.sendGroupMessage(Number(id), msg);
     }
   }
 }

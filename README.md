@@ -1,3 +1,5 @@
+
+
 <h1 align="center">
   <br>
   <br>
@@ -56,7 +58,9 @@
 
 ## 安装
 
-需要安装 sqlite3
+1. 安装依赖: `npm install`
+2. 启动服务: `npm start`
+   如需开发调试，可运行 `npm run start:dev`
 
 ## License
 
